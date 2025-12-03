@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { BRAND, COMPANY_INFO, EXTERNAL_LINKS } from "@/lib/constants";
+import { 
+  // BRAND, 
+  COMPANY_INFO, 
+  // EXTERNAL_LINKS 
+} from "@/lib/constants";
 
 export function Footer() {
   return (
