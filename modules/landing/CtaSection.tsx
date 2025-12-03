@@ -48,7 +48,7 @@ export function CtaSection() {
 
   return (
     <section className="pt-[54px] pb-[58px]" ref={sectionRef}>
-      <div className="container-landing max-w-[1200px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         <div className="text-center mb-12">
           <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">스마트한 고객 채팅</h5>
           <h2 className="text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">소통의 속도를 높여, 고객 만족을 극대화하세요.</h2>

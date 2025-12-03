@@ -89,7 +89,7 @@ export function FeaturesSection() {
 
   return (
     <section className="py-20" ref={sectionRef}>
-      <div className="container-landing max-w-[1200px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         <div className="flex justify-center items-center gap-[200px] mb-[52px]">
           <div className="text-left">
             <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3 leading-[1]">
