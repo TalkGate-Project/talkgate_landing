@@ -1,6 +1,30 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 export function CtaSection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
   const features = [
     {
       icon: '/images/cta-1.svg',
@@ -23,7 +47,7 @@ export function CtaSection() {
   ];
 
   return (
-    <section className="pt-[54px] pb-[58px]">
+    <section className="pt-[54px] pb-[58px]" ref={sectionRef}>
       <div className="container-landing max-w-[1200px] mx-auto">
         <div className="text-center mb-12">
           <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">스마트한 고객 채팅</h5>
@@ -34,7 +58,11 @@ export function CtaSection() {
           {/* Left: Feature List */}
           <ul className="flex flex-col gap-[66px]">
             {features.map((feature, index) => (
-              <li key={index} className="flex items-start gap-8">
+              <li 
+                key={index} 
+                className={`flex items-start gap-8 cta-feature-item ${isVisible ? 'animate' : ''}`}
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
                 <div className="bg-primary-60 rounded-[12px] w-[60px] h-[60px] flex items-center justify-center flex-shrink-0">
                   <Image
                     src={feature.icon}
@@ -55,21 +83,21 @@ export function CtaSection() {
 
           {/* Right: Visual */}
           <div
-            className="relative w-full lg:w-[706px] h-[479px] rounded-2xl overflow-hidden flex-shrink-0"
+            className={`relative w-full lg:w-[706px] h-[479px] rounded-2xl overflow-hidden flex-shrink-0 cta-chat-container ${isVisible ? 'animate' : ''}`}
             style={{
               background:
                 'linear-gradient(180deg, rgba(173, 246, 210, 0.15) 0%, rgba(0, 226, 114, 0.15) 150.96%)',
             }}
           >
             <Image
-              className="absolute -bottom-[72px] left-10 z-0"
+              className={`absolute -bottom-[72px] left-10 z-0 cta-chat-bg ${isVisible ? 'animate' : ''}`}
               src="/images/cta-4.png"
               alt="채팅 인터페이스"
               width={606}
               height={407}
             />
             <Image
-              className="absolute top-1/2 right-3 -translate-y-1/2 z-10"
+              className={`absolute top-1/2 right-3 -translate-y-1/2 z-10 cta-chat-panel ${isVisible ? 'animate' : ''}`}
               src="/images/cta-5.png"
               alt="고객 정보 패널"
               width={262}

@@ -1,8 +1,33 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
 
 export function SecuritySection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="flex justify-center">
+    <section className="flex justify-center" ref={sectionRef}>
       <div className="w-full max-w-[1170px]">
         <div className="mb-11">
           <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">
@@ -13,7 +38,7 @@ export function SecuritySection() {
           </h2>
         </div>
         <ul className="flex h-[394px] gap-6">
-          <li className="flex-1">
+          <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`}>
             <div className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden">
               <label className="w-full block text-[20px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] text-center !mb-5 z-10">
                 보안 및 개인정보 보호
@@ -43,7 +68,7 @@ export function SecuritySection() {
               />
             </div>
           </li>
-          <li className="flex-1">
+          <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.15s' }}>
             <div className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden">
               <label className="w-full block text-[20px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] text-center !mb-5">
                 계정·권한 보안
@@ -71,7 +96,7 @@ export function SecuritySection() {
               />
             </div>
           </li>
-          <li className="flex-1">
+          <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.3s' }}>
             <div className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden">
               <label className="w-full block text-[20px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] text-center !mb-5">
                 데이터 암호화 및 보호

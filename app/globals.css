@@ -910,6 +910,230 @@ body {
   }
 }
 
+/* ============================================
+   CTA Section Animations
+   ============================================ */
+
+/* Feature 리스트 아이템: 순차적으로 나타남 */
+.cta-feature-item {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.cta-feature-item.animate {
+  animation: ctaFeatureSlideIn 0.6s ease-out forwards;
+}
+
+@keyframes ctaFeatureSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 채팅 컨테이너: 켜지면서 확장되는 느낌 */
+.cta-chat-container {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.cta-chat-container.animate {
+  animation: ctaChatOpen 0.7s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes ctaChatOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 채팅 배경: 페이드인만 (위치 유지) */
+.cta-chat-bg {
+  opacity: 0;
+}
+
+.animate .cta-chat-bg {
+  animation: ctaChatBgFade 0.6s ease-out forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes ctaChatBgFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 고객 정보 패널: 페이드인만 (위치 유지) */
+.cta-chat-panel {
+  opacity: 0;
+}
+
+.animate .cta-chat-panel {
+  animation: ctaChatPanelFade 0.6s ease-out forwards;
+  animation-delay: 0.7s;
+}
+
+@keyframes ctaChatPanelFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   Customer Feature Section Animations
+   ============================================ */
+
+/* 왼쪽 이미지: 페이드인 */
+.customer-image {
+  opacity: 0;
+}
+
+.customer-image.animate {
+  animation: customerImageFade 0.6s ease-out forwards;
+}
+
+@keyframes customerImageFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 오른쪽 컨텐츠: 아래에서 슬라이드업 */
+.customer-content {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.customer-content.animate {
+  animation: customerContentSlide 0.6s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes customerContentSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   Introduce Status Section Animations
+   ============================================ */
+
+/* 왼쪽 카드: 왼쪽에서 슬라이드 */
+.status-card-left {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.status-card-left.animate {
+  animation: statusCardLeftSlide 0.7s ease-out forwards;
+}
+
+@keyframes statusCardLeftSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 오른쪽 카드: 오른쪽에서 슬라이드 */
+.status-card-right {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.status-card-right.animate {
+  animation: statusCardRightSlide 0.7s ease-out forwards;
+  animation-delay: 0.15s;
+}
+
+@keyframes statusCardRightSlide {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   Security Section Animations
+   ============================================ */
+
+/* 보안 카드: 순차적으로 아래에서 슬라이드업 */
+.security-card {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.security-card.animate {
+  animation: securityCardSlide 0.6s ease-out forwards;
+}
+
+@keyframes securityCardSlide {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   Final CTA Section Animations
+   ============================================ */
+
+/* CTA 버튼: 살짝 늦게 페이드인 */
+.final-cta-buttons {
+  opacity: 0;
+}
+
+.final-cta-buttons.animate {
+  animation: finalCtaButtonsFade 0.6s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes finalCtaButtonsFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Hero Image Animation Options */
 
 /* Option 1: Fade + Slide Up (우아함, 추천) */

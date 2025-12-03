@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
 
 export function FeaturesSection() {
-  const [isVisible, setIsVisible] = useState(true);  // 테스트용: true로 변경
+  const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

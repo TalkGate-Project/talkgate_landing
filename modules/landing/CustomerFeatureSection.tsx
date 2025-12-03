@@ -1,15 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type Tab = "list" | "info";
 
 export function CustomerFeatureSection() {
   const [activeTab, setActiveTab] = useState<Tab>("list");
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section className="py-20">
+    <section className="py-20" ref={sectionRef}>
       <div className="max-w-[1200px] mx-auto">
         <div className="mb-16">
           <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">
@@ -21,7 +42,7 @@ export function CustomerFeatureSection() {
 
           <div className="w-full flex flex-col lg:flex-row gap-8 items-start">
             {/* Left Tab Area */}
-            <div className="flex-1 w-full lg:w-auto">
+            <div className={`flex-1 w-full lg:w-auto customer-image ${isVisible ? 'animate' : ''}`}>
               {activeTab === "list" ? (
                 <Image
                   src="/images/customer-feature-list.png"
@@ -40,7 +61,7 @@ export function CustomerFeatureSection() {
             </div>
 
             {/* Right Content Area */}
-            <div className="flex-1 w-full h-[424px] flex flex-col justify-center">
+            <div className={`flex-1 w-full h-[424px] flex flex-col justify-center customer-content ${isVisible ? 'animate' : ''}`}>
               <div className="w-[368px] h-[56px] relative inline-flex bg-neutral-20 rounded-full ml-[94px]">
                 {/* Sliding Background Indicator */}
                 <div
