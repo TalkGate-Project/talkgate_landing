@@ -73,7 +73,7 @@
   --neutral-90: var(--neutral-light-90);
   --neutral-100: var(--neutral-light-100);
 
-  --background: var(--neutral-light-10);
+  --background: var(--neutral-light-0);
   --foreground: var(--neutral-light-90);
   --card: var(--neutral-light-0);
   --muted: var(--neutral-light-10);
@@ -209,8 +209,8 @@
   --color-danger: var(--danger);
 
   /* Typography (font families) */
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-en: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", system-ui, sans-serif;
 
   /* Semantic text sizes + line-heights */
   --text-h1: 42px;
@@ -321,6 +321,11 @@ body {
 
 @utility typo-caption-1 { @apply text-caption-1 leading-caption-1 font-medium; }
 @utility typo-caption-2 { @apply text-caption-2 leading-caption-2 font-normal; }
+
+/* Plus Jakarta Sans 영문 폰트 유틸리티 */
+@utility font-en {
+  font-family: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", system-ui, sans-serif;
+}
 
 /* Landing page specific typography (larger sizes) */
 .typo-hero {
