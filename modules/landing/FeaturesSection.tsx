@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
 
 export function FeaturesSection() {
-  const [isVisible, setIsVisible] = useState(true);  // 테스트용: true로 변경
+  const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,13 +89,13 @@ export function FeaturesSection() {
 
   return (
     <section className="py-20" ref={sectionRef}>
-      <div className="container-landing max-w-[1200px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         <div className="flex justify-center items-center gap-[200px] mb-[52px]">
           <div className="text-left">
-            <h5 className="text-primary-60 typo-title-1 mb-4">
+            <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3 leading-[1]">
               통합된 관리 플랫폼
             </h5>
-            <h2 className="typo-h1">
+            <h2 className="text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">
               하나로 연결하여,
               <br />
               스마트하게 관리합니다.
