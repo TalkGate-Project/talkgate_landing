@@ -3,7 +3,7 @@ import { getStartUrl } from '@/lib/auth';
 
 export function FinalCtaSection() {
   return (
-    <section className="flex justify-center px-6">
+    <section className="flex justify-center mt-6 px-6">
       <div className="w-full max-w-[1170px] ">
         <div
           className="rounded-3xl px-[82px] py-16 h-[224px] flex flex-col lg:flex-row items-center justify-between gap-8"
