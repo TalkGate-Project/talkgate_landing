@@ -74,13 +74,13 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
                   typo-body-sm transition-colors font-medium
                   ${
                     isActive
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                      ? "text-[#808080]"
+                      : "text-[#252525]"
                   }
                   ${
                     item.disabled
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:text-foreground"
+                      : "hover:text-[#808080]"
                   }
                 `}
                   aria-disabled={item.disabled}
