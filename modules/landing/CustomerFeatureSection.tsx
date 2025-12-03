@@ -10,7 +10,7 @@ export function CustomerFeatureSection() {
 
   return (
     <section className="py-20">
-      <div className="container-landing">
+      <div className="">
         <div className="text-center mb-16">
           <h5 className="text-primary-60 typo-title-1 mb-4">
             효율적인 고객 목록 관리

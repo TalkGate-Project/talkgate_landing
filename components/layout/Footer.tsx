@@ -4,7 +4,7 @@ import { BRAND, COMPANY_INFO, EXTERNAL_LINKS } from '@/lib/constants';
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
-      <div className="container-landing py-12">
+      <div className="py-12">
         {/* Company Info */}
         <div className="text-center text-sm text-muted-foreground space-y-2">
           <p>

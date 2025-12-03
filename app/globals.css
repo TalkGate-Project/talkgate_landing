@@ -265,6 +265,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Reset for common elements (Tailwind utilities have higher priority) */
+body, h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote {
   margin: 0;
   padding: 0;
 }
@@ -345,15 +349,6 @@ body {
    Layout Utilities
    ============================================ */
 
-.container-landing {
-  width: 100%;
-  max-width: var(--container-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--container-padding-x);
-  padding-right: var(--container-padding-x);
-}
-
 .container-hero {
   width: 100%;
   max-width: var(--container-max-width-xl);
@@ -366,6 +361,7 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  overflow: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -395,9 +391,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 600;
   border-radius: var(--radius-md);
   transition: all 150ms ease;
   cursor: pointer;
@@ -445,6 +442,24 @@ body {
 
 .btn-ghost:hover:not(:disabled) {
   background: var(--muted);
+}
+
+.btn-dark {
+  background: #252525;
+  color: #ffffff;
+}
+
+.btn-dark:hover:not(:disabled) {
+  background: #171717;
+}
+
+.btn-white {
+  background: #ffffff;
+  color: #252525;
+}
+
+.btn-white:hover:not(:disabled) {
+  background: #f5f5f5;
 }
 
 /* Card */
@@ -770,3 +785,203 @@ body {
 .animate-delay-3 { animation-delay: 0.3s; }
 .animate-delay-4 { animation-delay: 0.4s; }
 .animate-delay-5 { animation-delay: 0.5s; }
+
+/* ============================================
+   Feature Section Animations
+   ============================================ */
+
+/* 메인 이미지: 아래에서 위로 슬라이드 (초기 상태) */
+.feature-slide-up-left {
+  opacity: 0;
+  transform: translateY(54px);  /* 14px + 40px */
+  transform-origin: bottom left;
+}
+
+.animate .feature-slide-up-left {
+  animation: featureSlideUpLeft 0.7s ease-out forwards;
+}
+
+.feature-slide-up-center {
+  opacity: 0;
+  transform: translateY(40px);
+  transform-origin: bottom center;
+}
+
+.animate .feature-slide-up-center {
+  animation: featureSlideUpCenter 0.7s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+.feature-slide-up-right {
+  opacity: 0;
+  transform: translateY(63px);  /* 23px + 40px */
+  transform-origin: bottom right;
+}
+
+.animate .feature-slide-up-right {
+  animation: featureSlideUpRight 0.7s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes featureSlideUpLeft {
+  from {
+    opacity: 0;
+    transform: translateY(54px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(14px);  /* 최종 위치 */
+  }
+}
+
+@keyframes featureSlideUpCenter {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes featureSlideUpRight {
+  from {
+    opacity: 0;
+    transform: translateY(63px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(23px);  /* 최종 위치 */
+  }
+}
+
+/* 플로팅 뱃지: 뾱! 하고 나타나서 둥둥 떠다님 (초기 상태) */
+.feature-floating-badge {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.animate .feature-floating-badge {
+  animation: 
+    badgePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    badgeFloat 3s ease-in-out 0.5s infinite;
+}
+
+.feature-floating-badge-delayed {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.animate .feature-floating-badge-delayed {
+  animation: 
+    badgePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    badgeFloatReverse 3s ease-in-out 1s infinite;  /* 역방향 */
+  animation-delay: 0.5s;  /* 0.5초 늦게 시작 */
+}
+
+@keyframes badgePop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes badgeFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1);
+  }
+}
+
+/* 역방향 플로팅 (4번과 반대로 움직임) */
+@keyframes badgeFloatReverse {
+  0%, 100% {
+    transform: translateY(-8px) scale(1);  /* 시작을 위에서 */
+  }
+  50% {
+    transform: translateY(0) scale(1);  /* 중간에 아래로 */
+  }
+}
+
+/* Hero Image Animation Options */
+
+/* Option 1: Fade + Slide Up (우아함, 추천) */
+.hero-image-wrapper {
+  animation: heroSlideUp 0.9s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@keyframes heroSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Option 2: Blur to Clear (신선함) - 사용하려면 위 코드 교체 */
+/* .hero-image-wrapper {
+  animation: heroBlurIn 1s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+  filter: blur(10px);
+}
+
+@keyframes heroBlurIn {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+} */
+
+/* Option 3: Scale + Slide Up (역동적) - 사용하려면 위 코드 교체 */
+/* .hero-image-wrapper {
+  animation: heroScaleSlide 0.9s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+  transform: scale(0.96) translateY(20px);
+  transform-origin: bottom center;
+}
+
+@keyframes heroScaleSlide {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+} */
+
+/* Option 4: Fade Only (심플) - 사용하려면 위 코드 교체 */
+/* .hero-image-wrapper {
+  animation: heroFadeIn 0.8s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+} */

@@ -46,7 +46,7 @@ const CASE_STUDIES: CaseStudy[] = [
 export default function CasePage() {
   return (
     <section className="py-20">
-      <div className="container-landing">
+      <div className="">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="typo-h1 mb-4">

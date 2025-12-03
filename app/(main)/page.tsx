@@ -14,6 +14,8 @@ import Link from "next/link";
 import { getStartUrl } from "@/lib/auth";
 import { BRAND } from "@/lib/constants";
 import Image from "next/image";
+import { HeroSection } from "@/modules/landing/HeroSection";
+import { FeaturesSection } from "@/modules/landing/FeaturesSection";
 import { CustomerFeatureSection } from "@/modules/landing/CustomerFeatureSection";
 import { IntroduceStatusSection } from "@/modules/landing/IntroduceStatusSection";
 import { SecuritySection } from "@/modules/landing/SecuritySection";
@@ -23,83 +25,14 @@ export default function MainPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="py-20">
-        <div className="container-hero text-center">
-          <h1 className="typo-hero font-en max-w-4xl mx-auto">
-            All your business
-            <br />
-            workflows in one place.
-          </h1>
+      <HeroSection />
 
-          <p className="typo-body text-muted-foreground mt-6 max-w-2xl mx-auto">
-            {BRAND.description}
-          </p>
-
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href={getStartUrl()} className="btn btn-primary">
-              시작하기
-            </Link>
-            <Link href="/case" className="btn btn-secondary">
-              사례 보기
-            </Link>
-          </div>
-
-          {/* Dashboard Preview Placeholder */}
-          <div className="mt-16 max-w-4xl mx-auto">
-            <div className="aspect-[16/10] rounded-xl border border-border bg-card shadow-xl flex items-center justify-center">
-              <span className="text-muted-foreground">
-                [대시보드 미리보기 이미지]
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section - Placeholder */}
-      <section className="py-20">
-        <div className="container-landing">
-          <div className="text-center mb-16">
-            <h5 className="text-primary-60 typo-h5 mb-4">통합된 관리 플랫폼</h5>
-            <h2 className="typo-h1">
-              하나로 연결하여,
-              <br />
-              스마트하게 관리합니다.
-            </h2>
-          </div>
-
-          {/* Feature Cards Placeholder */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: "놓치지 않는 신규 고객 관리",
-                description: "모든 채널의 고객 문의를 한 곳에서 관리하세요.",
-              },
-              {
-                title: "협업에 보는 전체 정보의 공유",
-                description: "팀원 모두가 같은 고객 정보를 공유합니다.",
-              },
-              {
-                title: "언제 어디서든 바로 확인 가능",
-                description: "모바일에서도 실시간으로 확인하세요.",
-              },
-            ].map((feature, index) => (
-              <div key={index} className="card p-6">
-                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
-                  <span className="text-muted-foreground">[Icon]</span>
-                </div>
-                <h3 className="typo-h4 mb-2">{feature.title}</h3>
-                <p className="typo-body-sm text-muted-foreground">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Features Section */}
+      <FeaturesSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-muted">
-        <div className="container-landing text-center">
+        <div className="text-center">
           <h5 className="text-primary-60 typo-h5">스마트한 고객 채팅</h5>
           <h2 className="typo-h2 mb-4">
             소통의 속도를 높여, 고객 만족을 극대화하세요.

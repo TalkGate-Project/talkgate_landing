@@ -1,7 +1,7 @@
 export function SecuritySection() {
     return (
-        <section className="py-20">
-            <div className="container-landing">
+        <section className="flex justify-center">
+            <div className="w-full max-w-[1170px]">
                 <div className="text-center mb-16">
                     <h5 className="text-primary-60 typo-title-1 mb-4">
                     안전한 데이터 관리 체계

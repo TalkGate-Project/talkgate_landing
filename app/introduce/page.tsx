@@ -27,7 +27,7 @@ export default function IntroducePage() {
     <>
       {/* Hero Section */}
       <section className="py-20">
-        <div className="container-landing">
+        <div className="">
           {/* Main Visual */}
           <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 p-8 md:p-16 text-white mb-16">
             <div className="max-w-xl">
@@ -68,7 +68,7 @@ export default function IntroducePage() {
 
       {/* Mission Section */}
       <section className="py-20 bg-background">
-        <div className="container-landing">
+        <div className="">
           <h2 className="typo-h1 mb-8">Our Mission</h2>
 
           <div className="max-w-3xl">
@@ -94,7 +94,7 @@ export default function IntroducePage() {
 
       {/* Story Section */}
       <section className="py-20">
-        <div className="container-landing">
+        <div className="">
           <h2 className="typo-h1 mb-12">Our Story</h2>
 
           <div className="space-y-6">

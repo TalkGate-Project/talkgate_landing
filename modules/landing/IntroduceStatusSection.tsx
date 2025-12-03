@@ -3,7 +3,7 @@ import Image from "next/image";
 export function IntroduceStatusSection() {
   return (
     <section className="py-20">
-      <div className="container-landing">
+      <div className="">
         <div className="text-center mb-16">
           <h5 className="text-primary-60 typo-title-1 mb-4">
             데이터 기반의 통계

@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function NotFound() {
   return (
     <section className="py-20">
-      <div className="container-landing text-center">
+      <div className="text-center">
         <h1 className="typo-hero text-muted-foreground mb-4">404</h1>
         <h2 className="typo-h2 mb-4">페이지를 찾을 수 없습니다</h2>
         <p className="typo-body text-muted-foreground mb-8">

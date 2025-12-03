@@ -80,7 +80,7 @@ export const BRAND = {
   name: 'Talkgate',
   tagline: 'All your business workflows in one place.',
   description:
-    '고객의 고객데이터 기반 CRM, 상담 관리, 상담 이력 관리 등 전화, 카카오톡, 채널톡, 구글 비즈니스 프로필, 네이버 톡톡 등 다양한 고객 소통 채널을 하나로 연결하여 스마트하게 관리합니다.',
+    '흩어진 고객 데이터, 채팅, 성과 지표를 실시간으로 통합하여,\n놓치지 말아야 할 성장의 순간을 포착하세요.',
 } as const;
 
 // ============================================
