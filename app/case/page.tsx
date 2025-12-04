@@ -11,19 +11,7 @@ export const metadata: Metadata = {
 
 /**
  * 고객 성공 사례 데이터
- * 
- * @description
  * 실제 운영 환경에서는 API 또는 CMS에서 데이터를 가져옵니다.
- * 
- * @example API 연동
- * ```typescript
- * async function getCaseStudies(): Promise<CaseStudy[]> {
- *   const response = await fetch('/api/case-studies', {
- *     next: { revalidate: 3600 } // 1시간 캐시
- *   });
- *   return response.json();
- * }
- * ```
  */
 const CASE_STUDIES: CaseStudy[] = [
   {
@@ -90,10 +78,7 @@ const CASE_STUDIES: CaseStudy[] = [
 
 /**
  * 성공 케이스 페이지
- * 
- * @description
- * 고객들의 Talkgate 도입 성공 사례를 소개하는 페이지입니다.
- * 정렬 기능이 포함된 인터랙티브한 UI를 제공합니다.
+ * 고객들의 Talkgate 도입 성공 사례를 소개합니다.
  */
 export default function CasePage() {
   return (
@@ -111,7 +96,7 @@ export default function CasePage() {
           </p>
         </div>
 
-        {/* Case List with Sort - Suspense로 감싸서 로딩 상태 처리 */}
+        {/* Case List with Sort */}
         <Suspense fallback={<CaseListSkeleton />}>
           <CaseListSection caseStudies={CASE_STUDIES} />
         </Suspense>

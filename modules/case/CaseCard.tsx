@@ -25,7 +25,7 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
       {/* Content */}
       <div>
         <h3 className="h-[48px] text-[16px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] !mb-[5px] group-hover:text-[#808080] transition-colors">
-          <span className="">{caseStudy.tag}</span> {caseStudy.title}
+          <span>{caseStudy.tag}</span> {caseStudy.title}
         </h3>
         <p className="text-[16px] leading-[1.5] tracking-[-0.02em] text-[#595959] line-clamp-3">
           {caseStudy.summary}
@@ -34,4 +34,3 @@ export function CaseCard({ caseStudy }: CaseCardProps) {
     </article>
   );
 }
-
