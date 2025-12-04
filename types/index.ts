@@ -69,6 +69,17 @@ export interface CaseStudy {
   publishedAt: string;
   /** 조회수 */
   viewCount?: number;
+  /** 상세 페이지 메인 이미지 */
+  detailImageUrl?: string;
+  /** 상세 페이지 섹션들 */
+  sections?: CaseStudySection[];
+}
+
+export interface CaseStudySection {
+  /** 섹션 제목 */
+  title: string;
+  /** 섹션 내용 */
+  content: string;
 }
 
 export type CaseSortOption = 'all' | 'date' | 'views';

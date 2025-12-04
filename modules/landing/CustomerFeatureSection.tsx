@@ -9,6 +9,7 @@ export function CustomerFeatureSection() {
   const [activeTab, setActiveTab] = useState<Tab>("list");
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -28,6 +29,37 @@ export function CustomerFeatureSection() {
 
     return () => observer.disconnect();
   }, []);
+
+  // 자동 탭 전환 (7초마다)
+  useEffect(() => {
+    const startAutoSwitch = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      intervalRef.current = setInterval(() => {
+        setActiveTab((prev) => (prev === "list" ? "info" : "list"));
+      }, 7000);
+    };
+
+    startAutoSwitch();
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  const handleTabClick = (tab: Tab) => {
+    setActiveTab(tab);
+    // 수동 클릭 시 타이머 리셋
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(() => {
+      setActiveTab((prev) => (prev === "list" ? "info" : "list"));
+    }, 7000);
+  };
 
   return (
     <section className="py-20" ref={sectionRef}>
@@ -76,7 +108,7 @@ export function CustomerFeatureSection() {
 
                 {/* Tab Buttons */}
                 <button
-                  onClick={() => setActiveTab("list")}
+                  onClick={() => handleTabClick("list")}
                   className={`cursor-pointer relative z-10 w-[180px] h-[56px] rounded-full font-semibold text-[15px] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "list"
                       ? "text-neutral-0"
@@ -86,7 +118,7 @@ export function CustomerFeatureSection() {
                   고객목록
                 </button>
                 <button
-                  onClick={() => setActiveTab("info")}
+                  onClick={() => handleTabClick("info")}
                   className={`cursor-pointer relative z-10 w-[180px] h-[56px] rounded-full font-semibold text-[15px] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "info"
                       ? "text-neutral-0"
