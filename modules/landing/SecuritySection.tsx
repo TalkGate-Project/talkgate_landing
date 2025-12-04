@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from "next/image";
 
 export function SecuritySection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -39,7 +38,15 @@ export function SecuritySection() {
         </div>
         <ul className="flex h-[394px] gap-6">
           <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`}>
-            <div className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden">
+            <div 
+              className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden"
+              style={{
+                backgroundImage: 'url(/images/security-1.png)',
+                backgroundPosition: 'bottom right',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain'
+              }}
+            >
               <label className="w-full block text-[20px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] text-center !mb-5 z-10">
                 보안 및 개인정보 보호
               </label>
@@ -59,17 +66,18 @@ export function SecuritySection() {
                 하며, 외부 네트워크에서는 직접 접근할 수 없도록 <br />
                 차단되어 있어요.
               </p>
-              <Image
-                className="absolute bottom-0 right-0 z-0"
-                src="/images/security-1.svg"
-                alt="security-1"
-                width={206}
-                height={251}
-              />
             </div>
           </li>
           <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.15s' }}>
-            <div className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden">
+            <div 
+              className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden"
+              style={{
+                backgroundImage: 'url(/images/security-2.png)',
+                backgroundPosition: 'bottom right',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain'
+              }}
+            >
               <label className="w-full block text-[20px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] text-center !mb-5">
                 계정·권한 보안
               </label>
@@ -87,17 +95,18 @@ export function SecuritySection() {
                 프로젝트 내 공유 데이터는 허가된 조직 및 사용자만 <br />
                 접근할 수 있어요.
               </p>
-              <Image
-                className="absolute bottom-0 right-0 z-0"
-                src="/images/security-2.svg"
-                alt="security-2"
-                width={259}
-                height={380}
-              />
             </div>
           </li>
           <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.3s' }}>
-            <div className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden">
+            <div 
+              className="relative w-full h-full pt-8 px-7 bg-[#f8f8f8] rounded-[12px] overflow-hidden"
+              style={{
+                backgroundImage: 'url(/images/security-3.png)',
+                backgroundPosition: 'bottom right',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain'
+              }}
+            >
               <label className="w-full block text-[20px] font-bold leading-[1.5] tracking-[-0.02em] text-[#000] text-center !mb-5">
                 데이터 암호화 및 보호
               </label>
@@ -124,13 +133,6 @@ export function SecuritySection() {
                 보안 기준에 따라 안전하게 삭제되며 삭제된 <br />
                 데이터는 복구할 수 없도록 처리됩니다.
               </p>
-              <Image
-                className="absolute bottom-0 right-0 z-0"
-                src="/images/security-3.svg"
-                alt="security-3"
-                width={311}
-                height={250}
-              />
             </div>
           </li>
         </ul>
