@@ -50,7 +50,7 @@ export function FinalCtaSection() {
           <div className={`flex gap-4 flex-shrink-0 final-cta-buttons ${isVisible ? 'animate' : ''}`}>
             <Link
               href={getStartUrl()}
-              className="px-6 py-2 bg-neutral-90 leading-[1] text-[14px] text-neutral-0 rounded-[5px] font-semibold hover:bg-neutral-100 transition-colors"
+              className="px-6 py-2 bg-neutral-90 leading-[1] text-[14px] text-neutral-0 rounded-[5px] font-semibold transition-colors"
             >
               시작하기
             </Link>
