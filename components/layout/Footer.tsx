@@ -22,8 +22,7 @@ export function Footer() {
               className="hover:text-foreground transition-colors"
             >
               {COMPANY_INFO.email}
-            </Link>{" "}
-            | 연락처 : {COMPANY_INFO.phone}
+            </Link>
           </p>
           <p>{COMPANY_INFO.address}</p>
         </div>

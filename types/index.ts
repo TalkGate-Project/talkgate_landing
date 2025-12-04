@@ -128,6 +128,20 @@ export interface AuthUser {
 export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
 
 // ============================================
+// Project
+// ============================================
+
+export interface Project {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  memberCount?: number;
+  assignedCustomerCount?: number;
+  todayScheduleCount?: number;
+  useAttendanceMenu?: boolean;
+}
+
+// ============================================
 // SEO
 // ============================================
 

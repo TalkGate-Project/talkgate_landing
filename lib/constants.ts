@@ -63,13 +63,13 @@ export const EXTERNAL_LINKS = {
  * 회사 정보 (푸터 등에 표시)
  */
 export const COMPANY_INFO: CompanyInfo = {
-  name: '주식회사 000',
-  businessNumber: '000-00-00000',
-  telecomNumber: '제 0000-서울강서-00000호',
-  ceo: '000',
-  email: 'support@talkgate.com',
-  phone: '000-0000-0000',
-  address: '서울시 강서구 공항대로 220 6층 603호',
+  name: '주식회사 핑크코브라',
+  businessNumber: '103-87-01124',
+  telecomNumber: '2021-서울강북-0945',
+  ceo: '정진웅',
+  email: 'support@talkgate.im',
+  phone: '',
+  address: '서울특별시 강북구 삼양로173길 223(우이동)',
 };
 
 // ============================================
