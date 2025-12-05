@@ -49,13 +49,28 @@ npm install
 
 프로젝트 루트에 `.env.local` 파일을 생성하고 다음 환경 변수를 설정합니다:
 
+#### 개발 환경
+
 ```env
 # 메인 서비스 URL (인증 리다이렉트용)
-NEXT_PUBLIC_MAIN_SERVICE_URL=https://my-service.im
+NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
 
 # 현재 랜딩 페이지 URL
 NEXT_PUBLIC_LANDING_URL=http://localhost:3000
+
+# 쿠키 도메인 (개발 환경에서는 비워둠)
+NEXT_PUBLIC_COOKIE_DOMAIN=
 ```
+
+#### 프로덕션 환경 (Vercel 환경 변수)
+
+```env
+NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
+NEXT_PUBLIC_LANDING_URL=https://landing.talkgate.im
+NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
+```
+
+> 📖 자세한 설정 방법은 [SETUP.md](./SETUP.md)를 참고하세요.
 
 ### 3. 개발 서버 실행
 
@@ -79,11 +94,20 @@ npm run dev
 랜딩 페이지는 직접 인증을 처리하지 않고 메인 서비스로 위임합니다:
 
 ```
-[Landing] → 로그인 클릭 
-         → [Main Service]/login?returnUrl=... 
-         → 인증 처리 (쿠키 설정)
-         → [Landing] (쿠키 기반 인증 상태 확인)
+1. 사용자가 랜딩 페이지에서 "로그인" 클릭
+   ↓
+2. 메인 서비스로 리다이렉트 (returnUrl 포함)
+   예: https://app.talkgate.im/login?returnUrl=https://landing.talkgate.im
+   ↓
+3. 메인 서비스에서 인증 처리 및 쿠키 설정
+   쿠키 도메인: .talkgate.im (서브도메인 간 공유)
+   ↓
+4. 랜딩 페이지로 리다이렉트
+   ↓
+5. 랜딩 페이지에서 쿠키 기반 인증 상태 확인
 ```
+
+> 📖 도메인 간 로그인 상태 공유에 대한 자세한 내용은 [SETUP.md](./SETUP.md)를 참고하세요.
 
 ## 🎨 스타일 가이드
 
@@ -94,6 +118,12 @@ npm run dev
 ## 📚 문서
 
 - [CONVENTION.md](./CONVENTION.md) - 코딩 컨벤션 및 가이드라인
+- [ENV_SETUP_GUIDE.md](./ENV_SETUP_GUIDE.md) - 환경 변수 설정 가이드 ⭐
+- [SETUP.md](./SETUP.md) - 도메인 간 로그인 상태 공유 설정 가이드
+- [DOMAIN_AUTH_SETUP.md](./DOMAIN_AUTH_SETUP.md) - 구현 완료 문서 및 테스트 가이드
+- [UX_IMPROVEMENTS.md](./UX_IMPROVEMENTS.md) - UX 개선 사항 및 사용자 플로우
+- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - 배포 전 최종 체크리스트
+- [SIMULATION_REPORT.md](./SIMULATION_REPORT.md) - 배포 환경 시뮬레이션 보고서
 
 ## 🛠 스크립트
 

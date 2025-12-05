@@ -27,11 +27,18 @@ export default function PricingPage() {
       const authCookie = cookies.find((c) =>
         c.trim().startsWith(`${AUTH_COOKIE_NAME}=`)
       );
-      const authenticated = !!authCookie;
+      
+      // 쿠키가 있고 값이 유효한 경우에만 인증됨으로 간주
+      let authenticated = false;
+      if (authCookie) {
+        const value = authCookie.split('=')[1];
+        authenticated = !!value && value !== 'undefined' && value !== 'null';
+      }
       
       // 한 번의 렌더링으로 모든 상태 업데이트
       setIsAuthenticated(authenticated);
-      setCurrentStep(authenticated ? "project-select" : "plan-select");
+      // 로그인된 경우에만 project-select 단계로 시작
+      setCurrentStep(authenticated ? "plan-select" : "plan-select");
     };
 
     initializeAuth();
@@ -74,7 +81,7 @@ export default function PricingPage() {
     // 임시 세션 쿠키 설정 (30일 만료)
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
-    document.cookie = `${AUTH_COOKIE_NAME}=dev_session_token; expires=${expiryDate.toUTCString()}; path=/`;
+    document.cookie = `${AUTH_COOKIE_NAME}=dev_session_token; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
     
     // 페이지 새로고침하여 로그인 상태 적용
     window.location.reload();
@@ -82,8 +89,9 @@ export default function PricingPage() {
 
   // Dev 모드: 로그아웃 처리
   const handleDevLogout = () => {
-    // 쿠키 삭제
-    document.cookie = `${AUTH_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+    // 쿠키 삭제 (모든 쿠키)
+    document.cookie = `${AUTH_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+    document.cookie = `tg_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
     
     // 페이지 새로고침하여 로그아웃 상태 적용
     window.location.reload();
