@@ -105,10 +105,10 @@ export const COOKIE_OPTIONS = {
   path: '/',
   // 프로덕션: cross-site 쿠키 공유를 위해 'none' 사용
   // 개발: same-site만 허용하는 'lax' 사용
-  sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
+  sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
   secure: process.env.NODE_ENV === 'production', // HTTPS only in production
   httpOnly: false, // 클라이언트에서도 읽을 수 있도록 설정
-};
+} as const;
 
 /**
  * 서버 사이드에서 인증 상태 확인
