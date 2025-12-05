@@ -87,10 +87,28 @@ export function getLogoutUrl(returnPath: string = '/'): string {
 // ============================================
 
 /**
- * 인증 쿠키 이름
- * 메인 서비스와 동일한 쿠키 이름 사용
+ * 인증 쿠키 설정
+ * 메인 서비스와 동일한 설정 사용
  */
-export const AUTH_COOKIE_NAME = 'talkgate_session';
+export const AUTH_COOKIE_NAME = 'tg_access_token';
+export const REFRESH_COOKIE_NAME = 'tg_refresh_token';
+
+/**
+ * 쿠키 설정 옵션
+ * 메인 서비스에서 설정한 쿠키와 동일한 옵션 사용
+ * 
+ * 참고: 실제 쿠키는 메인 서비스에서 설정되며,
+ * 이 옵션은 문서화 및 참고 목적으로만 사용됩니다.
+ */
+export const COOKIE_OPTIONS = {
+  domain: env.COOKIE_DOMAIN, // 프로덕션: .talkgate.im
+  path: '/',
+  // 프로덕션: cross-site 쿠키 공유를 위해 'none' 사용
+  // 개발: same-site만 허용하는 'lax' 사용
+  sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
+  secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+  httpOnly: false, // 클라이언트에서도 읽을 수 있도록 설정
+} as const;
 
 /**
  * 서버 사이드에서 인증 상태 확인
@@ -112,6 +130,11 @@ export function checkAuthFromCookies(
   cookieStore: { get: (name: string) => { value: string } | undefined }
 ): boolean {
   const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
-  return !!sessionCookie?.value;
+  if (!sessionCookie?.value) return false;
+  
+  // 쿠키가 있고 값이 유효한 경우에만 인증됨으로 간주
+  // 빈 값, 'undefined', 'null' 문자열 체크
+  const value = sessionCookie.value;
+  return !!value && value !== 'undefined' && value !== 'null';
 }
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, BRAND } from "@/lib/constants";
-import { getLoginUrl, getStartUrl } from "@/lib/auth";
+import { getLoginUrl, getStartUrl, getLogoutUrl } from "@/lib/auth";
 
 interface HeaderProps {
   /** 인증 여부 (서버에서 전달) */
@@ -95,9 +95,17 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
         {/* Auth Buttons */}
         <div className="flex items-center gap-5">
           {isAuthenticated ? (
-            <Link href={getStartUrl(true)} className="btn btn-primary">
-              대시보드
-            </Link>
+            <>
+              <Link href={getStartUrl(true)} className="btn btn-primary">
+                대시보드
+              </Link>
+              <Link
+                href={getLogoutUrl(pathname)}
+                className="btn btn-ghost !text-[18px]"
+              >
+                Logout
+              </Link>
+            </>
           ) : (
             <>
               <Link

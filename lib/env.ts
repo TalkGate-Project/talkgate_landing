@@ -23,15 +23,21 @@ export const env = {
   /**
    * 메인 서비스 URL
    * 인증 리다이렉트, 대시보드 링크 등에 사용
+   * 
+   * 개발: https://app-dev.talkgate.im
+   * 프로덕션: https://app.talkgate.im
    */
   MAIN_SERVICE_URL: getEnvVar(
     'NEXT_PUBLIC_MAIN_SERVICE_URL',
-    'https://my-service.im'
+    'https://app-dev.talkgate.im'
   ),
 
   /**
    * 현재 랜딩 페이지 URL
    * 인증 후 returnUrl 생성에 사용
+   * 
+   * 개발: http://localhost:3000
+   * 프로덕션: https://landing.talkgate.im
    */
   LANDING_URL: getEnvVar('NEXT_PUBLIC_LANDING_URL', 'http://localhost:3000'),
 
@@ -56,6 +62,13 @@ export const env = {
    * 체험하기 기능 활성화 여부
    */
   ENABLE_TRIAL: getEnvVar('NEXT_PUBLIC_ENABLE_TRIAL', 'false') === 'true',
+
+  /**
+   * 쿠키 도메인 설정
+   * 프로덕션: .talkgate.im (서브도메인 간 공유)
+   * 개발: undefined (localhost)
+   */
+  COOKIE_DOMAIN: getOptionalEnvVar('NEXT_PUBLIC_COOKIE_DOMAIN'),
 } as const;
 
 export type Env = typeof env;

@@ -59,16 +59,21 @@ export default function PlanSelectStep({
   });
 
   const handleSubscribe = (plan: PricingPlan) => {
+    // 로그인 상태 확인
     if (!isAuthenticated) {
+      // 사용자에게 로그인이 필요하다고 안내
       const confirmed = window.confirm(
-        "로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?"
+        "구독하려면 로그인이 필요합니다.\n\n로그인 페이지로 이동하시겠습니까?\n(로그인 후 이 페이지로 다시 돌아옵니다)"
       );
+      
       if (confirmed) {
+        // 로그인 페이지로 이동 (현재 페이지를 returnUrl로 전달)
         onLogin();
       }
       return;
     }
 
+    // 로그인된 경우 다음 단계로 진행
     onSubscribe(plan);
   };
 
