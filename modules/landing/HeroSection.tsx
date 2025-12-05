@@ -17,7 +17,8 @@ type AnimationPhase = 'display' | 'fade-out' | 'fade-in';
 export function HeroSection() {
   const [scrollY, setScrollY] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('display');
+  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('fade-in');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,6 +34,14 @@ export function HeroSection() {
     let isMounted = true;
 
     const runAnimation = async () => {
+      // 첫 로드 시 페이드 인 효과
+      if (isInitialLoad) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (!isMounted) return;
+        setAnimationPhase('display');
+        setIsInitialLoad(false);
+      }
+
       while (isMounted) {
         // 1. 현재 이미지 표시 (5초)
         await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -59,7 +68,7 @@ export function HeroSection() {
     return () => {
       isMounted = false;
     };
-  }, [currentIndex]);
+  }, [isInitialLoad]);
 
   // 스크롤에 따라 그리드를 위로 이동 (최대 200px까지)
   const gridOffset = Math.min(scrollY * 0.5, 200);
@@ -92,9 +101,9 @@ export function HeroSection() {
           style={{ 
             left: '50%',
             boxShadow: "10px 10px 200px 20px #F4F4F4A3",
-            opacity: animationPhase === 'fade-out' ? 0 : 1,
+            opacity: animationPhase === 'fade-out' ? 0 : animationPhase === 'fade-in' ? 0 : 1,
             transform: `translateX(-50%) scale(${
-              animationPhase === 'fade-out' ? 0.95 : 1
+              animationPhase === 'fade-out' ? 0.95 : animationPhase === 'fade-in' ? 0.95 : 1
             })`,
             transition: 'all 0.8s ease-in-out',
           }}
