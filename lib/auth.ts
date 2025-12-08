@@ -71,6 +71,7 @@ export function getDashboardUrl(): string {
 /**
  * 로그아웃 URL 생성
  *
+ * @deprecated 클라이언트에서 직접 로그아웃 처리 가능 (handleLogout 사용 권장)
  * @param returnPath - 로그아웃 후 돌아올 경로 (기본: '/')
  * @returns 메인 서비스 로그아웃 URL
  */
@@ -80,6 +81,85 @@ export function getLogoutUrl(returnPath: string = '/'): string {
   logoutUrl.searchParams.set('returnUrl', returnUrl);
 
   return logoutUrl.toString();
+}
+
+/**
+ * 클라이언트 사이드에서 로그아웃 처리
+ * 
+ * 쿠키를 삭제하여 로그아웃 상태로 만듭니다.
+ * 메인 서비스로 이동하지 않고 현재 페이지에서 처리합니다.
+ * 
+ * @param options - 로그아웃 옵션
+ * @param options.callApi - 메인 서비스 로그아웃 API 호출 여부 (기본: false)
+ * @param options.redirect - 로그아웃 후 리다이렉트할 경로 (기본: 현재 페이지)
+ * 
+ * @example
+ * ```tsx
+ * 'use client';
+ * 
+ * import { handleLogout } from '@/lib/auth';
+ * 
+ * <button onClick={() => handleLogout()}>
+ *   Logout
+ * </button>
+ * ```
+ */
+export async function handleLogout(options?: {
+  callApi?: boolean;
+  redirect?: string;
+}): Promise<void> {
+  const { callApi = false, redirect } = options || {};
+
+  // 1. 선택적으로 메인 서비스 로그아웃 API 호출 (서버 사이드 세션 무효화)
+  if (callApi && typeof window !== 'undefined') {
+    try {
+      const apiUrl = `${env.MAIN_SERVICE_URL}/api/auth/logout`;
+      await fetch(apiUrl, {
+        method: 'POST',
+        credentials: 'include', // 쿠키 포함
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.warn('로그아웃 API 호출 실패:', error);
+      // API 호출 실패해도 쿠키 삭제는 진행
+    }
+  }
+
+  // 2. 클라이언트에서 쿠키 삭제
+  if (typeof document !== 'undefined') {
+    const cookiePath = '; Path=/';
+    const cookieExpires = '; Expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    
+    // 프로덕션 환경에서는 Domain 속성도 포함하여 삭제
+    // 개발 환경(localhost)에서는 Domain 속성 없이 삭제
+    const cookieDomain = env.COOKIE_DOMAIN 
+      ? `; Domain=${env.COOKIE_DOMAIN}` 
+      : '';
+
+    // Access Token 쿠키 삭제
+    document.cookie = `${AUTH_COOKIE_NAME}=${cookieExpires}${cookiePath}${cookieDomain}`;
+    
+    // Refresh Token 쿠키 삭제
+    document.cookie = `${REFRESH_COOKIE_NAME}=${cookieExpires}${cookiePath}${cookieDomain}`;
+    
+    // Domain 속성이 있는 경우, Domain 없이도 삭제 시도 (브라우저 호환성)
+    if (cookieDomain) {
+      document.cookie = `${AUTH_COOKIE_NAME}=${cookieExpires}${cookiePath}`;
+      document.cookie = `${REFRESH_COOKIE_NAME}=${cookieExpires}${cookiePath}`;
+    }
+  }
+
+  // 3. 리다이렉트 또는 페이지 새로고침
+  if (typeof window !== 'undefined') {
+    if (redirect) {
+      window.location.href = redirect;
+    } else {
+      // 현재 페이지 새로고침하여 로그아웃 상태 반영
+      window.location.reload();
+    }
+  }
 }
 
 // ============================================

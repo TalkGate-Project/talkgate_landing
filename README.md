@@ -121,6 +121,7 @@ npm run dev
 - [ENV_SETUP_GUIDE.md](./ENV_SETUP_GUIDE.md) - 환경 변수 설정 가이드 ⭐
 - [SETUP.md](./SETUP.md) - 도메인 간 로그인 상태 공유 설정 가이드
 - [DOMAIN_AUTH_SETUP.md](./DOMAIN_AUTH_SETUP.md) - 구현 완료 문서 및 테스트 가이드
+- [LOGOUT_IMPROVEMENT.md](./LOGOUT_IMPROVEMENT.md) - 로그아웃 기능 개선 사항 ✨
 - [UX_IMPROVEMENTS.md](./UX_IMPROVEMENTS.md) - UX 개선 사항 및 사용자 플로우
 - [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - 배포 전 최종 체크리스트
 - [SIMULATION_REPORT.md](./SIMULATION_REPORT.md) - 배포 환경 시뮬레이션 보고서
