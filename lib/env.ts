@@ -39,7 +39,7 @@ export const env = {
    * 개발: http://localhost:3000
    * 프로덕션: https://landing.talkgate.im
    */
-  LANDING_URL: getEnvVar('NEXT_PUBLIC_LANDING_URL', 'http://localhost:3000'),
+  LANDING_URL: getEnvVar('NEXT_PUBLIC_LANDING_URL', 'https://talkgate.im'),
 
   /**
    * API 베이스 URL (필요시)

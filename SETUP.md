@@ -46,7 +46,7 @@
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
 
 # 현재 랜딩 페이지 URL
-NEXT_PUBLIC_LANDING_URL=http://localhost:3000
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 
 # 쿠키 도메인 (개발 환경에서는 비워둠)
 NEXT_PUBLIC_COOKIE_DOMAIN=
@@ -59,7 +59,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
 
 # 현재 랜딩 페이지 URL
-NEXT_PUBLIC_LANDING_URL=https://landing.talkgate.im
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 
 # 쿠키 도메인 (앞에 점을 붙여 서브도메인 간 공유)
 NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
@@ -273,7 +273,7 @@ export default function MyComponent({ initialAuth }: { initialAuth: boolean }) {
 2. **환경 변수 수정**
    ```env
    NEXT_PUBLIC_MAIN_SERVICE_URL=http://local.talkgate.im:3001
-   NEXT_PUBLIC_LANDING_URL=http://landing.local.talkgate.im:3000
+   NEXT_PUBLIC_LANDING_URL=https://talkgate.im
    NEXT_PUBLIC_COOKIE_DOMAIN=.local.talkgate.im
    ```
 

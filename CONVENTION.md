@@ -83,7 +83,7 @@
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://my-service.im
 
 # 현재 랜딩 페이지 URL
-NEXT_PUBLIC_LANDING_URL=https://landing.my-service.im
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 
 # API 엔드포인트 (필요시)
 NEXT_PUBLIC_API_BASE_URL=https://api.my-service.im

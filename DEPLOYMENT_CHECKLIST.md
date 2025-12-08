@@ -37,14 +37,14 @@
 **Production 환경:**
 ```env
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
-NEXT_PUBLIC_LANDING_URL=https://landing.talkgate.im
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
 ```
 
 **Preview/Dev 환경 (선택):**
 ```env
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
-NEXT_PUBLIC_LANDING_URL=https://landing-dev.talkgate.im
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 NEXT_PUBLIC_COOKIE_DOMAIN=
 ```
 

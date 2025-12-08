@@ -56,7 +56,7 @@ npm install
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
 
 # 현재 랜딩 페이지 URL
-NEXT_PUBLIC_LANDING_URL=http://localhost:3000
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 
 # 쿠키 도메인 (개발 환경에서는 비워둠)
 NEXT_PUBLIC_COOKIE_DOMAIN=
@@ -66,7 +66,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=
 
 ```env
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
-NEXT_PUBLIC_LANDING_URL=https://landing.talkgate.im
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
 ```
 
