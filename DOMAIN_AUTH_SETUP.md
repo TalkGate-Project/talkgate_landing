@@ -21,7 +21,7 @@
 
 **로그인 상태:**
 - 대시보드 버튼 (메인 서비스로 이동)
-- Logout 버튼 (메인 서비스 로그아웃 페이지로 이동)
+- Logout 버튼 (현재 페이지에서 쿠키 삭제하여 로그아웃 처리)
 
 ### 3. Pricing 페이지 인증 플로우
 
@@ -74,7 +74,7 @@ function MyComponent() {
 
 ### 3. `components/layout/Header.tsx`
 - 로그인 상태에 따라 Logout 버튼 표시
-- `getLogoutUrl()` 함수 사용
+- `handleLogout()` 함수 사용 (현재 페이지에서 쿠키 삭제)
 
 ### 4. `app/pricing/page.tsx`
 - 쿠키 검증 로직 개선
@@ -171,31 +171,26 @@ if (returnUrl) {
 }
 ```
 
-### 로그아웃 후 처리
+### 로그아웃 처리 (랜딩 페이지에서 직접 처리)
+
+랜딩 페이지에서는 클라이언트에서 직접 쿠키를 삭제하여 로그아웃을 처리합니다:
+
 ```typescript
-// 1. returnUrl 파라미터 확인
-const returnUrl = searchParams.get('returnUrl') || searchParams.get('redirectUrl');
+// lib/auth.ts의 handleLogout() 함수 사용
+import { handleLogout } from '@/lib/auth';
 
-// 2. 쿠키 삭제
-cookieStore.set('tg_access_token', '', {
-  domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-  path: '/',
-  maxAge: 0,
-});
-
-cookieStore.set('tg_refresh_token', '', {
-  domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-  path: '/',
-  maxAge: 0,
-});
-
-// 3. returnUrl로 리다이렉트
-if (returnUrl) {
-  window.location.href = returnUrl;
-} else {
-  router.push('/');
-}
+// 클라이언트 컴포넌트에서
+<button onClick={() => handleLogout()}>
+  Logout
+</button>
 ```
+
+**동작 방식:**
+1. 클라이언트에서 쿠키 삭제 (`tg_access_token`, `tg_refresh_token`)
+2. Domain 속성 포함하여 삭제 (프로덕션: `.talkgate.im`)
+3. 현재 페이지 새로고침하여 로그아웃 상태 반영
+
+**참고**: 메인 서비스의 서버 사이드 세션 무효화가 필요한 경우, `handleLogout({ callApi: true })` 옵션을 사용할 수 있습니다.
 
 ## 🐛 문제 해결
 
