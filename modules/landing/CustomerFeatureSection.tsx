@@ -109,7 +109,7 @@ export function CustomerFeatureSection() {
                 {/* Tab Buttons */}
                 <button
                   onClick={() => handleTabClick("list")}
-                  className={`cursor-pointer relative z-10 w-[180px] h-[56px] rounded-full font-semibold text-[15px] transition-colors duration-300 flex items-center justify-center ${
+                  className={`cursor-pointer relative z-10 w-[180px] h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "list"
                       ? "text-neutral-0"
                       : "text-neutral-70 hover:text-neutral-90"
@@ -119,7 +119,7 @@ export function CustomerFeatureSection() {
                 </button>
                 <button
                   onClick={() => handleTabClick("info")}
-                  className={`cursor-pointer relative z-10 w-[180px] h-[56px] rounded-full font-semibold text-[15px] transition-colors duration-300 flex items-center justify-center ${
+                  className={`cursor-pointer relative z-10 pl-3 w-[180px] h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "info"
                       ? "text-neutral-0"
                       : "text-neutral-70 hover:text-neutral-90"
