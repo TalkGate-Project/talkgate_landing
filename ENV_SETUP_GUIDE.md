@@ -39,7 +39,7 @@
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
 
 # 현재 랜딩 페이지 URL
-NEXT_PUBLIC_LANDING_URL=http://localhost:3000
+NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 
 # 쿠키 도메인 (개발 환경에서는 비워둠)
 NEXT_PUBLIC_COOKIE_DOMAIN=
@@ -205,7 +205,7 @@ npm run dev
 
 - [ ] `.env.local` 파일 생성
 - [ ] `NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im` 설정
-- [ ] `NEXT_PUBLIC_LANDING_URL=http://localhost:3000` 설정
+- [ ] `NEXT_PUBLIC_LANDING_URL=https://talkgate.im` 설정
 - [ ] `npm run dev` 실행
 - [ ] Login 버튼 URL 확인
 

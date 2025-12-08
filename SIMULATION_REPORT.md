@@ -340,13 +340,13 @@ if (!sessionCookie?.value) return false;
 1. `.env.local` 파일 생성 및 설정
    ```env
    NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
-   NEXT_PUBLIC_LANDING_URL=http://localhost:3000
+   NEXT_PUBLIC_LANDING_URL=https://talkgate.im
    NEXT_PUBLIC_COOKIE_DOMAIN=
    ```
 2. Vercel 환경 변수 설정
    ```env
    NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
-   NEXT_PUBLIC_LANDING_URL=https://landing.talkgate.im
+   NEXT_PUBLIC_LANDING_URL=https://talkgate.im
    NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
    ```
 3. 메인 서비스 쿠키 설정 확인
