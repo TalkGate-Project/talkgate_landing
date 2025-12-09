@@ -71,13 +71,25 @@ export function getDashboardUrl(): string {
 /**
  * 로그아웃 URL 생성
  *
- * @deprecated 클라이언트에서 직접 로그아웃 처리 가능 (handleLogout 사용 권장)
+ * 메인 서비스의 로그아웃 페이지로 리다이렉트하며,
+ * returnUrl을 쿼리 파라미터로 전달합니다.
+ * 메인 서비스에서 로그아웃 처리 후 콜백 URL로 돌아옵니다.
+ *
  * @param returnPath - 로그아웃 후 돌아올 경로 (기본: '/')
  * @returns 메인 서비스 로그아웃 URL
+ *
+ * @example
+ * ```tsx
+ * <Link href={getLogoutUrl('/')}>로그아웃</Link>
+ * ```
  */
 export function getLogoutUrl(returnPath: string = '/'): string {
+  // 로그아웃 콜백 URL 생성 (메인 서비스에서 로그아웃 처리 후 돌아올 URL)
+  const callbackUrl = `${env.LANDING_URL}/api/auth/logout-callback`;
   const returnUrl = `${env.LANDING_URL}${returnPath}`;
+  
   const logoutUrl = new URL('/logout', env.MAIN_SERVICE_URL);
+  logoutUrl.searchParams.set('callbackUrl', callbackUrl);
   logoutUrl.searchParams.set('returnUrl', returnUrl);
 
   return logoutUrl.toString();

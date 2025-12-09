@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, BRAND } from "@/lib/constants";
-import { getLoginUrl, getStartUrl, handleLogout } from "@/lib/auth";
+import { getLoginUrl, getStartUrl, getLogoutUrl } from "@/lib/auth";
 
 interface HeaderProps {
   /** 인증 여부 (서버에서 전달) */
@@ -12,14 +12,6 @@ interface HeaderProps {
 
 export function Header({ isAuthenticated = false }: HeaderProps) {
   const pathname = usePathname();
-
-  // 로그아웃 핸들러
-  const handleLogoutClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    await handleLogout({
-      redirect: '/', // 로그아웃 후 홈으로 이동
-    });
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -104,12 +96,12 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
         <div className="flex items-center gap-5">
           {isAuthenticated ? (
             <>
-              <button
-                onClick={handleLogoutClick}
+              <Link
+                href={getLogoutUrl(pathname)}
                 className="btn btn-ghost !text-[18px]"
               >
                 Logout
-              </button>
+              </Link>
               <Link href={getStartUrl(true)} className="btn btn-primary">
                 대시보드
               </Link>

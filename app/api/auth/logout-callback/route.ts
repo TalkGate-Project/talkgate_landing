@@ -1,21 +1,28 @@
 /**
- * 로그아웃 API
+ * 로그아웃 콜백 API
  * 
- * HttpOnly 쿠키를 포함한 모든 인증 쿠키를 삭제합니다.
- * 서버 사이드에서 Set-Cookie 헤더를 통해 쿠키를 만료시킵니다.
+ * 메인 서비스에서 로그아웃 처리 후 이 엔드포인트로 리다이렉트됩니다.
+ * 쿠키 삭제를 확인하고, returnUrl로 최종 리다이렉트합니다.
  */
 
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/auth';
 import { env } from '@/lib/env';
 
-export async function POST() {
+/**
+ * GET /api/auth/logout-callback
+ * 
+ * 쿼리 파라미터:
+ * - returnUrl: 로그아웃 후 최종적으로 이동할 URL (기본: '/')
+ * - success: 로그아웃 성공 여부 (선택적)
+ */
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const returnUrl = searchParams.get('returnUrl') || '/';
+  const success = searchParams.get('success') !== 'false';
+
   // Response 생성
-  const response = NextResponse.json({ 
-    success: true,
-    message: '로그아웃되었습니다.' 
-  });
+  const response = NextResponse.redirect(new URL(returnUrl, env.LANDING_URL));
 
   // 쿠키 삭제를 위한 옵션
   const cookieOptions = {
