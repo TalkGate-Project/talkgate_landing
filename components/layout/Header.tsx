@@ -17,7 +17,6 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
   const handleLogoutClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     await handleLogout({
-      callApi: false, // 쿠키만 삭제 (별도 로그아웃 API 없음)
       redirect: '/', // 로그아웃 후 홈으로 이동
     });
   };
