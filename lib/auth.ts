@@ -86,12 +86,11 @@ export function getLogoutUrl(returnPath: string = '/'): string {
 /**
  * 클라이언트 사이드에서 로그아웃 처리
  * 
- * 쿠키를 삭제하여 로그아웃 상태로 만듭니다.
- * 메인 서비스로 이동하지 않고 현재 페이지에서 처리합니다.
+ * HttpOnly 쿠키를 포함한 모든 인증 쿠키를 삭제합니다.
+ * 서버 사이드 API를 통해 쿠키를 삭제한 후, 클라이언트에서도 추가로 삭제를 시도합니다.
  * 
  * @param options - 로그아웃 옵션
- * @param options.callApi - 메인 서비스 로그아웃 API 호출 여부 (기본: false)
- * @param options.redirect - 로그아웃 후 리다이렉트할 경로 (기본: 현재 페이지)
+ * @param options.redirect - 로그아웃 후 리다이렉트할 경로 (기본: '/')
  * 
  * @example
  * ```tsx
@@ -105,29 +104,30 @@ export function getLogoutUrl(returnPath: string = '/'): string {
  * ```
  */
 export async function handleLogout(options?: {
-  callApi?: boolean;
   redirect?: string;
 }): Promise<void> {
-  const { callApi = false, redirect } = options || {};
+  const { redirect = '/' } = options || {};
 
-  // 1. 선택적으로 메인 서비스 로그아웃 API 호출 (서버 사이드 세션 무효화)
-  if (callApi && typeof window !== 'undefined') {
-    try {
-      const apiUrl = `${env.MAIN_SERVICE_URL}/api/auth/logout`;
-      await fetch(apiUrl, {
-        method: 'POST',
-        credentials: 'include', // 쿠키 포함
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (error) {
-      console.warn('로그아웃 API 호출 실패:', error);
-      // API 호출 실패해도 쿠키 삭제는 진행
-    }
+  if (typeof window === 'undefined') return;
+
+  // 1. 서버 사이드 로그아웃 API 호출 (HttpOnly 쿠키 삭제)
+  try {
+    const apiUrl = '/api/auth/logout';
+    await fetch(apiUrl, {
+      method: 'POST',
+      credentials: 'include', // 쿠키 포함
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    console.warn('로그아웃 API 호출 실패:', error);
+    // API 호출 실패해도 클라이언트 사이드 쿠키 삭제는 진행
   }
 
-  // 2. 클라이언트에서 쿠키 삭제
+  // 2. 클라이언트에서도 쿠키 삭제 시도 (HttpOnly가 아닌 쿠키용)
+  // HttpOnly 쿠키는 서버 API에서만 삭제 가능하지만, 
+  // 클라이언트에서도 시도하여 가능한 모든 쿠키를 삭제
   if (typeof document !== 'undefined') {
     const cookiePath = '; Path=/';
     const cookieExpires = '; Expires=Thu, 01 Jan 1970 00:00:00 UTC';
@@ -138,10 +138,10 @@ export async function handleLogout(options?: {
       ? `; Domain=${env.COOKIE_DOMAIN}` 
       : '';
 
-    // Access Token 쿠키 삭제
+    // Access Token 쿠키 삭제 시도
     document.cookie = `${AUTH_COOKIE_NAME}=${cookieExpires}${cookiePath}${cookieDomain}`;
     
-    // Refresh Token 쿠키 삭제
+    // Refresh Token 쿠키 삭제 시도 (HttpOnly이므로 실제로는 삭제되지 않을 수 있음)
     document.cookie = `${REFRESH_COOKIE_NAME}=${cookieExpires}${cookiePath}${cookieDomain}`;
     
     // Domain 속성이 있는 경우, Domain 없이도 삭제 시도 (브라우저 호환성)
@@ -151,15 +151,8 @@ export async function handleLogout(options?: {
     }
   }
 
-  // 3. 리다이렉트 또는 페이지 새로고침
-  if (typeof window !== 'undefined') {
-    if (redirect) {
-      window.location.href = redirect;
-    } else {
-      // 현재 페이지 새로고침하여 로그아웃 상태 반영
-      window.location.reload();
-    }
-  }
+  // 3. 리다이렉트
+  window.location.href = redirect;
 }
 
 // ============================================
