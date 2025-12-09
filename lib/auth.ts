@@ -125,13 +125,17 @@ export async function handleLogout(options?: {
   // 1. 서버 사이드 로그아웃 API 호출 (HttpOnly 쿠키 삭제)
   try {
     const apiUrl = '/api/auth/logout';
-    await fetch(apiUrl, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       credentials: 'include', // 쿠키 포함
       headers: {
         'Content-Type': 'application/json',
       },
     });
+    
+    if (!response.ok) {
+      console.warn('로그아웃 API 응답 실패:', response.status);
+    }
   } catch (error) {
     console.warn('로그아웃 API 호출 실패:', error);
     // API 호출 실패해도 클라이언트 사이드 쿠키 삭제는 진행
@@ -143,6 +147,9 @@ export async function handleLogout(options?: {
   if (typeof document !== 'undefined') {
     const cookiePath = '; Path=/';
     const cookieExpires = '; Expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    const cookieMaxAge = '; Max-Age=0';
+    const cookieSecure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+    const cookieSameSite = process.env.NODE_ENV === 'production' ? '; SameSite=None' : '; SameSite=Lax';
     
     // 프로덕션 환경에서는 Domain 속성도 포함하여 삭제
     // 개발 환경(localhost)에서는 Domain 속성 없이 삭제
@@ -150,16 +157,22 @@ export async function handleLogout(options?: {
       ? `; Domain=${env.COOKIE_DOMAIN}` 
       : '';
 
-    // Access Token 쿠키 삭제 시도
-    document.cookie = `${AUTH_COOKIE_NAME}=${cookieExpires}${cookiePath}${cookieDomain}`;
-    
-    // Refresh Token 쿠키 삭제 시도 (HttpOnly이므로 실제로는 삭제되지 않을 수 있음)
-    document.cookie = `${REFRESH_COOKIE_NAME}=${cookieExpires}${cookiePath}${cookieDomain}`;
-    
-    // Domain 속성이 있는 경우, Domain 없이도 삭제 시도 (브라우저 호환성)
-    if (cookieDomain) {
-      document.cookie = `${AUTH_COOKIE_NAME}=${cookieExpires}${cookiePath}`;
-      document.cookie = `${REFRESH_COOKIE_NAME}=${cookieExpires}${cookiePath}`;
+    // 삭제할 쿠키 목록
+    const cookiesToDelete = [
+      AUTH_COOKIE_NAME,
+      REFRESH_COOKIE_NAME,
+      'tg_selected_project_id', // 프로젝트 선택 쿠키도 삭제
+    ];
+
+    // 각 쿠키 삭제 시도
+    for (const cookieName of cookiesToDelete) {
+      // Domain이 있는 경우와 없는 경우 모두 삭제 시도
+      const domains = cookieDomain ? [cookieDomain, ''] : [''];
+      
+      for (const domain of domains) {
+        const cookieString = `${cookieName}=${cookieExpires}${cookieMaxAge}${cookiePath}${domain}${cookieSecure}${cookieSameSite}`;
+        document.cookie = cookieString;
+      }
     }
   }
 

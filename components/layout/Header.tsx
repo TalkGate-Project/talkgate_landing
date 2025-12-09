@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_ITEMS, BRAND } from "@/lib/constants";
-import { getLoginUrl, getStartUrl, getLogoutUrl } from "@/lib/auth";
+import { NAV_ITEMS } from "@/lib/constants";
+import { getLoginUrl, getStartUrl } from "@/lib/auth";
 
 interface HeaderProps {
   /** 인증 여부 (서버에서 전달) */
@@ -97,7 +97,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
           {isAuthenticated ? (
             <>
               <Link
-                href={getLogoutUrl(pathname)}
+                href="/api/auth/logout"
                 className="btn btn-ghost !text-[18px]"
               >
                 Logout
