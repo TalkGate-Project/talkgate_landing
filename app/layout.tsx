@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { Header, Footer } from '@/components';
 import { BRAND, PAGE_METADATA } from '@/lib/constants';
-import { checkAuthFromCookies } from '@/lib/auth';
+import { checkAuthStatus } from '@/lib/auth';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -37,9 +37,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 서버에서 인증 상태 확인
+  // 서버에서 인증 상태 확인 (메인 서비스 API를 통해)
   const cookieStore = await cookies();
-  const isAuthenticated = checkAuthFromCookies(cookieStore);
+  const isAuthenticated = await checkAuthStatus(cookieStore);
 
   return (
     <html lang="ko">
