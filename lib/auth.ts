@@ -197,29 +197,59 @@ export const COOKIE_OPTIONS = {
 
 /**
  * 서버 사이드에서 인증 상태 확인
+ * 
+ * 메인 서비스의 API 프록시를 통해 인증 상태를 확인합니다.
+ * httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API를 통해 확인합니다.
  *
  * @example
  * ```tsx
  * // Server Component에서 사용
  * import { cookies } from 'next/headers';
- * import { checkAuthFromCookies } from '@/lib/auth';
+ * import { checkAuthStatus } from '@/lib/auth';
  *
  * export default async function Page() {
  *   const cookieStore = await cookies();
- *   const isAuthenticated = checkAuthFromCookies(cookieStore);
+ *   const isAuthenticated = await checkAuthStatus(cookieStore);
  *   // ...
  * }
  * ```
  */
+export async function checkAuthStatus(
+  cookieStore: { getAll: () => Array<{ name: string; value: string }> }
+): Promise<boolean> {
+  try {
+    // 모든 쿠키를 가져와서 Cookie 헤더로 전달
+    const cookieHeader = cookieStore
+      .getAll()
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+
+    const response = await fetch(`${env.MAIN_SERVICE_URL}/api/proxy/v1/auth/user`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+      cache: 'no-store', // 매번 최신 상태 확인
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.warn('인증 상태 확인 실패:', error);
+    return false;
+  }
+}
+
+/**
+ * @deprecated httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 사용하지 않습니다.
+ * 대신 checkAuthStatus()를 사용하세요.
+ */
 export function checkAuthFromCookies(
   cookieStore: { get: (name: string) => { value: string } | undefined }
 ): boolean {
-  const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
-  if (!sessionCookie?.value) return false;
-  
-  // 쿠키가 있고 값이 유효한 경우에만 인증됨으로 간주
-  // 빈 값, 'undefined', 'null' 문자열 체크
-  const value = sessionCookie.value;
-  return !!value && value !== 'undefined' && value !== 'null';
+  // httpOnly 쿠키는 서버에서도 직접 읽을 수 없으므로 항상 false 반환
+  // 실제 인증 확인은 checkAuthStatus()를 사용해야 합니다.
+  void cookieStore; // 사용하지 않는 파라미터 명시 (deprecated 함수)
+  return false;
 }
 

@@ -3,32 +3,42 @@
  * 
  * 서버 컴포넌트에서 전달받은 초기 인증 상태를 기반으로
  * 클라이언트에서 실시간으로 인증 상태를 확인합니다.
+ * 
+ * httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로
+ * 서버 API를 통해 인증 상태를 확인합니다.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AUTH_COOKIE_NAME } from '@/lib/auth';
 
 /**
- * 쿠키에서 인증 상태 확인
+ * 서버 API를 통해 인증 상태 확인
  * 
- * 메인 서비스에서 설정한 tg_access_token 쿠키를 확인하여
- * 로그인 여부를 판단합니다.
+ * httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로
+ * 랜딩 페이지의 API 엔드포인트를 통해 확인합니다.
  */
-function checkAuthFromClient(): boolean {
-  if (typeof document === 'undefined') return false;
+async function checkAuthFromClient(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
   
-  const cookies = document.cookie.split(';');
-  const authCookie = cookies.find(cookie => 
-    cookie.trim().startsWith(`${AUTH_COOKIE_NAME}=`)
-  );
-  
-  // 쿠키가 있고 값이 비어있지 않은 경우에만 인증됨으로 간주
-  if (!authCookie) return false;
-  
-  const value = authCookie.split('=')[1];
-  return !!value && value !== 'undefined' && value !== 'null';
+  try {
+    const response = await fetch('/api/auth/check', {
+      method: 'GET',
+      credentials: 'include', // httpOnly 쿠키를 포함하기 위해 필수
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    return data.authenticated === true;
+  } catch (error) {
+    console.warn('인증 상태 확인 실패:', error);
+    return false;
+  }
 }
 
 interface UseAuthOptions {
@@ -64,8 +74,8 @@ export function useAuth({
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuth);
 
   // 인증 상태 확인 함수
-  const checkAuth = () => {
-    const auth = checkAuthFromClient();
+  const checkAuth = async () => {
+    const auth = await checkAuthFromClient();
     setIsAuthenticated(auth);
     return auth;
   };
