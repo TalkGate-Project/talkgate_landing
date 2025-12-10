@@ -180,6 +180,7 @@ export interface CompanyInfo {
   ceo: string;
   email: string;
   phone: string;
+  representativeNumber: string;
   address: string;
 }
 
