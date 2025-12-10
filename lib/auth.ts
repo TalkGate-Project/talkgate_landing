@@ -7,6 +7,98 @@
 
 import { env } from './env';
 
+// ============================================
+// 쿠키 관련 상수
+// ============================================
+
+const ACCESS_COOKIE = "tg_access_token";
+const REFRESH_COOKIE = "tg_refresh_token";
+const PROJECT_COOKIE = "tg_selected_project_id";
+
+// ============================================
+// 브라우저/도메인 확인 유틸리티
+// ============================================
+
+/**
+ * 브라우저 환경인지 확인
+ */
+function isBrowser(): boolean {
+  return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
+/**
+ * 프로덕션 도메인인지 확인
+ */
+function isProductionDomain(): boolean {
+  if (!isBrowser()) return false;
+  const hostname = window.location.hostname;
+  return hostname.endsWith(".talkgate.im") || hostname === "talkgate.im";
+}
+
+// ============================================
+// 간소화된 인증 쿠키 관리
+// ============================================
+
+/**
+ * 모든 TalkGate 인증 쿠키를 삭제합니다.
+ * 
+ * `.talkgate.im` 도메인에 설정된 쿠키를 삭제하므로,
+ * 랜딩 페이지(talkgate.im)에서 호출해도 앱의 쿠키가 함께 삭제됩니다.
+ */
+export function clearAuthCookies(): void {
+  if (!isBrowser()) return;
+
+  const cookiesToDelete = [ACCESS_COOKIE, REFRESH_COOKIE, PROJECT_COOKIE];
+
+  // 기본 삭제 속성
+  const baseAttrs = ["Max-Age=0", "Path=/"];
+
+  // HTTPS 환경에서는 Secure 속성 추가
+  if (window.location.protocol === "https:") {
+    baseAttrs.push("Secure");
+  }
+
+  cookiesToDelete.forEach(cookieName => {
+    // 1. 프로덕션 환경: .talkgate.im 도메인 쿠키 삭제
+    if (isProductionDomain()) {
+      const prodAttrs = [...baseAttrs, "Domain=.talkgate.im"];
+      document.cookie = `${cookieName}=; ${prodAttrs.join("; ")}`;
+    }
+
+    // 2. 현재 도메인 쿠키도 삭제 (HostOnly 쿠키가 있을 수 있으므로)
+    document.cookie = `${cookieName}=; ${baseAttrs.join("; ")}`;
+  });
+
+  console.log("[Landing] 🍪 인증 쿠키 삭제 완료");
+}
+
+/**
+ * 로그인 상태 확인 (쿠키 존재 여부)
+ * 
+ * 클라이언트 사이드에서만 사용 가능합니다.
+ * 단순히 쿠키 존재 여부만 확인합니다.
+ */
+export function isLoggedIn(): boolean {
+  if (!isBrowser()) return false;
+  return document.cookie.includes(ACCESS_COOKIE);
+}
+
+/**
+ * 앱 도메인 URL 반환
+ * 
+ * 프로덕션: app.talkgate.im
+ * 개발: app-dev.talkgate.im
+ */
+export function getAppDomain(): string {
+  if (!isBrowser()) {
+    // 서버 사이드에서는 env 사용
+    return env.MAIN_SERVICE_URL.replace('https://', '').replace('http://', '');
+  }
+  
+  const isProduction = window.location.hostname === "talkgate.im";
+  return isProduction ? "app.talkgate.im" : "app-dev.talkgate.im";
+}
+
 /**
  * 로그인 URL 생성
  *
