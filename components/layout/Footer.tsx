@@ -16,7 +16,7 @@ export function Footer() {
             | 통신판매업신고번호 : {COMPANY_INFO.telecomNumber}
           </p>
           <p>
-            대표이사 : {COMPANY_INFO.ceo} | 이메일 :{" "}
+            대표이사 : {COMPANY_INFO.ceo} | 대표번호 : {COMPANY_INFO.representativeNumber} | 이메일 :{" "}
             <Link
               href={`mailto:${COMPANY_INFO.email}`}
               className="hover:text-foreground transition-colors"

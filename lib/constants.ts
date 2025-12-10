@@ -69,6 +69,7 @@ export const COMPANY_INFO: CompanyInfo = {
   ceo: '정진웅',
   email: 'support@talkgate.im',
   phone: '',
+  representativeNumber: '1533-4005',
   address: '서울특별시 강북구 삼양로173길 223(우이동)',
 };
 
