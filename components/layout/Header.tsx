@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/constants";
-import { getLoginUrl, getStartUrl } from "@/lib/auth";
+import { getLoginUrl, getStartUrl, clearAuthCookies, getAppDomain } from "@/lib/auth";
 
 interface HeaderProps {
   /** 인증 여부 (서버에서 전달) */
@@ -12,6 +12,20 @@ interface HeaderProps {
 
 export function Header({ isAuthenticated = false }: HeaderProps) {
   const pathname = usePathname();
+
+  /**
+   * 로그아웃 처리
+   * 1. 쿠키 삭제
+   * 2. 앱의 로그인 페이지로 리다이렉트
+   */
+  const handleLogout = () => {
+    // 1. 쿠키 삭제
+    clearAuthCookies();
+
+    // 2. 앱의 로그인 페이지로 리다이렉트
+    const appDomain = getAppDomain();
+    window.location.href = `https://${appDomain}/login?logout=success`;
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -96,12 +110,12 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
         <div className="flex items-center gap-5">
           {isAuthenticated ? (
             <>
-              <Link
-                href="/api/auth/logout"
+              <button
+                onClick={handleLogout}
                 className="btn btn-ghost !text-[18px]"
               >
                 Logout
-              </Link>
+              </button>
               <Link href={getStartUrl(true)} className="btn btn-primary">
                 대시보드
               </Link>

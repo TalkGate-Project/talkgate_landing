@@ -26,6 +26,9 @@ const PRICING_PLANS: PricingPlan[] = [
     ],
     ctaText: "구독하기",
     ctaHref: "/checkout/basic",
+    maxMembers: 50,
+    aiTokensPerMonth: 100000,
+    smsCountPerMonth: 1000,
   },
   {
     id: "premium",
@@ -43,6 +46,9 @@ const PRICING_PLANS: PricingPlan[] = [
     highlighted: true,
     ctaText: "구독하기",
     ctaHref: "/checkout/premium",
+    maxMembers: 100,
+    aiTokensPerMonth: 500000,
+    smsCountPerMonth: 5000,
   },
 ];
 
@@ -252,7 +258,7 @@ function PricingCard({
             </span>
           </div>
           <span className="text-[14px] font-medium leading-[17px] text-right text-[#252525]">
-            최대 명
+            최대 {plan.maxMembers}명
           </span>
         </div>
 
@@ -280,7 +286,7 @@ function PricingCard({
             </span>
           </div>
           <span className="text-[14px] font-medium leading-[17px] text-right text-[#252525]">
-            월 {plan.id === "basic" ? "100,000" : "500,000"}토큰
+            월 {plan.aiTokensPerMonth.toLocaleString()}토큰
           </span>
         </div>
 
@@ -308,7 +314,7 @@ function PricingCard({
             </span>
           </div>
           <span className="text-[14px] font-medium leading-[17px] text-right text-[#252525]">
-            월 {plan.id === "basic" ? "1,000" : "5,000"}건
+            월 {plan.smsCountPerMonth.toLocaleString()}건
           </span>
         </div>
       </div>

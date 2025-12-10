@@ -45,6 +45,12 @@ export interface PricingPlan {
   ctaText: string;
   /** CTA 버튼 링크 */
   ctaHref: string;
+  /** 최대 멤버 수 */
+  maxMembers: number;
+  /** 월 AI 상담 도우미 토큰 수 */
+  aiTokensPerMonth: number;
+  /** 월 문자 전송 횟수 */
+  smsCountPerMonth: number;
 }
 
 export type BillingCycle = 'monthly' | 'yearly';
