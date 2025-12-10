@@ -16,15 +16,14 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
   /**
    * 로그아웃 처리
    * 1. 쿠키 삭제
-   * 2. 앱의 로그인 페이지로 리다이렉트
+   * 2. 새로고침으로 새로운 데이터 로드
    */
   const handleLogout = () => {
     // 1. 쿠키 삭제
     clearAuthCookies();
 
-    // 2. 앱의 로그인 페이지로 리다이렉트
-    const appDomain = getAppDomain();
-    window.location.href = `https://${appDomain}/login?logout=success`;
+    // 2. 새로고침으로 새로운 데이터 로드
+    window.location.reload();
   };
 
   return (
