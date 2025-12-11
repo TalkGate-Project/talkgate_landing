@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans, Montserrat } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { Header, Footer } from '@/components';
 import { BRAND, PAGE_METADATA } from '@/lib/constants';
@@ -8,6 +8,13 @@ import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: '--font-plus-jakarta-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+const montserrat = Montserrat({
+  variable: '--font-montserrat',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   display: 'swap',
@@ -52,7 +59,7 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${plusJakartaSans.variable} antialiased min-h-screen flex flex-col`}
+        className={`${plusJakartaSans.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col`}
       >
         <Header isAuthenticated={isAuthenticated} />
         <main className="flex-1">{children}</main>
