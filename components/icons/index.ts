@@ -5,7 +5,9 @@
  * 간단한 SVG는 인라인으로 사용합니다.
  */
 
-// 예시: 필요시 추가
-// export { CheckIcon } from './CheckIcon';
-// export { ArrowRightIcon } from './ArrowRightIcon';
+export { ChevronUpIcon } from './ChevronUpIcon';
+export { VisaIcon } from './VisaIcon';
+export { MastercardIcon } from './MastercardIcon';
+export { AmexIcon } from './AmexIcon';
+export { DiscoverIcon } from './DiscoverIcon';
 

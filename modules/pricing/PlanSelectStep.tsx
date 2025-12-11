@@ -59,10 +59,7 @@ export default function PlanSelectStep({
   onLogin,
 }: PlanSelectStepProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("premium"); // 초기 선택: Premium
-  const [agreedPlans, setAgreedPlans] = useState<Record<string, boolean>>({
-    premium: true, // Premium 초기 동의 상태
-  });
+  const [agreedPlans, setAgreedPlans] = useState<Record<string, boolean>>({});
 
   const handleSubscribe = (plan: PricingPlan) => {
     // 로그인 상태 확인
@@ -71,7 +68,7 @@ export default function PlanSelectStep({
       const confirmed = window.confirm(
         "구독하려면 로그인이 필요합니다.\n\n로그인 페이지로 이동하시겠습니까?\n(로그인 후 이 페이지로 다시 돌아옵니다)"
       );
-      
+
       if (confirmed) {
         // 로그인 페이지로 이동 (현재 페이지를 returnUrl로 전달)
         onLogin();
@@ -88,10 +85,6 @@ export default function PlanSelectStep({
       ...prev,
       [planId]: !prev[planId],
     }));
-  };
-
-  const handleSelectPlan = (planId: string) => {
-    setSelectedPlanId(planId);
   };
 
   return (
@@ -142,9 +135,7 @@ export default function PlanSelectStep({
               key={plan.id}
               plan={plan}
               billingCycle={billingCycle}
-              isSelected={selectedPlanId === plan.id}
               agreed={agreedPlans[plan.id] || false}
-              onSelectPlan={() => handleSelectPlan(plan.id)}
               onToggleAgreement={() => toggleAgreement(plan.id)}
               onSubscribe={() => handleSubscribe(plan)}
             />
@@ -158,9 +149,7 @@ export default function PlanSelectStep({
 interface PricingCardProps {
   plan: PricingPlan;
   billingCycle: BillingCycle;
-  isSelected: boolean;
   agreed: boolean;
-  onSelectPlan: () => void;
   onToggleAgreement: () => void;
   onSubscribe: () => void;
 }
@@ -168,41 +157,69 @@ interface PricingCardProps {
 function PricingCard({
   plan,
   billingCycle,
-  isSelected,
   agreed,
-  onSelectPlan,
   onToggleAgreement,
   onSubscribe,
 }: PricingCardProps) {
   const price =
     billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
+  const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 매년";
+  const isHighlighted = plan.highlighted || false;
 
   return (
     <div
-      className={`w-[572px] min-h-[646px] rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-20 py-[56px] cursor-pointer transition-all ${
-        isSelected ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
+      className={`w-[572px] min-h-[646px] rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-20 py-[56px] transition-all ${
+        isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
       }`}
-      onClick={onSelectPlan}
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="text-[24px] font-bold text-[#474747]">
-        <svg width="160" height="38" viewBox="0 0 160 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M95.8997 6.67546V28.3281C95.8997 32.5091 91.6011 38 87.2219 38H79.7485V32.9507L80.0055 32.7299C80.076 32.7249 80.1365 32.8654 80.1768 32.8654H90.3161L90.5731 32.6094V12.066L90.3161 11.8101H77.8587V23.6201H88.5976L88.8547 23.8761V28.6694L88.5976 28.9254H82.4093C71.3982 28.9254 68.4804 11.7599 78.7204 7.44841C79.2193 7.23761 80.7614 6.67044 81.2049 6.67044H95.8997V6.67546Z" fill="#474747"/>
-<path d="M39.8712 14.7212C39.9115 13.883 39.9367 12.9394 39.2766 12.322C39.1859 12.2367 38.4652 11.8151 38.4148 11.8151H26.3001V6.68048H38.4148C41.5745 6.68048 45.2029 11.0823 45.2029 14.1239V28.6744C45.2029 29.1061 44.19 28.7597 43.9229 28.7497C39.2312 28.6242 33.6778 29.2065 29.1373 28.7547C23.5033 28.1976 21.2053 20.448 25.1763 16.5933C25.9121 15.8806 27.9631 14.7161 28.966 14.7161H39.8813L39.8712 14.7212ZM39.8712 19.8558H28.9559C27.2576 19.8558 27.5197 23.595 28.9861 23.595C29.9386 23.595 30.886 23.6151 31.7024 23.6151C33.3654 23.6151 35.0435 23.6151 36.7014 23.6151C37.7194 23.6151 38.954 23.5398 39.8712 23.5398V19.8608V19.8558Z" fill="#474747"/>
-<path d="M112.656 6.67546C115.554 7.06695 119.273 10.6356 119.273 13.6069V28.6694C119.147 28.8451 119.121 28.8551 118.92 28.8551C113.689 28.8702 108.438 28.6343 103.202 28.7547C96.7062 27.6856 95.1944 18.0689 101.282 15.3737C101.746 15.1679 102.93 14.7161 103.373 14.7161H114.112C114.279 13.888 113.628 11.805 112.651 11.805H100.536V6.67044H112.651L112.656 6.67546ZM114.112 19.8558H103.197C102.522 19.8558 102.335 22.8221 102.98 23.4043C103.036 23.4545 103.832 23.7908 103.882 23.7908H113.85L114.107 23.5348V19.8558H114.112Z" fill="#474747"/>
-<path d="M160 20.3678H143.244L142.987 20.1118V15.2332H154.502V11.8101H141.526C141.279 11.9607 141.289 12.1514 141.259 12.4024C140.966 14.8818 141.319 18.4304 141.445 20.96C141.49 21.8434 141.4 22.7418 141.435 23.6202L157.42 23.8761V28.6694C157.183 29.0509 156.871 28.7297 156.482 28.7497C148.49 29.1563 137.726 30.396 135.977 19.901C134.229 9.40592 143.919 4.12075 152.869 7.18746C156.15 8.31175 159.995 12.6182 159.995 16.1818V20.3778L160 20.3678Z" fill="#474747"/>
-<path d="M59.9788 3.05176e-05V14.3799L60.4979 14.1239L67.9713 6.67551H75.2733L64.4387 17.7177L75.1877 28.5841L75.0113 28.9304L67.8856 28.6695L60.4979 21.3114L59.9788 21.0554V28.7548H54.6522V0.256007L54.9092 3.05176e-05H59.9788Z" fill="#474747"/>
-<path d="M26.2955 0V5.04927L26.0385 5.30525H15.9849V28.6694L15.6977 28.9003L10.9052 28.8852L10.6533 28.6694V5.30525H0.257009L0 5.04927V0.255977L0.257009 0H26.2955Z" fill="#474747"/>
-<path d="M126.488 1.88217V6.67547H135.252V11.8101H126.488V23.6201H134.995L135.252 23.8761V28.6694C134.728 29.2366 133.926 28.7698 133.281 28.7497C130.238 28.6543 128.449 28.9706 125.747 27.1837C123.631 25.7834 121.162 22.3653 121.162 19.7704V1.88217H126.488Z" fill="#474747"/>
-<path d="M52.591 3.05176e-05V28.6694L52.334 28.8903C52.2634 28.8953 52.2029 28.7548 52.1626 28.7548H47.2643V3.05176e-05H52.591Z" fill="#474747"/>
-</svg>
-
+          <svg
+            width="160"
+            height="38"
+            viewBox="0 0 160 38"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M95.8997 6.67546V28.3281C95.8997 32.5091 91.6011 38 87.2219 38H79.7485V32.9507L80.0055 32.7299C80.076 32.7249 80.1365 32.8654 80.1768 32.8654H90.3161L90.5731 32.6094V12.066L90.3161 11.8101H77.8587V23.6201H88.5976L88.8547 23.8761V28.6694L88.5976 28.9254H82.4093C71.3982 28.9254 68.4804 11.7599 78.7204 7.44841C79.2193 7.23761 80.7614 6.67044 81.2049 6.67044H95.8997V6.67546Z"
+              fill="#474747"
+            />
+            <path
+              d="M39.8712 14.7212C39.9115 13.883 39.9367 12.9394 39.2766 12.322C39.1859 12.2367 38.4652 11.8151 38.4148 11.8151H26.3001V6.68048H38.4148C41.5745 6.68048 45.2029 11.0823 45.2029 14.1239V28.6744C45.2029 29.1061 44.19 28.7597 43.9229 28.7497C39.2312 28.6242 33.6778 29.2065 29.1373 28.7547C23.5033 28.1976 21.2053 20.448 25.1763 16.5933C25.9121 15.8806 27.9631 14.7161 28.966 14.7161H39.8813L39.8712 14.7212ZM39.8712 19.8558H28.9559C27.2576 19.8558 27.5197 23.595 28.9861 23.595C29.9386 23.595 30.886 23.6151 31.7024 23.6151C33.3654 23.6151 35.0435 23.6151 36.7014 23.6151C37.7194 23.6151 38.954 23.5398 39.8712 23.5398V19.8608V19.8558Z"
+              fill="#474747"
+            />
+            <path
+              d="M112.656 6.67546C115.554 7.06695 119.273 10.6356 119.273 13.6069V28.6694C119.147 28.8451 119.121 28.8551 118.92 28.8551C113.689 28.8702 108.438 28.6343 103.202 28.7547C96.7062 27.6856 95.1944 18.0689 101.282 15.3737C101.746 15.1679 102.93 14.7161 103.373 14.7161H114.112C114.279 13.888 113.628 11.805 112.651 11.805H100.536V6.67044H112.651L112.656 6.67546ZM114.112 19.8558H103.197C102.522 19.8558 102.335 22.8221 102.98 23.4043C103.036 23.4545 103.832 23.7908 103.882 23.7908H113.85L114.107 23.5348V19.8558H114.112Z"
+              fill="#474747"
+            />
+            <path
+              d="M160 20.3678H143.244L142.987 20.1118V15.2332H154.502V11.8101H141.526C141.279 11.9607 141.289 12.1514 141.259 12.4024C140.966 14.8818 141.319 18.4304 141.445 20.96C141.49 21.8434 141.4 22.7418 141.435 23.6202L157.42 23.8761V28.6694C157.183 29.0509 156.871 28.7297 156.482 28.7497C148.49 29.1563 137.726 30.396 135.977 19.901C134.229 9.40592 143.919 4.12075 152.869 7.18746C156.15 8.31175 159.995 12.6182 159.995 16.1818V20.3778L160 20.3678Z"
+              fill="#474747"
+            />
+            <path
+              d="M59.9788 3.05176e-05V14.3799L60.4979 14.1239L67.9713 6.67551H75.2733L64.4387 17.7177L75.1877 28.5841L75.0113 28.9304L67.8856 28.6695L60.4979 21.3114L59.9788 21.0554V28.7548H54.6522V0.256007L54.9092 3.05176e-05H59.9788Z"
+              fill="#474747"
+            />
+            <path
+              d="M26.2955 0V5.04927L26.0385 5.30525H15.9849V28.6694L15.6977 28.9003L10.9052 28.8852L10.6533 28.6694V5.30525H0.257009L0 5.04927V0.255977L0.257009 0H26.2955Z"
+              fill="#474747"
+            />
+            <path
+              d="M126.488 1.88217V6.67547H135.252V11.8101H126.488V23.6201H134.995L135.252 23.8761V28.6694C134.728 29.2366 133.926 28.7698 133.281 28.7497C130.238 28.6543 128.449 28.9706 125.747 27.1837C123.631 25.7834 121.162 22.3653 121.162 19.7704V1.88217H126.488Z"
+              fill="#474747"
+            />
+            <path
+              d="M52.591 3.05176e-05V28.6694L52.334 28.8903C52.2634 28.8953 52.2029 28.7548 52.1626 28.7548H47.2643V3.05176e-05H52.591Z"
+              fill="#474747"
+            />
+          </svg>
         </div>
         {plan.badge && (
           <span
             className={`px-3 py-1 rounded-[30px] text-[14px] font-medium ${
-              isSelected
+              isHighlighted
                 ? "bg-[#D6FAE8] text-[#00B55B]"
                 : "bg-[#E2E2E2] text-[#595959]"
             } opacity-80`}
@@ -227,7 +244,7 @@ function PricingCard({
             ₩ {price?.toLocaleString()}
           </span>
           <span className="text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
-            {plan.priceUnit}
+            {priceUnit}
           </span>
         </div>
       </div>
@@ -333,18 +350,12 @@ function PricingCard({
 
       {/* Agreement */}
       <div className="mb-[42px]">
-        <label
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <div className="relative">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <div className="relative flex items-center justify-center">
             <input
               type="checkbox"
               checked={agreed}
-              onChange={(e) => {
-                e.stopPropagation();
+              onChange={() => {
                 onToggleAgreement();
               }}
               className="w-5 h-5 appearance-none rounded-[5px] border-2 border-[#E2E2E2] checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors"
@@ -392,13 +403,13 @@ function PricingCard({
 
       {/* CTA Button */}
       <button
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={() => {
           onSubscribe();
         }}
         disabled={!agreed}
-        className={`w-full h-[52px] rounded-[30px] font-semibold text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-          isSelected
+        title={!agreed ? "약관에 동의해야 구독할 수 있습니다." : undefined}
+        className={`cursor-pointer w-full h-[52px] rounded-[30px] font-semibold text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+          isHighlighted
             ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
             : "bg-[#000000] text-white hover:bg-[#252525]"
         }`}
