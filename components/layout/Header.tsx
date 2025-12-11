@@ -115,7 +115,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               >
                 Logout
               </button>
-              <Link href={getStartUrl(true)} className="btn btn-primary">
+              <Link href={getStartUrl(true)} className="btn btn-dark">
                 대시보드
               </Link>
             </>
