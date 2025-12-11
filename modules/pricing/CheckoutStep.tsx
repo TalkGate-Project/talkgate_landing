@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { PricingPlan, Project } from "@/types";
+import { ChevronUpIcon, VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon } from "@/components/icons";
 
 interface CheckoutStepProps {
   selectedPlan: PricingPlan;
@@ -75,22 +76,7 @@ export default function CheckoutStep({
                 onClick={onBack}
                 className="cursor-pointer flex items-center justify-center w-6 h-6 hover:opacity-70 transition-opacity"
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="rotate-90"
-                >
-                  <path
-                    d="M6 9L12 15L18 9"
-                    stroke="#000000"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ChevronUpIcon className="rotate-90" />
               </button>
               <h1 className="font-bold text-[24px] leading-[150%] tracking-[-0.03em] text-[#252525]">
                 구독하기
@@ -222,28 +208,10 @@ export default function CheckoutStep({
                     className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] pr-28 text-[14px] text-[#000000] bg-white"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    {/* VISA */}
-                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
-                      <rect width="24" height="16" rx="1" fill="white" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" />
-                      <path d="M6 5L8 11H9.5L11.5 5H10L8.75 9.5L7.5 5H6Z" fill="#1434CB" />
-                    </svg>
-                    {/* Mastercard */}
-                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
-                      <rect width="24" height="16" rx="1" fill="#252525" />
-                      <circle cx="9" cy="8" r="4" fill="#EB001B" />
-                      <circle cx="15" cy="8" r="4" fill="#F79E1B" />
-                      <path d="M12 5C11 6 10.5 7 10.5 8C10.5 9 11 10 12 11C13 10 13.5 9 13.5 8C13.5 7 13 6 12 5Z" fill="#FF5F00" />
-                    </svg>
-                    {/* AMEX */}
-                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
-                      <rect width="24" height="16" rx="1" fill="#016FD0" />
-                    </svg>
-                    {/* Discover */}
-                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
-                      <rect width="24" height="16" rx="1" fill="white" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" />
-                      <path d="M13 12C16 12 19 10 19 8C19 6 16 4 13 4V12Z" fill="#F27712" />
-                      <rect x="2" y="6" width="18" height="3" rx="0.5" fill="#000000" />
-                    </svg>
+                    <VisaIcon />
+                    <MastercardIcon />
+                    <AmexIcon />
+                    <DiscoverIcon />
                   </div>
                 </div>
               </div>

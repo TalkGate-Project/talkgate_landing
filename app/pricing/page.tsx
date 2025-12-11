@@ -7,9 +7,6 @@ import { getLoginUrl, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 type PricingStep = "project-select" | "plan-select" | "checkout";
 
-// Dev 환경 여부 확인
-const isDev = process.env.NODE_ENV === "development";
-
 export default function PricingPage() {
   // Hydration 오류 방지: 초기값은 null로 설정
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -76,27 +73,6 @@ export default function PricingPage() {
     setCurrentStep("plan-select");
   };
 
-  // Dev 모드: 임시 로그인 처리
-  const handleDevLogin = () => {
-    // 임시 세션 쿠키 설정 (30일 만료)
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 30);
-    document.cookie = `${AUTH_COOKIE_NAME}=dev_session_token; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
-    
-    // 페이지 새로고침하여 로그인 상태 적용
-    window.location.reload();
-  };
-
-  // Dev 모드: 로그아웃 처리
-  const handleDevLogout = () => {
-    // 쿠키 삭제 (모든 쿠키)
-    document.cookie = `${AUTH_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
-    document.cookie = `tg_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
-    
-    // 페이지 새로고침하여 로그아웃 상태 적용
-    window.location.reload();
-  };
-
   // 현재 단계에 따라 컴포넌트 렌더링
   let content;
   switch (currentStep) {
@@ -129,65 +105,5 @@ export default function PricingPage() {
       content = null;
   }
 
-  return (
-    <>
-      {content}
-
-      {/* Dev 모드 테스트 버튼 (개발 환경에서만 표시) */}
-      {isDev && (
-        <div className="fixed bottom-8 right-8 z-[9999] flex flex-col gap-2">
-          {isAuthenticated ? (
-            <button
-              onClick={handleDevLogout}
-              className="px-4 py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[14px] font-semibold shadow-lg transition-colors flex items-center gap-2"
-              title="Dev 모드: 로그아웃 테스트"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H6M10.6667 11.3333L14 8M14 8L10.6667 4.66667M14 8H6"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              DEV 로그아웃
-            </button>
-          ) : (
-            <button
-              onClick={handleDevLogin}
-              className="px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white text-[14px] font-semibold shadow-lg transition-colors flex items-center gap-2"
-              title="Dev 모드: 로그인 테스트"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 14H12.6667C13.0203 14 13.3594 13.8595 13.6095 13.6095C13.8595 13.3594 14 13.0203 14 12.6667V3.33333C14 2.97971 13.8595 2.64057 13.6095 2.39052C13.3594 2.14048 13.0203 2 12.6667 2H10M5.33333 11.3333L2 8M2 8L5.33333 4.66667M2 8H10"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              DEV 로그인
-            </button>
-          )}
-          <div className="text-center text-[10px] text-gray-500 bg-white/90 px-2 py-1 rounded">
-            Dev Mode
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return <>{content}</>;
 }
