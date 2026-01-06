@@ -75,14 +75,14 @@ export function HeroSection() {
 
   return (
     <section className="lg:py-4">
-      <div className="relative container-hero h-[calc(100vh-80px)] md:h-[808px] min-h-[600px] max-h-[808px] flex flex-col items-center pt-[30px] pt-[72px] md:pt-[50px] pb-4 md:pb-0">
+      <div className="relative container-hero h-[553px] md:h-[808px] md:min-h-[600px] md:max-h-[808px] flex flex-col items-center pt-[30px] pt-[72px] md:pt-[50px] pb-4 md:pb-0">
         <h1 className="text-[28px] md:text-[38px] font-bold font-en leading-[1.3] text-[#ffffff] text-center z-20 tracking-[-0.03em] px-4">
           All your business
           <br />
           workflows in one place.
         </h1>
 
-        <p className="typo-body !mt-4 md:!mt-6 max-w-2xl text-[#ffffff] text-center z-20 whitespace-pre-line px-4 text-sm md:text-base">
+        <p className="hero-description typo-body !mt-4 md:!mt-6 max-w-2xl text-[#ffffff] text-center z-20 whitespace-pre-line px-3 sm:px-4 text-xs sm:text-sm md:text-base leading-relaxed">
           {BRAND.description}
         </p>
 

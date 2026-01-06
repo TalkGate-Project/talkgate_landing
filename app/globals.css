@@ -1122,6 +1122,24 @@ body {
 }
 
 /* ============================================
+   Hero Section Text Wrapping
+   ============================================ */
+
+/* Hero Section Description: 작은 화면에서 텍스트 개행 최적화 */
+.hero-description {
+  overflow-wrap: break-word;
+  word-break: keep-all; /* 한글 단어 단위로 줄바꿈 */
+  text-wrap: balance; /* 최신 브라우저에서 텍스트 밸런싱 */
+}
+
+/* 한글의 경우 word-break: keep-all이 더 자연스러움 */
+@supports (text-wrap: balance) {
+  .hero-description {
+    text-wrap: balance;
+  }
+}
+
+/* ============================================
    Security Section Animations
    ============================================ */
 
