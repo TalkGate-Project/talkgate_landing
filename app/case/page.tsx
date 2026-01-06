@@ -15,16 +15,16 @@ export const metadata: Metadata = {
  */
 export default function CasePage() {
   return (
-    <section className="pt-[75px] pb-[166px]">
+    <section className="pt-[40px] md:pt-[75px] pb-[80px] md:pb-[166px] px-4 md:px-0">
       <div className="max-w-[1152px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-[60px]">
-          <h1 className="text-[32px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-3">
+        <div className="text-center mb-[40px] md:mb-[60px]">
+          <h1 className="text-[20px] md:text-[32px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-3 px-2 md:px-0">
             실제 기업들의 성과를 확인하고,
             <br />
             가치를 확인하세요.
           </h1>
-          <p className="text-[16px] leading-[1.5] tracking-[-0.02em] text-[#595959]">
+          <p className="text-[14px] md:text-[16px] leading-[1.5] tracking-[-0.02em] text-[#595959] px-2 md:px-0">
             고객들의 도입 성공 사례를 확인하세요.
           </p>
         </div>
@@ -45,14 +45,14 @@ function CaseListSkeleton() {
   return (
     <>
       {/* Sort Tabs Skeleton */}
-      <div className="flex justify-end gap-4 mb-10">
+      <div className="flex justify-end gap-4 mb-6 md:mb-10 px-4 md:px-0">
         <div className="h-[24px] w-[48px] bg-muted rounded animate-pulse" />
         <div className="h-[24px] w-[64px] bg-muted rounded animate-pulse" />
         <div className="h-[24px] w-[64px] bg-muted rounded animate-pulse" />
       </div>
 
       {/* Grid Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[68px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[40px] md:gap-y-[68px] px-4 md:px-0">
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="animate-pulse">
             {/* Thumbnail Skeleton */}

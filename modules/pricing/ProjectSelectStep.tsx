@@ -49,30 +49,31 @@ export default function ProjectSelectStep({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-[1192px] mx-auto pt-[74px] pb-24 px-4">
+      <div className="max-w-[1192px] mx-auto pt-[40px] md:pt-[74px] pb-12 md:pb-24 px-4">
         {/* Title Section */}
-        <h1 className="font-bold text-[32px] leading-[150%] text-center tracking-[-0.03em] text-[#252525] !mb-3">
+        <h1 className="font-bold text-[24px] md:text-[32px] leading-[150%] text-center tracking-[-0.03em] text-[#252525] !mb-3">
           당신의 아이디어를
           <br />
           프로젝트로 바로 실현하세요.
         </h1>
-        <p className="font-normal text-[16px] leading-[150%] text-center tracking-[-0.02em] text-[#595959] !mb-[67px]">
+        <p className="font-normal text-[14px] md:text-[16px] leading-[150%] text-center tracking-[-0.02em] text-[#595959] !mb-[40px] md:!mb-[67px]">
           간단한 생성만으로 새로운 업무 환경이 열립니다.
         </p>
 
         {/* Create New Project Card - 중앙 단독 배치 */}
-        <div className="flex justify-center mb-[32px]">
+        <div className="flex justify-center mb-6 md:mb-[32px]">
           <div
-            className="w-full h-[225px] rounded-[14px] border-2 border-dashed border-[#E2E2E2] hover:border-[#00E272] transition-colors duration-200 bg-white flex flex-col items-center justify-center cursor-pointer"
+            className="w-full h-[180px] md:h-[225px] rounded-[14px] border-2 border-dashed border-[#E2E2E2] hover:border-[#00E272] transition-colors duration-200 bg-white flex flex-col items-center justify-center cursor-pointer px-4"
             onClick={() => setShowCreateModal(true)}
           >
-            <div className="w-12 h-12 rounded-full bg-[#EDEDED] grid place-items-center">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#EDEDED] grid place-items-center">
               <svg
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5 md:w-6 md:h-6"
               >
                 <path
                   d="M12 5V19M19 12L5 12"
@@ -83,10 +84,10 @@ export default function ProjectSelectStep({
                 />
               </svg>
             </div>
-            <div className="mt-6 text-[18px] font-semibold leading-[21px] text-[#000000]">
+            <div className="mt-4 md:mt-6 text-[16px] md:text-[18px] font-semibold leading-[21px] text-[#000000]">
               새 프로젝트 생성
             </div>
-            <div className="mt-4 text-[16px] font-medium leading-[19px] tracking-[-0.04em] text-[#808080]">
+            <div className="mt-2 md:mt-4 text-[14px] md:text-[16px] font-medium leading-[19px] tracking-[-0.04em] text-[#808080] text-center">
               새로운 고객관리 프로젝트를 만들어보세요
             </div>
           </div>
@@ -94,31 +95,31 @@ export default function ProjectSelectStep({
 
         {/* Existing Projects - 2열 그리드 */}
         {projects.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[48px] mb-[54px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[48px] mb-8 md:mb-[54px]">
             {projects.map((p: Project) => (
               <div
                 key={p.id}
-                className="h-[225px] rounded-[14px] bg-[#F8F8F8] border border-[#E2E2E2] p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                className="min-h-[200px] md:h-[225px] rounded-[14px] bg-[#F8F8F8] border border-[#E2E2E2] p-4 md:p-6 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => onSelectProject(p)}
               >
                 {/* Project Header */}
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap">
                   {p.logoUrl ? (
                     <img
                       src={p.logoUrl}
                       alt={`${p.name} 로고`}
                       width={28}
                       height={28}
-                      className="w-7 h-7 rounded-full object-cover"
+                      className="w-6 h-6 md:w-7 md:h-7 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-[#EDEDED]" />
+                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-[#EDEDED]" />
                   )}
-                  <div className="text-[18px] font-semibold leading-[21px] text-[#000000] truncate">
+                  <div className="text-[16px] md:text-[18px] font-semibold leading-[21px] text-[#000000] truncate flex-1 min-w-0">
                     {p.name}
                   </div>
-                  <div className="flex items-center gap-3 px-3 py-1 rounded-[30px] bg-[#E2E2E2]">
-                    <span className="text-[12px] font-medium leading-[14px] text-[#595959] opacity-80">
+                  <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-1 rounded-[30px] bg-[#E2E2E2]">
+                    <span className="text-[11px] md:text-[12px] font-medium leading-[14px] text-[#595959] opacity-80">
                       멤버 {p.memberCount ?? 0}명
                     </span>
                   </div>
@@ -126,14 +127,14 @@ export default function ProjectSelectStep({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
-                    <div>
-                      <div className="text-[16px] font-semibold leading-[19px] text-[#252525] mb-2">
+                <div className="grid grid-cols-2 gap-3 md:gap-5">
+                  <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-3 md:p-5 flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] md:text-[16px] font-semibold leading-[19px] text-[#252525] mb-1 md:mb-2">
                         나에게 할당된 고객
                       </div>
                       <div
-                        className="text-[28px] font-bold leading-[34px] tracking-[1px] text-[#252525]"
+                        className="text-[20px] md:text-[28px] font-bold leading-[34px] tracking-[1px] text-[#252525]"
                         style={montserratStyle}
                       >
                         {p.assignedCustomerCount ?? 0}건
@@ -145,6 +146,7 @@ export default function ProjectSelectStep({
                       viewBox="0 0 60 60"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
+                      className="w-10 h-10 md:w-[60px] md:h-[60px] flex-shrink-0"
                     >
                       <path
                         opacity="0.1"
@@ -162,13 +164,13 @@ export default function ProjectSelectStep({
                       />
                     </svg>
                   </div>
-                  <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
-                    <div>
-                      <div className="text-[16px] font-semibold leading-[19px] text-[#252525] mb-2">
+                  <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-3 md:p-5 flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] md:text-[16px] font-semibold leading-[19px] text-[#252525] mb-1 md:mb-2">
                         오늘 예약 일정
                       </div>
                       <div
-                        className="text-[28px] font-bold leading-[34px] tracking-[1px] text-[#252525]"
+                        className="text-[20px] md:text-[28px] font-bold leading-[34px] tracking-[1px] text-[#252525]"
                         style={montserratStyle}
                       >
                         {p.todayScheduleCount ?? 0}건
@@ -180,6 +182,7 @@ export default function ProjectSelectStep({
                       viewBox="0 0 60 60"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
+                      className="w-10 h-10 md:w-[60px] md:h-[60px] flex-shrink-0"
                     >
                       <path
                         opacity="0.1"
@@ -203,9 +206,9 @@ export default function ProjectSelectStep({
         )}
 
         {/* Subscribe Button */}
-        <div className="flex justify-center mt-[54px]">
+        <div className="flex justify-center mt-8 md:mt-[54px]">
           <button
-            className="w-[360px] h-[52px] flex items-center justify-center bg-[#000000] rounded-[30px] text-[18px] font-semibold leading-[150%] tracking-[-0.02em] text-white hover:bg-[#252525] transition-colors"
+            className="w-full max-w-[360px] h-[48px] md:h-[52px] flex items-center justify-center bg-[#000000] rounded-[30px] text-[16px] md:text-[18px] font-semibold leading-[150%] tracking-[-0.02em] text-white hover:bg-[#252525] transition-colors"
             onClick={() => {
               // TODO: 구독 버튼 클릭 처리
               alert("구독 기능은 준비 중입니다.");
@@ -267,12 +270,12 @@ function CreateProjectModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[440px] p-7">
+      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-full max-w-[440px] p-5 md:p-7">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[18px] font-semibold text-[#000]">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-[16px] md:text-[18px] font-semibold text-[#000]">
             새 프로젝트 생성
           </h2>
           <button
@@ -300,8 +303,8 @@ function CreateProjectModal({
         </div>
 
         {/* Body */}
-        <div className="mb-6">
-          <label className="block text-[14px] font-medium text-[#000] mb-2">
+        <div className="mb-4 md:mb-6">
+          <label className="block text-[13px] md:text-[14px] font-medium text-[#000] mb-2">
             프로젝트 이름 <span className="text-[#F00]">*</span>
           </label>
           <input
@@ -315,16 +318,16 @@ function CreateProjectModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-2 md:gap-3">
           <button
-            className="cursor-pointer h-[38px] px-5 rounded-[8px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525] bg-white hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
+            className="cursor-pointer h-[38px] px-4 md:px-5 rounded-[8px] border border-[#E2E2E2] text-[13px] md:text-[14px] font-semibold text-[#252525] bg-white hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
             onClick={onClose}
             disabled={submitting}
           >
             취소
           </button>
           <button
-            className="cursor-pointer h-[38px] px-5 rounded-[8px] bg-[#252525] text-white text-[14px] font-semibold hover:bg-[#3a3a3a] transition-colors disabled:opacity-50"
+            className="cursor-pointer h-[38px] px-4 md:px-5 rounded-[8px] bg-[#252525] text-white text-[13px] md:text-[14px] font-semibold hover:bg-[#3a3a3a] transition-colors disabled:opacity-50"
             onClick={handleSubmit}
             disabled={!projectName.trim() || submitting}
           >

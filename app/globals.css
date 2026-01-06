@@ -1286,3 +1286,36 @@ section .final-cta-container {
     opacity: 1;
   }
 } */
+
+/* ============================================
+   Introduce Page - Hero Image Position
+   ============================================ */
+
+/* 모바일에서 이미지 위치 조정: object-position 값을 변경하여 원하는 부분을 보여줄 수 있습니다 */
+/* 예: 0% (왼쪽 끝), 20% (왼쪽에서 20%), 50% (중앙), 75% 등 */
+@media (max-width: 767px) {
+  .introduce-hero-image-position {
+    object-position: 85% center !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .introduce-hero-image-position {
+    object-position: right center !important;
+  }
+}
+
+/* ============================================
+   Introduce Page - Hero Logo SVG Fill Color
+   ============================================ */
+
+/* 모바일: #F8F8F8, 웹: #474747 */
+.introduce-hero-logo path {
+  fill: #F8F8F8;
+}
+
+@media (min-width: 768px) {
+  .introduce-hero-logo path {
+    fill: #474747;
+  }
+}

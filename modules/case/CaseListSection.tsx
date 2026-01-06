@@ -41,7 +41,7 @@ export function CaseListSection({ caseStudies }: CaseListSectionProps) {
     <>
       <SortTabs activeSort={activeSort} onSortChange={setActiveSort} />
 
-      <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[68px]">
+      <div className="mt-6 md:mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8 md:gap-y-[68px] px-4 md:px-0">
         {sortedCases.map((caseStudy) => (
           <CaseCard key={caseStudy.id} caseStudy={caseStudy} />
         ))}

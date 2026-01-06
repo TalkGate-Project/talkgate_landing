@@ -53,12 +53,12 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
   return (
     <section className="relative bg-white">
       {/* Main Content Container */}
-      <div className="max-w-[752px] mx-auto pt-[112px] pb-[141px]">
+      <div className="max-w-[752px] mx-auto pt-[40px] md:pt-[112px] pb-[60px] md:pb-[141px] px-4 md:px-0">
         {/* Breadcrumb Navigation */}
-        <div className="mb-[56px]">
+        <div className="mb-[32px] md:mb-[56px]">
           <Link
             href="/case"
-            className="inline-flex items-center gap-2 text-[24px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] hover:text-[#808080] transition-colors"
+            className="inline-flex items-center gap-2 text-[18px] md:text-[24px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] hover:text-[#808080] transition-colors"
           >
             <svg
               width="24"
@@ -81,19 +81,19 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
         </div>
 
         {/* Title */}
-        <h1 className="text-[36px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-[24px]">
+        <h1 className="text-[24px] md:text-[36px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-[20px] md:!mb-[24px]">
           {caseStudy.tag} {caseStudy.title}
         </h1>
 
         {/* Main Image */}
         {caseStudy.detailImageUrl && (
-          <div className="relative w-[752px] h-[462px] mx-auto mb-[24px] rounded-[12px] overflow-hidden">
+          <div className="relative w-full md:w-[752px] h-[200px] md:h-[462px] mx-auto mb-[20px] md:mb-[24px] rounded-[12px] overflow-hidden">
             <Image
               src={caseStudy.detailImageUrl}
               alt={`${caseStudy.title} 이미지`}
               fill
               className="object-cover"
-              sizes="752px"
+              sizes="(max-width: 768px) 100vw, 752px"
               priority
             />
           </div>
@@ -101,16 +101,16 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
 
         {/* Content Sections */}
         {caseStudy.sections && caseStudy.sections.length > 0 && (
-          <div className="w-[752px] flex flex-col gap-[28px] items-start">
+          <div className="w-full md:w-[752px] flex flex-col gap-[24px] md:gap-[28px] items-start">
             {caseStudy.sections.map((section, index) => (
               <div key={index} className="flex flex-col">
                 {/* Section Title */}
-                <h2 className="text-[24px] font-bold leading-[1.5] tracking-[-0.02em] text-[#252525] text-left !mb-[28px]">
+                <h2 className="text-[20px] md:text-[24px] font-bold leading-[1.5] tracking-[-0.02em] text-[#252525] text-left !mb-[20px] md:!mb-[28px]">
                   {section.title}
                 </h2>
 
                 {/* Section Content */}
-                <p className="text-[16px] font-normal leading-[1.5] tracking-[-0.02em] text-[#595959] whitespace-pre-wrap">
+                <p className="text-[14px] md:text-[16px] font-normal leading-[1.5] tracking-[-0.02em] text-[#595959] whitespace-pre-wrap">
                   {section.content}
                 </p>
               </div>
