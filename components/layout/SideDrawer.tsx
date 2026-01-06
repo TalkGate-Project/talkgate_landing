@@ -155,7 +155,6 @@ export function SideDrawer({
 
         {/* 구분선 */}
         <div
-          className="w-full"
           style={{
             height: '1px',
             backgroundColor: '#E2E2E2',

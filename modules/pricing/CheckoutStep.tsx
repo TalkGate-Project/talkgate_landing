@@ -65,64 +65,64 @@ export default function CheckoutStep({
   const total = subtotal;
 
   return (
-    <div className="min-h-screen bg-white py-20">
-      <div className="max-w-[1078px] mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12">
+    <div className="min-h-screen bg-white py-6 md:py-20">
+      <div className="max-w-[1078px] mx-auto px-6 md:px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-11 md:gap-12">
           {/* Left Column - Subscription Details */}
-          <div className="max-w-[418px]">
+          <div className="w-full md:max-w-[418px]">
             {/* 뒤로 가기 버튼 with 구독하기 제목 */}
-            <div className="flex items-center gap-2 mb-12">
+            <div className="flex items-center gap-2 mb-5 md:mb-12 -translate-x-2 md:translate-x-0">
               <button
                 onClick={onBack}
                 className="cursor-pointer flex items-center justify-center w-6 h-6 hover:opacity-70 transition-opacity"
               >
                 <ChevronUpIcon className="rotate-90" />
               </button>
-              <h1 className="font-bold text-[24px] leading-[150%] tracking-[-0.03em] text-[#252525]">
+              <h1 className="font-bold text-[20px] md:text-[24px] leading-[150%] tracking-[-0.03em] text-[#252525]">
                 구독하기
               </h1>
             </div>
 
             {/* 가격 섹션 */}
-            <div className="mb-12">
+            <div className="mb-7 md:mb-12">
               <div className="flex items-baseline">
-                <span className="font-bold text-[60px] leading-[150%] tracking-[-0.03em] text-center text-[#252525]">
+                <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-center text-[#252525]">
                   ₩ {total.toLocaleString()}
                 </span>
-                <span className="font-normal text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
+                <span className="font-normal text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
                   / 매월
                 </span>
               </div>
-              <p className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#595959] mt-4">
+              <p className="font-semibold text-[16px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#595959] mt-3 md:mt-4">
                 매월 구독하기
               </p>
             </div>
 
             {/* 청구 상세 */}
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* 월간 청구 */}
               <div>
                 <div className="flex justify-between items-start mb-1">
-                  <h3 className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
+                  <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
                     월간 청구
                   </h3>
-                  <p className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
+                  <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
                     {perSeat.toLocaleString()}원
                   </p>
                 </div>
                 <p className="font-medium text-[13px] leading-[150%] tracking-[-0.02em] text-right text-[#808080]">
                   seat당 {perSeat.toLocaleString()}원* (직원 수 무관)
                 </p>
-                <div className="w-full h-px bg-[#E2E2E2] mt-6" />
+                <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
               </div>
 
               {/* 소계 */}
               <div>
                 <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
+                  <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
                     소계
                   </h3>
-                  <p className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
+                  <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
                     {perSeat.toLocaleString()}원
                   </p>
                 </div>
@@ -131,22 +131,22 @@ export default function CheckoutStep({
               {/* 부가가치세 */}
               <div>
                 <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#808080]">
+                  <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#808080]">
                     부가가치세 (10%)
                   </h3>
-                  <p className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#808080]">
+                  <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#808080]">
                     {vat.toLocaleString()}원
                   </p>
                 </div>
-                <div className="w-full h-px bg-[#E2E2E2] mt-6" />
+                <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
               </div>
 
               {/* 당일 지불 총액 */}
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
+                <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
                   당일 지불 총액
                 </h3>
-                <p className="font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
+                <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
                   {total.toLocaleString()}원
                 </p>
               </div>
@@ -154,14 +154,14 @@ export default function CheckoutStep({
           </div>
 
           {/* Right Column - Payment Form */}
-          <div className="max-w-[572px]">
+          <div className="w-full md:max-w-[572px]">
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col gap-[10px] w-full bg-white border-2 border-[#E2E2E2] rounded-[42px] p-[52px]"
+              className="flex flex-col gap-[10px] w-full bg-white md:border-2 md:border-[#E2E2E2] rounded-[24px] md:rounded-[42px] md:p-[52px]"
             >
               {/* Email */}
               <div className="flex flex-col gap-2">
-                <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                   이메일 정보
                 </label>
                 <input
@@ -177,7 +177,7 @@ export default function CheckoutStep({
 
               {/* Cardholder Name */}
               <div className="flex flex-col gap-2">
-                <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                   카드 소유자 이름
                 </label>
                 <input
@@ -193,7 +193,7 @@ export default function CheckoutStep({
 
               {/* Card Info */}
               <div className="flex flex-col gap-2">
-                <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                   카드 정보
                 </label>
                 <div className="relative">
@@ -205,9 +205,9 @@ export default function CheckoutStep({
                     placeholder="1234 1234 1234 1234"
                     required
                     maxLength={19}
-                    className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] pr-28 text-[14px] text-[#000000] bg-white"
+                    className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] pr-20 md:pr-28 text-[14px] text-[#000000] bg-white"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     <VisaIcon />
                     <MastercardIcon />
                     <AmexIcon />
@@ -217,9 +217,9 @@ export default function CheckoutStep({
               </div>
 
               {/* Expiry & CVC */}
-              <div className="flex gap-3">
+              <div className="flex gap-2 md:gap-3">
                 <div className="flex-1 flex flex-col gap-1">
-                  <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                  <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                     만료기간
                   </label>
                   <input
@@ -234,7 +234,7 @@ export default function CheckoutStep({
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
-                  <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                  <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                     보안코드
                   </label>
                   <input
@@ -251,9 +251,9 @@ export default function CheckoutStep({
               </div>
 
               {/* Country & Postal Code */}
-              <div className="flex gap-3">
+              <div className="flex gap-2 md:gap-3">
                 <div className="flex-1 flex flex-col gap-1">
-                  <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                  <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                     청구주소
                   </label>
                   <select
@@ -271,7 +271,7 @@ export default function CheckoutStep({
                   </select>
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
-                  <label className="font-normal text-[13px] leading-[16px] text-[#808080]">
+                  <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
                     우편번호
                   </label>
                   <input
@@ -314,7 +314,7 @@ export default function CheckoutStep({
                     </svg>
                   )}
                 </div>
-                <span className="font-normal text-[13px] leading-[16px] text-[#595959] opacity-80">
+                <span className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#595959] opacity-80">
                   더 빠른 결제를 위해 내 정보 저장
                 </span>
               </label>
@@ -348,7 +348,7 @@ export default function CheckoutStep({
                       </svg>
                     )}
                   </div>
-                  <span className="font-normal text-[13px] leading-[16px] text-[#595959] opacity-80">
+                  <span className="font-normal text-[12px] md:text-[13px] leading-[18px] md:leading-[16px] text-[#595959] opacity-80">
                     이용약관에 명시된 대로 요금이 변경될 수 있으며, 언제든지
                     구독을 취소할 수 있습니다. 구독함으로써 회사의{" "}
                     <a href="/terms" className="text-[#00B55B] underline">
@@ -368,7 +368,7 @@ export default function CheckoutStep({
               <button
                 type="submit"
                 disabled={submitting || !agreedToTerms}
-                className="w-full h-[52px] !mt-6 rounded-[30px] bg-[#000000] text-white font-semibold text-[18px] leading-[150%] tracking-[-0.02em] text-center hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full h-[48px] md:h-[52px] !mt-6 rounded-[30px] bg-[#000000] text-white font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {submitting ? "처리 중..." : "결제하기"}
               </button>

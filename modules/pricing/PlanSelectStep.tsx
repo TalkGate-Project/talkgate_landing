@@ -88,25 +88,25 @@ export default function PlanSelectStep({
   };
 
   return (
-    <section className="py-20 min-h-screen bg-white">
+    <section className="py-12 md:py-20 min-h-screen bg-white">
       <div className="max-w-[1192px] mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] mb-4">
+        <div className="text-center mb-10.5 md:mb-12">
+          <h1 className="text-[20px] md:text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] !mb-4">
             복잡한 고민 없이,
             <br />
             모든 기능을 지금 바로 시작하세요.
           </h1>
-          <p className="text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959]">
+          <p className="text-[14px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959]">
             가장 합리적인 가격으로 우리 팀의 성장을 가속화하세요.
           </p>
         </div>
 
         {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex rounded-full bg-[#F8F8F8] p-1">
+        <div className="flex justify-center mb-9.5 md:mb-12">
+          <div className="w-full md:w-auto inline-flex rounded-full bg-[#F8F8F8] p-1">
             <button
-              className={`w-[196px] px-8 py-3 rounded-full font-semibold text-[18px] transition-colors ${
+              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
                 billingCycle === "monthly"
                   ? "bg-[#252525] text-white"
                   : "text-[#808080] cursor-pointer"
@@ -116,7 +116,7 @@ export default function PlanSelectStep({
               월마다
             </button>
             <button
-              className={`w-[196px] px-8 py-3 rounded-full font-semibold text-[18px] transition-colors ${
+              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
                 billingCycle === "yearly"
                   ? "bg-[#252525] text-white"
                   : "text-[#808080] cursor-pointer"
@@ -129,7 +129,7 @@ export default function PlanSelectStep({
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-12 max-w-[1192px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
           {PRICING_PLANS.map((plan) => (
             <PricingCard
               key={plan.id}
@@ -138,6 +138,7 @@ export default function PlanSelectStep({
               agreed={agreedPlans[plan.id] || false}
               onToggleAgreement={() => toggleAgreement(plan.id)}
               onSubscribe={() => handleSubscribe(plan)}
+              className={plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"}
             />
           ))}
         </div>
@@ -152,6 +153,7 @@ interface PricingCardProps {
   agreed: boolean;
   onToggleAgreement: () => void;
   onSubscribe: () => void;
+  className?: string;
 }
 
 function PricingCard({
@@ -160,6 +162,7 @@ function PricingCard({
   agreed,
   onToggleAgreement,
   onSubscribe,
+  className = "",
 }: PricingCardProps) {
   const price =
     billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
@@ -168,19 +171,20 @@ function PricingCard({
 
   return (
     <div
-      className={`w-[572px] min-h-[646px] rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-20 py-[56px] transition-all ${
+      className={`w-full md:w-[572px] min-h-[500px] md:min-h-[646px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${
         isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
-      }`}
+      } ${className}`}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="text-[24px] font-bold text-[#474747]">
+      <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-5">
+        <div className="text-[20px] md:text-[24px] font-bold text-[#474747]">
           <svg
             width="160"
             height="38"
             viewBox="0 0 160 38"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            className="w-[120px] h-[28px] md:w-[160px] md:h-[38px]"
           >
             <path
               d="M95.8997 6.67546V28.3281C95.8997 32.5091 91.6011 38 87.2219 38H79.7485V32.9507L80.0055 32.7299C80.076 32.7249 80.1365 32.8654 80.1768 32.8654H90.3161L90.5731 32.6094V12.066L90.3161 11.8101H77.8587V23.6201H88.5976L88.8547 23.8761V28.6694L88.5976 28.9254H82.4093C71.3982 28.9254 68.4804 11.7599 78.7204 7.44841C79.2193 7.23761 80.7614 6.67044 81.2049 6.67044H95.8997V6.67546Z"
@@ -218,7 +222,7 @@ function PricingCard({
         </div>
         {plan.badge && (
           <span
-            className={`px-3 py-1 rounded-[30px] text-[14px] font-medium ${
+            className={`px-2 md:px-3 py-1 rounded-[30px] text-[12px] md:text-[14px] font-medium ${
               isHighlighted
                 ? "bg-[#D6FAE8] text-[#00B55B]"
                 : "bg-[#E2E2E2] text-[#595959]"
@@ -230,27 +234,27 @@ function PricingCard({
       </div>
 
       {plan.description && (
-        <p className="text-[14px] font-medium tracking-[0.2px] text-[#808080] !mb-6">
+        <p className="text-[12px] md:text-[14px] font-medium tracking-[0.2px] text-[#808080] !mb-4 md:!mb-6">
           {plan.description}
         </p>
       )}
 
-      <hr className="border-[#E2E2E2] !mb-6" />
+      <hr className="border-[#E2E2E2] !mb-4 md:!mb-6" />
 
       {/* Price */}
-      <div className="mb-6">
-        <div className="flex items-baseline gap-0">
-          <span className="text-[48px] font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center">
+      <div className="mb-4 md:mb-6">
+        <div className="flex items-end md:items-baseline gap-0">
+          <span className="text-[42px] md:text-[48px] font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center">
             ₩ {price?.toLocaleString()}
           </span>
-          <span className="text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
+          <span className="text-[14px] md:text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
             {priceUnit}
           </span>
         </div>
       </div>
 
       {/* Features */}
-      <div className="space-y-5 mb-6">
+      <div className="space-y-5 mb-4 md:mb-6">
         {/* 멤버 수 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -260,6 +264,7 @@ function PricingCard({
               viewBox="0 0 16 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 md:w-4 md:h-4"
             >
               <path
                 d="M8 2.90278C8.48863 2.34917 9.20354 2 10 2C11.4728 2 12.6667 3.19391 12.6667 4.66667C12.6667 6.13943 11.4728 7.33333 10 7.33333C9.20354 7.33333 8.48863 6.98416 8 6.43055M10 14H2V13.3333C2 11.1242 3.79086 9.33333 6 9.33333C8.20914 9.33333 10 11.1242 10 13.3333V14ZM10 14H14V13.3333C14 11.1242 12.2091 9.33333 10 9.33333C9.27143 9.33333 8.58835 9.52812 8 9.86846M8.66667 4.66667C8.66667 6.13943 7.47276 7.33333 6 7.33333C4.52724 7.33333 3.33333 6.13943 3.33333 4.66667C3.33333 3.19391 4.52724 2 6 2C7.47276 2 8.66667 3.19391 8.66667 4.66667Z"
@@ -270,11 +275,11 @@ function PricingCard({
               />
             </svg>
 
-            <span className="text-[14px] font-medium leading-[17px] text-[#000000]">
+            <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-[#000000]">
               멤버 수
             </span>
           </div>
-          <span className="text-[14px] font-medium leading-[17px] text-right text-[#252525]">
+          <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-right text-[#252525]">
             최대 {plan.maxMembers}명
           </span>
         </div>
@@ -288,6 +293,7 @@ function PricingCard({
               viewBox="0 0 16 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 md:w-4 md:h-4"
             >
               <path
                 d="M3.33333 2V4.66667M2 3.33333H4.66667M4 11.3333V14M2.66667 12.6667H5.33333M8.66667 2L10.1905 6.57143L14 8L10.1905 9.42857L8.66667 14L7.14286 9.42857L3.33333 8L7.14286 6.57143L8.66667 2Z"
@@ -298,11 +304,11 @@ function PricingCard({
               />
             </svg>
 
-            <span className="text-[14px] font-medium leading-[17px] text-[#000000]">
+            <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-[#000000]">
               AI 상담 도우미 토큰
             </span>
           </div>
-          <span className="text-[14px] font-medium leading-[17px] text-right text-[#252525]">
+          <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-right text-[#252525]">
             월 {plan.aiTokensPerMonth.toLocaleString()}토큰
           </span>
         </div>
@@ -316,6 +322,7 @@ function PricingCard({
               viewBox="0 0 16 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 md:w-4 md:h-4"
             >
               <path
                 d="M8 12H8.00667M5.33333 14H10.6667C11.403 14 12 13.403 12 12.6667V3.33333C12 2.59695 11.403 2 10.6667 2H5.33333C4.59695 2 4 2.59695 4 3.33333V12.6667C4 13.403 4.59695 14 5.33333 14Z"
@@ -326,30 +333,30 @@ function PricingCard({
               />
             </svg>
 
-            <span className="text-[14px] font-medium leading-[17px] text-[#000000]">
+            <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-[#000000]">
               문자 전송 횟수
             </span>
           </div>
-          <span className="text-[14px] font-medium leading-[17px] text-right text-[#252525]">
+          <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-right text-[#252525]">
             월 {plan.smsCountPerMonth.toLocaleString()}건
           </span>
         </div>
       </div>
 
-      <hr className="border-[#E2E2E2] mb-5" />
+      <hr className="border-[#E2E2E2] mb-4 md:mb-5" />
 
       {/* 월 요금제 Summary */}
-      <div className="flex items-center justify-between mb-[42px]">
-        <p className="text-[14px] font-bold leading-[17px] text-[#000000]">
+      <div className="flex items-center justify-between mb-8 md:mb-[42px]">
+        <p className="text-[13px] md:text-[14px] font-bold leading-[17px] text-[#000000]">
           월 요금제
         </p>
-        <p className="text-[16px] font-bold leading-[19px] text-right text-[#252525]">
+        <p className="text-[14px] md:text-[16px] font-bold leading-[19px] text-right text-[#252525]">
           {price?.toLocaleString()}원
         </p>
       </div>
 
       {/* Agreement */}
-      <div className="mb-[42px]">
+      <div className="mb-6 md:mb-[42px]">
         <label className="flex items-center gap-2 cursor-pointer">
           <div className="relative flex items-center justify-center">
             <input
@@ -379,7 +386,7 @@ function PricingCard({
               </svg>
             )}
           </div>
-          <span className="text-[14px] font-medium leading-[17px] text-[#252525] opacity-80">
+          <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-[#252525] opacity-80">
             모두 동의합니다.
           </span>
           <svg
@@ -388,7 +395,7 @@ function PricingCard({
             viewBox="0 0 16 16"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="ml-auto"
+            className="ml-auto w-4 h-4 md:w-4 md:h-4"
           >
             <path
               d="M4 6L8 10L12 6"
@@ -408,7 +415,7 @@ function PricingCard({
         }}
         disabled={!agreed}
         title={!agreed ? "약관에 동의해야 구독할 수 있습니다." : undefined}
-        className={`cursor-pointer w-full h-[52px] rounded-[30px] font-semibold text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           isHighlighted
             ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
             : "bg-[#000000] text-white hover:bg-[#252525]"
