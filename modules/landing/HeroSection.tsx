@@ -74,19 +74,19 @@ export function HeroSection() {
   const gridOffset = Math.min(scrollY * 0.5, 200);
 
   return (
-    <section className="py-4">
-      <div className="relative container-hero h-[808px] flex flex-col items-center pt-[50px]">
-        <h1 className="text-[38px] font-bold font-en leading-[1.3] text-[#ffffff] text-center z-20 tracking-[-0.03em]">
+    <section className="lg:py-4">
+      <div className="relative container-hero h-[calc(100vh-80px)] md:h-[808px] min-h-[600px] max-h-[808px] flex flex-col items-center pt-[30px] pt-[72px] md:pt-[50px] pb-4 md:pb-0">
+        <h1 className="text-[28px] md:text-[38px] font-bold font-en leading-[1.3] text-[#ffffff] text-center z-20 tracking-[-0.03em] px-4">
           All your business
           <br />
           workflows in one place.
         </h1>
 
-        <p className="typo-body !mt-6 max-w-2xl text-[#ffffff] text-center z-20 whitespace-pre-line">
+        <p className="typo-body !mt-4 md:!mt-6 max-w-2xl text-[#ffffff] text-center z-20 whitespace-pre-line px-4 text-sm md:text-base">
           {BRAND.description}
         </p>
 
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center z-20">
+        <div className="mt-[58px] md:mt-4 md:mt-6 flex gap-4 justify-center z-20 px-4">
           <Link href={getStartUrl()} className="btn btn-dark w-[96px]">
             시작하기
           </Link>
@@ -97,18 +97,18 @@ export function HeroSection() {
 
         {/* Dashboard Preview with Fade Animation */}
         <div 
-          className="absolute bottom-0 mx-auto z-10"
+          className="hero-dashboard-preview absolute bottom-0 left-0 right-0 mx-auto z-10 md:left-1/2 md:right-auto md:w-auto md:translate-x-[-50%]"
           style={{ 
-            left: '50%',
+            width: 'calc(100% - 40px)',
             boxShadow: "10px 10px 200px 20px #F4F4F4A3",
             opacity: animationPhase === 'fade-out' ? 0 : animationPhase === 'fade-in' ? 0 : 1,
-            transform: `translateX(-50%) scale(${
+            transform: `scale(${
               animationPhase === 'fade-out' ? 0.95 : animationPhase === 'fade-in' ? 0.95 : 1
             })`,
             transition: 'all 0.8s ease-in-out',
           }}
         >
-          <div className="hero-image-wrapper flex justify-center">
+          <div className="hero-image-wrapper flex justify-center w-full md:w-auto">
             <Image
               key={currentIndex}
               src={HERO_IMAGES[currentIndex]}
@@ -116,14 +116,33 @@ export function HeroSection() {
               width={776}
               height={490}
               priority={currentIndex === 0}
-              className="max-w-none"
+              className="max-w-none h-auto md:w-auto md:h-auto"
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxWidth: '100%',
+              }}
             />
           </div>
+          <style jsx global>{`
+            @media (min-width: 768px) {
+              .hero-dashboard-preview {
+                width: auto !important;
+              }
+              .hero-image-wrapper {
+                width: auto !important;
+              }
+              .hero-image-wrapper img {
+                width: auto !important;
+                max-width: none !important;
+              }
+            }
+          `}</style>
         </div>
 
         {/* Dashboard Grid Preview with Parallax */}
         <div 
-          className="absolute left-1/2 mx-auto z-0"
+          className="absolute left-1/2 mx-auto z-0 hidden md:block"
           style={{
             bottom: `${-570 + gridOffset}px`,
             transform: 'translateX(-50%)'

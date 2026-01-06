@@ -8,8 +8,24 @@ type Tab = "list" | "info";
 export function CustomerFeatureSection() {
   const [activeTab, setActiveTab] = useState<Tab>("list");
   const [isVisible, setIsVisible] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 화면 크기 감지
+  useEffect(() => {
+    const checkScreenSize = () => {
+      if (typeof window !== 'undefined') {
+        setIsDesktop(window.innerWidth >= 1024);
+      }
+    };
+    
+    checkScreenSize();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkScreenSize);
+      return () => window.removeEventListener('resize', checkScreenSize);
+    }
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -62,17 +78,17 @@ export function CustomerFeatureSection() {
   };
 
   return (
-    <section className="py-20" ref={sectionRef}>
+    <section className="lg:py-20 py-12" ref={sectionRef}>
       <div className="max-w-[1200px] mx-auto">
-        <div className="mb-16">
-          <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">
+        <div className="lg:mb-16">
+          <h5 className="text-center lg:text-left text-primary-60 font-semibold text-[14px] md:text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">
             효율적인 고객 목록 관리
           </h5>
-          <h2 className="typo-h1 !mb-12">
-            고객 데이터를 한눈에 파악하고, 성장의 기회를 만드세요.
+          <h2 className="font-bold text-[20px] md:typo-h1 text-center lg:text-left !mb-[20px] lg:!mb-12">
+            고객 데이터를 한눈에 파악하고,<br className="lg:hidden" /> 성장의 기회를 만드세요.
           </h2>
 
-          <div className="w-full flex flex-col lg:flex-row gap-8 items-start">
+          <div className="w-full flex flex-col lg:flex-row gap-5 lg:gap-8 lg:items-start items-center">
             {/* Left Tab Area */}
             <div className={`flex-1 w-full lg:w-auto customer-image ${isVisible ? 'animate' : ''}`}>
               {activeTab === "list" ? (
@@ -81,6 +97,7 @@ export function CustomerFeatureSection() {
                   alt="고객목록"
                   width={617}
                   height={448}
+                  className="w-full h-auto"
                 />
               ) : (
                 <Image
@@ -88,28 +105,28 @@ export function CustomerFeatureSection() {
                   alt="고객정보"
                   width={617}
                   height={448}
+                  className="w-full h-auto"
                 />
               )}
             </div>
 
             {/* Right Content Area */}
-            <div className={`flex-1 w-full h-[424px] flex flex-col justify-center customer-content ${isVisible ? 'animate' : ''}`}>
-              <div className="w-[368px] h-[56px] relative inline-flex bg-neutral-20 rounded-full ml-[94px]">
+            <div className={`flex-1 w-full lg:min-h-[424px] lg:h-[424px] flex flex-col justify-center customer-content ${isVisible ? 'animate' : ''} px-4 lg:px-0`}>
+              <div className="w-full max-w-[368px] lg:w-[368px] h-[40px] lg:h-[56px] relative inline-flex bg-neutral-20 rounded-full mx-auto lg:mx-0 lg:ml-[94px]">
                 {/* Sliding Background Indicator */}
                 <div
-                  className="absolute top-[2px] left-1 bottom-1 w-[176px] h-[52px] bg-neutral-90 rounded-full transition-all duration-300 ease-out"
+                  className="customer-tab-indicator absolute top-0 left-1 bottom-0 lg:top-[2px] lg:bottom-1 w-[calc(50%-4px)] lg:w-[176px] h-[40px] lg:h-[52px] bg-neutral-90 rounded-full transition-all duration-300 ease-out"
                   style={{
-                    transform:
-                      activeTab === "info"
-                        ? "translateX(184px)"
-                        : "translateX(0)",
+                    transform: activeTab === "info" 
+                      ? (isDesktop ? "translateX(184px)" : "translateX(calc(100% + 4px))")
+                      : "translateX(0)",
                   }}
                 />
 
                 {/* Tab Buttons */}
                 <button
                   onClick={() => handleTabClick("list")}
-                  className={`cursor-pointer relative z-10 w-[180px] h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
+                  className={`cursor-pointer relative z-10 flex-1 lg:w-[180px] h-[36px] lg:h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "list"
                       ? "text-neutral-0"
                       : "text-neutral-70 hover:text-neutral-90"
@@ -119,7 +136,7 @@ export function CustomerFeatureSection() {
                 </button>
                 <button
                   onClick={() => handleTabClick("info")}
-                  className={`cursor-pointer relative z-10 pl-3 w-[180px] h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
+                  className={`cursor-pointer relative z-10 flex-1 lg:w-[180px] lg:pl-3 h-[36px] lg:h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "info"
                       ? "text-neutral-0"
                       : "text-neutral-70 hover:text-neutral-90"
@@ -129,12 +146,12 @@ export function CustomerFeatureSection() {
                 </button>
               </div>
 
-              <div className="text-left mt-12 pl-[94px]">
+              <div className="text-left mt-8 lg:mt-12 px-0 lg:pl-[94px] w-full">
                 {activeTab === "list" ? (
                   <>
-                    <h2 className="text-[20px] font-bold leading-[1.5] tracking-[-0.03em] text-[#040815] !mb-8">고객 데이터를 체계적으로 관리하고 확인하세요.</h2>
-                    <ul>
-                      <li className="!mb-8">
+                    <h2 className="text-[16px] lg:text-[20px] font-bold leading-[1.5] tracking-[-0.03em] text-[#040815] mb-5 md:mb-8">고객 데이터를 체계적으로 관리하고 확인하세요.</h2>
+                    <ul className="customer-feature-list">
+                      <li>
                         <div className="flex gap-3">
                           <svg
                             width="32"
@@ -142,30 +159,14 @@ export function CustomerFeatureSection() {
                             viewBox="0 0 32 32"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
+                            className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0"
                           >
                             <path
                               d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
                               fill="#474747"
                             />
                           </svg>
-                          <span className="text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">원하는 고객 데이터를 한 번에 검색 및 조회</span>
-                        </div>
-                      </li>
-                      <li className="!mb-8">
-                        <div className="flex gap-3">
-                          <svg
-                            width="32"
-                            height="32"
-                            viewBox="0 0 32 32"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
-                              fill="#474747"
-                            />
-                          </svg>
-                          <span className="text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">고객 배정 상태 및 진행 현황 실시간 파악</span>
+                          <span className="text-[14px] lg:text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">원하는 고객 데이터를 한 번에 검색 및 조회</span>
                         </div>
                       </li>
                       <li>
@@ -176,22 +177,41 @@ export function CustomerFeatureSection() {
                             viewBox="0 0 32 32"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
+                            className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0"
                           >
                             <path
                               d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
                               fill="#474747"
                             />
                           </svg>
-                          <span className="text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">고객별 중요 활동 기록 및 히스토리 관리</span>
+                          <span className="text-[14px] lg:text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">고객 배정 상태 및 진행 현황 실시간 파악</span>
+                        </div>
+                      </li>
+                      <li>
+                        <div className="flex gap-3">
+                          <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 32 32"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0"
+                          >
+                            <path
+                              d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
+                              fill="#474747"
+                            />
+                          </svg>
+                          <span className="text-[14px] lg:text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">고객별 중요 활동 기록 및 히스토리 관리</span>
                         </div>
                       </li>
                     </ul>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-[20px] font-bold leading-[1.5] tracking-[-0.03em] text-[#040815] !mb-8">클릭으로 고객 정보를 조회, 편집하여 활용하세요.</h2>
-                    <ul>
-                      <li className="!mb-8">
+                    <h2 className="text-[16px] lg:text-[20px] font-bold leading-[1.5] tracking-[-0.03em] text-[#040815] mb-5 md:mb-8">클릭으로 고객 정보를 조회, 편집하여 활용하세요.</h2>
+                    <ul className="customer-feature-list">
+                      <li>
                         <div className="flex gap-3">
                           <svg
                             width="32"
@@ -199,18 +219,19 @@ export function CustomerFeatureSection() {
                             viewBox="0 0 32 32"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
+                            className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0"
                           >
                             <path
                               d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
                               fill="#474747"
                             />
                           </svg>
-                          <span className="text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">
+                          <span className="text-[14px] lg:text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">
                             클릭 한 번으로 상세 고객 정보 및 히스토리 바로 연결
                           </span>
                         </div>
                       </li>
-                      <li className="!mb-8">
+                      <li>
                         <div className="flex gap-3">
                           <svg
                             width="32"
@@ -218,13 +239,14 @@ export function CustomerFeatureSection() {
                             viewBox="0 0 32 32"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
+                            className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0"
                           >
                             <path
                               d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
                               fill="#474747"
                             />
                           </svg>
-                          <span className="text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">
+                          <span className="text-[14px] lg:text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">
                             기본 정보, 데이터 정보, 영업 정보를 효율적으로 관리
                           </span>
                         </div>
@@ -237,13 +259,14 @@ export function CustomerFeatureSection() {
                             viewBox="0 0 32 32"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
+                            className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0"
                           >
                             <path
                               d="M16 2.66675C8.65329 2.66675 2.66663 8.65341 2.66663 16.0001C2.66663 23.3467 8.65329 29.3334 16 29.3334C23.3466 29.3334 29.3333 23.3467 29.3333 16.0001C29.3333 8.65341 23.3466 2.66675 16 2.66675ZM22.3733 12.9334L14.8133 20.4934C14.6266 20.6801 14.3733 20.7867 14.1066 20.7867C13.84 20.7867 13.5866 20.6801 13.4 20.4934L9.62663 16.7201C9.23996 16.3334 9.23996 15.6934 9.62663 15.3067C10.0133 14.9201 10.6533 14.9201 11.04 15.3067L14.1066 18.3734L20.96 11.5201C21.3466 11.1334 21.9866 11.1334 22.3733 11.5201C22.76 11.9067 22.76 12.5334 22.3733 12.9334Z"
                               fill="#474747"
                             />
                           </svg>
-                          <span className="text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">고객 정보를 이용하여 맞춤형 케어 제공</span>
+                          <span className="text-[14px] lg:text-[18px] leading-[1.5] tracking-[-0.03em] text-[#000000]">고객 정보를 이용하여 맞춤형 케어 제공</span>
                         </div>
                       </li>
                     </ul>

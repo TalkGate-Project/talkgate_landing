@@ -407,6 +407,21 @@ body {
   cursor: not-allowed;
 }
 
+/* .btn과 hidden 클래스 조합 시 display: none이 우선되도록 */
+.btn.hidden {
+  display: none;
+}
+
+/* md: 브레이크포인트에서 Tailwind의 display 유틸리티가 우선되도록 */
+@media (min-width: 768px) {
+  .btn.hidden.md\:flex {
+    display: flex;
+  }
+  .btn.hidden.md\:inline-flex {
+    display: inline-flex;
+  }
+}
+
 .btn-primary {
   background: var(--primary);
   color: var(--primary-foreground);
@@ -1039,6 +1054,26 @@ body {
   }
 }
 
+/* Customer Feature Section: List item spacing */
+.customer-feature-list {
+  margin-top: 20px;
+} 
+
+.customer-feature-list > li {
+  margin-bottom: 1.25rem; /* mb-5 (20px) */
+}
+
+@media (min-width: 768px) {
+  .customer-feature-list > li {
+    margin-bottom: 2rem; /* mb-8 (32px) */
+  }
+}
+
+.customer-feature-list > li:last-child {
+  margin-bottom: 0;
+}
+
+
 /* ============================================
    Introduce Status Section Animations
    ============================================ */
@@ -1090,6 +1125,17 @@ body {
    Security Section Animations
    ============================================ */
 
+/* Security Section List: gap이 제대로 작동하도록 보장 */
+.security-section-list {
+  gap: 16px !important; /* gap-4 = 16px */
+}
+
+@media (min-width: 768px) {
+  .security-section-list {
+    gap: 24px !important; /* gap-6 = 24px */
+  }
+}
+
 /* 보안 카드: 순차적으로 아래에서 슬라이드업 */
 .security-card {
   opacity: 0;
@@ -1114,6 +1160,19 @@ body {
 /* ============================================
    Final CTA Section Animations
    ============================================ */
+
+/* Final CTA Container: 모바일과 데스크톱에서 다른 그라디언트 */
+section .final-cta-container {
+  background: linear-gradient(263.79deg, rgba(173, 246, 210, 0.2) 45.09%, rgba(0, 207, 104, 0.2) 101.28%) !important;
+  background-color: transparent !important;
+}
+
+@media (min-width: 768px) {
+  section .final-cta-container {
+    background: linear-gradient(263.79deg, rgba(0, 207, 104, 0.2) 15.09%, rgba(173, 246, 210, 0.2) 101.28%) !important;
+    background-color: transparent !important;
+  }
+}
 
 /* CTA 버튼: 살짝 늦게 페이드인 */
 .final-cta-buttons {
