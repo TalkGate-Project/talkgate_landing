@@ -88,26 +88,26 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section className="py-20" ref={sectionRef}>
+    <section className="py-12 md:py-20 px-4" ref={sectionRef}>
       <div className="max-w-[1200px] mx-auto">
-        <div className="flex justify-center items-center gap-[200px] mb-[52px]">
+        <div className="flex flex-col md:flex-row md:justify-center md:items-center gap-8 md:gap-[200px] mb-8 md:mb-[52px]">
           <div className="text-left">
-            <h5 className="text-primary-60 font-semibold text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3 leading-[1]">
+            <h5 className="text-primary-60 font-semibold text-[14px] md:text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3 leading-[1]">
               통합된 관리 플랫폼
             </h5>
-            <h2 className="text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">
+            <h2 className="text-[20px] md:text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">
               하나로 연결하여,
               <br />
               스마트하게 관리합니다.
             </h2>
           </div>
 
-          <p className="text-[#595959] leading-[1.5]">
+          <p className="text-[#595959] text-[14px] md:text-base leading-[1.5]">
             우리의 플랫폼은 고객 관리, 성과 분석, 일정 계획을 한 곳에 모아
             비즈니스의 모든
-            <br />
+            <br className="hidden md:block" />
             핵심 영역을 지능적으로 관리하도록 돕습니다.
-            <br />
+            <br className="hidden md:block" />
             성공을 위한 필수 요소를 지금 바로 경험해 보세요.
           </p>
         </div>
@@ -115,7 +115,7 @@ export function FeaturesSection() {
         {/* Feature Cards */}
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div key={index} className="flex flex-col items-center p-6">
+            <div key={index} className="flex flex-col items-center lg:p-6">
               <div className={`relative w-[300px] h-[300px] rounded-[12px] bg-[#ededed] flex items-center justify-center mb-[30px] overflow-hidden ${isVisible ? 'animate' : ''}`}>
                 {feature.content}
               </div>

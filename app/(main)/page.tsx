@@ -10,10 +10,6 @@
  * - CTA: 최종 전환 유도
  */
 
-import Link from "next/link";
-import { getStartUrl } from "@/lib/auth";
-import { BRAND } from "@/lib/constants";
-import Image from "next/image";
 import { HeroSection } from "@/modules/landing/HeroSection";
 import { FeaturesSection } from "@/modules/landing/FeaturesSection";
 import { CtaSection } from "@/modules/landing/CtaSection";
