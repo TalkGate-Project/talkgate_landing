@@ -1,16 +1,36 @@
 import Link from "next/link";
 import { 
-  // BRAND, 
+  BRAND, 
   COMPANY_INFO, 
-  // EXTERNAL_LINKS 
+  EXTERNAL_LINKS 
 } from "@/lib/constants";
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
-      <div className="py-10">
-        {/* Company Info */}
-        <div className="text-center text-[16px] leading-[28px] tracking-[-0.02em] text-[#808080]">
+      <div className="py-6 md:py-10 px-4">
+        {/* Company Info - Mobile */}
+        <div className="md:hidden text-center text-[12px] leading-[20px] tracking-[-0.02em] text-[#808080] font-medium">
+          <p>
+            {COMPANY_INFO.name} | 사업자등록번호 : {COMPANY_INFO.businessNumber}
+          </p>
+          <p>
+            통신판매업신고번호 : {COMPANY_INFO.telecomNumber} | 대표이사 : {COMPANY_INFO.ceo}
+          </p>
+          <p>
+            대표번호 : {COMPANY_INFO.representativeNumber} | 이메일 :{" "}
+            <Link
+              href={`mailto:${COMPANY_INFO.email}`}
+              className="hover:text-foreground transition-colors"
+            >
+              {COMPANY_INFO.email}
+            </Link>
+          </p>
+          <p>{COMPANY_INFO.address}</p>
+        </div>
+
+        {/* Company Info - Desktop */}
+        <div className="hidden md:block text-center text-[16px] leading-[28px] tracking-[-0.02em] text-[#808080] font-medium">
           <p>
             {COMPANY_INFO.name} | 사업자등록번호 : {COMPANY_INFO.businessNumber}{" "}
             | 통신판매업신고번호 : {COMPANY_INFO.telecomNumber}
@@ -28,7 +48,7 @@ export function Footer() {
         </div>
 
         {/* Logo */}
-        <div className="mt-7 flex justify-center">
+        <div className="mt-6 md:mt-7 flex justify-center">
           <Link
             href="/"
             className="text-xl font-bold text-muted-foreground hover:text-foreground transition-colors"
@@ -76,26 +96,59 @@ export function Footer() {
           </Link>
         </div>
 
-        {/* Legal Links */}
-        {/* <div className="mt-6 flex justify-center gap-6 text-sm text-muted-foreground">
-          <Link
-            href={EXTERNAL_LINKS.termsOfService}
-            className="hover:text-foreground transition-colors"
-          >
-            이용약관
-          </Link>
-          <Link
-            href={EXTERNAL_LINKS.privacyPolicy}
-            className="hover:text-foreground transition-colors"
-          >
-            개인정보처리방침
-          </Link>
-        </div> */}
+      </div>
 
-        {/* Copyright */}
-        {/* <p className="mt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {BRAND.name}. All rights reserved.
-        </p> */}
+      {/* Footer Bottom Section */}
+      <div className="w-full border-t border-[#EDEDED]">
+        {/* Mobile: Vertical Layout */}
+        <div className="md:hidden py-4 space-y-3">
+          {/* Legal Links - Center */}
+          <div className="flex items-center justify-center gap-2 text-[10px] leading-[12px] tracking-[-0.02em] text-[#B0B0B0] font-medium">
+            <Link
+              href={EXTERNAL_LINKS.privacyPolicy}
+              className="hover:text-foreground transition-colors"
+            >
+              개인정보처리방침
+            </Link>
+            <div className="h-3 w-px bg-[#EDEDED]" />
+            <Link
+              href={EXTERNAL_LINKS.termsOfService}
+              className="hover:text-foreground transition-colors"
+            >
+              이용약관
+            </Link>
+          </div>
+
+          {/* Copyright - Center */}
+          <p className="text-center text-[10px] leading-[12px] tracking-[-0.02em] text-[#B0B0B0] font-medium">
+            © {new Date().getFullYear()} {BRAND.name}. Inc. All rights reserved.
+          </p>
+        </div>
+
+        {/* Desktop: Horizontal Layout */}
+        <div className="hidden md:flex max-w-[1170px] mx-auto h-[52px] items-center justify-between px-4 md:px-0">
+          {/* Copyright - Left */}
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} {BRAND.name}. Inc. All rights reserved.
+          </p>
+
+          {/* Legal Links - Right */}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <Link
+              href={EXTERNAL_LINKS.privacyPolicy}
+              className="hover:text-foreground transition-colors"
+            >
+              개인정보처리방침
+            </Link>
+            <div className="h-3 w-px bg-border" />
+            <Link
+              href={EXTERNAL_LINKS.termsOfService}
+              className="hover:text-foreground transition-colors"
+            >
+              이용약관
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
