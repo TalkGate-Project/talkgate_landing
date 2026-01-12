@@ -105,27 +105,17 @@ export function SideDrawer({
                   onLogout();
                   onClose();
                 }}
-                className="text-[#000000] font-medium"
-                style={{
-                  fontSize: '18px',
-                  lineHeight: '21px',
-                  fontFamily: 'Pretendard',
-                }}
+                className="typo-body-sm font-medium text-[#252525] transition-colors"
               >
-                Logout
+                로그아웃
               </button>
             ) : (
               <Link
                 href={getLoginUrl(pathname)}
                 onClick={onClose}
-                className="text-[#000000] font-medium"
-                style={{
-                  fontSize: '18px',
-                  lineHeight: '21px',
-                  fontFamily: 'Pretendard',
-                }}
+                className="typo-body-sm font-medium text-[#252525] transition-colors"
               >
-                Login
+                로그인
               </Link>
             )}
             {/* X 버튼 */}
@@ -169,6 +159,30 @@ export function SideDrawer({
         <nav className="flex flex-col" style={{ gap: '4px', marginTop: '12px', paddingLeft: '15px', paddingRight: '15px' }}>
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
+
+            // 외부 링크인 경우
+            if (item.external) {
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onClose}
+                  className="transition-colors hover:bg-neutral-10"
+                  style={{
+                    padding: '12px 20px',
+                    fontSize: '16px',
+                    lineHeight: '19px',
+                    letterSpacing: '-0.02em',
+                    fontFamily: 'Pretendard',
+                    color: '#808080',
+                  }}
+                >
+                  {item.label}
+                </a>
+              );
+            }
 
             return (
               <Link
