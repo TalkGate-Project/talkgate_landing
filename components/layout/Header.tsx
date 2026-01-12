@@ -120,6 +120,21 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname === item.href;
 
+                // 외부 링크인 경우
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="typo-body-sm transition-colors font-medium text-[#252525] hover:text-[#808080]"
+                    >
+                      {item.label}
+                    </a>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -153,9 +168,9 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
                 {/* 모바일에서는 로그아웃 버튼 숨김 (사이드 드로워로 이동) */}
                 <button
                   onClick={handleLogout}
-                  className="btn btn-ghost !text-[18px] hidden md:flex"
+                  className="typo-body-sm font-medium text-[#252525] hover:text-[#808080] transition-colors hidden md:flex"
                 >
-                  Logout
+                  로그아웃
                 </button>
                 {/* 모바일에서는 대시보드 버튼만 표시 */}
                 <Link href={getStartUrl(true)} className="btn btn-dark">
@@ -167,9 +182,9 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
                 {/* 모바일에서는 로그인 버튼 숨김 (사이드 드로워로 이동) */}
                 <Link
                   href={getLoginUrl(pathname)}
-                  className="btn btn-ghost !text-[18px] hidden md:flex"
+                  className="typo-body-sm font-medium text-[#252525] hover:text-[#808080] transition-colors hidden md:flex"
                 >
-                  Login
+                  로그인
                 </Link>
                 {/* 모바일에서는 시작하기 버튼만 표시 */}
                 <Link href={getStartUrl(false)} className="btn btn-dark">

@@ -15,9 +15,8 @@ import type { NavItem, CompanyInfo } from '@/types';
  * 메인 네비게이션 항목
  */
 export const NAV_ITEMS: NavItem[] = [
-  { label: '고객 성공 사례', href: '/case' },
-  { label: '체험하기', href: '/trial', disabled: true }, // TBD
   { label: '회사소개', href: '/introduce' },
+  { label: '이용가이드', href: 'https://talkgate.gitbook.io/talkgate', external: true },
   { label: '요금제', href: '/pricing' },
 ];
 

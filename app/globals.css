@@ -273,6 +273,16 @@ body, h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote {
   padding: 0;
 }
 
+/* Button default cursor styles */
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+button[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -387,24 +397,24 @@ body {
 
 /* Button Base */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  /* display: inline-block for Link components, or use flex only when needed */
+  display: inline-block;
   padding: 0.5rem 1rem;
   font-size: 14px;
   line-height: 1;
   font-weight: 600;
   border-radius: var(--radius-md);
   transition: all 150ms ease;
-  cursor: pointer;
+  /* cursor: pointer; removed - handled at button tag level for consistency */
   border: none;
   outline: none;
+  text-align: center;
+  /* When icon + text needed, add: display: inline-flex; align-items: center; gap: 0.5rem; */
 }
 
 .btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  /* cursor: not-allowed; removed - handled at button tag level for consistency */
 }
 
 /* .btn과 hidden 클래스 조합 시 display: none이 우선되도록 */
