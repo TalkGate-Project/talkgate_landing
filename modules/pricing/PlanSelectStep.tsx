@@ -17,7 +17,7 @@ const PRICING_PLANS: PricingPlan[] = [
     badge: "Basic",
     description: "개인 및 소규모 팀을 위한 기본 플랜",
     priceMonthly: 199000,
-    priceYearly: 1990000,
+    priceYearly: 597000,
     priceUnit: "/ 매월",
     features: [
       "(필수) 정기결제 및 원클릭 결제 동의",
@@ -36,7 +36,7 @@ const PRICING_PLANS: PricingPlan[] = [
     badge: "Premium",
     description: "성장하는 팀을 위한 프로페셔널 플랜",
     priceMonthly: 299000,
-    priceYearly: 2990000,
+    priceYearly: 897000,
     priceUnit: "/ 매월",
     features: [
       "(필수) 정기결제 및 원클릭 결제 동의",
@@ -135,7 +135,7 @@ export default function PlanSelectStep({
               key={plan.id}
               plan={plan}
               billingCycle={billingCycle}
-              agreed={agreedPlans[plan.id] || false}
+              agreed={true}
               onToggleAgreement={() => toggleAgreement(plan.id)}
               onSubscribe={() => handleSubscribe(plan)}
               className={plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"}
