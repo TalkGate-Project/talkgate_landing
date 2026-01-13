@@ -123,7 +123,7 @@ export default function PlanSelectStep({
               }`}
               onClick={() => setBillingCycle("yearly")}
             >
-              년마다
+              3개월마다
             </button>
           </div>
         </div>
@@ -166,12 +166,12 @@ function PricingCard({
 }: PricingCardProps) {
   const price =
     billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
-  const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 매년";
+  const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const isHighlighted = plan.highlighted || false;
 
   return (
     <div
-      className={`w-full md:w-[572px] min-h-[500px] md:min-h-[646px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${
+      className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${
         isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
       } ${className}`}
     >
@@ -244,7 +244,11 @@ function PricingCard({
       {/* Price */}
       <div className="mb-4 md:mb-6">
         <div className="flex items-end md:items-baseline gap-0">
-          <span className="text-[42px] md:text-[48px] font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center">
+          <span className={`font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center ${
+            billingCycle === "yearly" 
+              ? "text-[36px] md:text-[40px]" 
+              : "text-[42px] md:text-[48px]"
+          }`}>
             ₩ {price?.toLocaleString()}
           </span>
           <span className="text-[14px] md:text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
@@ -305,11 +309,11 @@ function PricingCard({
             </svg>
 
             <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-[#000000]">
-              AI 상담 도우미 토큰
+              Talkgate AI 사용량
             </span>
           </div>
           <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-right text-[#252525]">
-            월 {plan.aiTokensPerMonth.toLocaleString()}토큰
+            월 {plan.aiTokensPerMonth.toLocaleString()} 사용량
           </span>
         </div>
 
@@ -345,10 +349,10 @@ function PricingCard({
 
       <hr className="border-[#E2E2E2] mb-4 md:mb-5" />
 
-      {/* 월 요금제 Summary */}
+      {/* 요금제 Summary */}
       <div className="flex items-center justify-between mb-8 md:mb-[42px]">
         <p className="text-[13px] md:text-[14px] font-bold leading-[17px] text-[#000000]">
-          월 요금제
+          {billingCycle === "monthly" ? "월 요금제" : "3개월 요금제"}
         </p>
         <p className="text-[14px] md:text-[16px] font-bold leading-[19px] text-right text-[#252525]">
           {price?.toLocaleString()}원
@@ -356,7 +360,7 @@ function PricingCard({
       </div>
 
       {/* Agreement */}
-      <div className="mb-6 md:mb-[42px]">
+      {/* <div className="mb-6 md:mb-[42px]">
         <label className="flex items-center gap-2 cursor-pointer">
           <div className="relative flex items-center justify-center">
             <input
@@ -406,7 +410,7 @@ function PricingCard({
             />
           </svg>
         </label>
-      </div>
+      </div> */}
 
       {/* CTA Button */}
       <button
