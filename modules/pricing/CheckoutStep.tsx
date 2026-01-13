@@ -1,20 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import type { PricingPlan, Project } from "@/types";
+import { useState, useEffect } from "react";
+import type { PricingPlan, Project, BillingCycle } from "@/types";
 import { ChevronUpIcon, VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon } from "@/components/icons";
 
 interface CheckoutStepProps {
   selectedPlan: PricingPlan;
   selectedProject?: Project;
+  billingCycle: BillingCycle;
   onBack: () => void;
 }
 
 export default function CheckoutStep({
   selectedPlan,
   selectedProject,
+  billingCycle,
   onBack,
 }: CheckoutStepProps) {
+  // 컴포넌트 마운트 시 스크롤을 맨 위로 올리기
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const [formData, setFormData] = useState({
     email: "",
     cardholderName: "",
@@ -59,10 +66,14 @@ export default function CheckoutStep({
   };
 
   // 가격 계산 (VAT 포함)
-  const subtotal = selectedPlan.priceMonthly;
+  const price = billingCycle === "monthly" ? selectedPlan.priceMonthly : (selectedPlan.priceYearly || selectedPlan.priceMonthly);
+  const subtotal = price;
   const perSeat = Math.floor(subtotal / 1.1); // VAT 제외 금액
   const vat = subtotal - perSeat;
   const total = subtotal;
+  const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
+  const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
+  const billingLabel = billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
 
   return (
     <div className="min-h-screen bg-white py-6 md:py-20">
@@ -90,21 +101,21 @@ export default function CheckoutStep({
                   ₩ {total.toLocaleString()}
                 </span>
                 <span className="font-normal text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
-                  / 매월
+                  {priceUnit}
                 </span>
               </div>
               <p className="font-semibold text-[16px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#595959] mt-3 md:mt-4">
-                매월 구독하기
+                {billingPeriod} 구독하기
               </p>
             </div>
 
             {/* 청구 상세 */}
             <div className="space-y-4 md:space-y-6">
-              {/* 월간 청구 */}
+              {/* 청구 */}
               <div>
                 <div className="flex justify-between items-start mb-1">
                   <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
-                    월간 청구
+                    {billingLabel}
                   </h3>
                   <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
                     {perSeat.toLocaleString()}원
