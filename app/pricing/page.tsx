@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Project, PricingPlan } from "@/types";
+import type { Project, PricingPlan, BillingCycle } from "@/types";
 import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/pricing";
 import { getLoginUrl, AUTH_COOKIE_NAME } from "@/lib/auth";
 
@@ -13,6 +13,7 @@ export default function PricingPage() {
   const [currentStep, setCurrentStep] = useState<PricingStep>("plan-select");
   const [selectedProject, setSelectedProject] = useState<Project | undefined>();
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | undefined>();
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>("monthly");
 
   // 클라이언트에서만 인증 상태 확인 (Hydration 이후)
   // Note: Hydration 오류 방지를 위해 useEffect에서 상태 설정이 필요합니다.
@@ -57,8 +58,9 @@ export default function PricingPage() {
   };
 
   // 플랜 구독 핸들러
-  const handleSubscribe = (plan: PricingPlan) => {
+  const handleSubscribe = (plan: PricingPlan, billingCycle: BillingCycle) => {
     setSelectedPlan(plan);
+    setSelectedBillingCycle(billingCycle);
     setCurrentStep("checkout");
   };
 
@@ -96,6 +98,7 @@ export default function PricingPage() {
         <CheckoutStep
           selectedPlan={selectedPlan}
           selectedProject={selectedProject}
+          billingCycle={selectedBillingCycle}
           onBack={handleBackFromCheckout}
         />
       ) : null;

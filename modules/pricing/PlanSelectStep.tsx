@@ -6,7 +6,7 @@ import type { BillingCycle, PricingPlan, Project } from "@/types";
 interface PlanSelectStepProps {
   selectedProject?: Project;
   isAuthenticated: boolean;
-  onSubscribe: (plan: PricingPlan) => void;
+  onSubscribe: (plan: PricingPlan, billingCycle: BillingCycle) => void;
   onLogin: () => void;
 }
 
@@ -76,8 +76,8 @@ export default function PlanSelectStep({
       return;
     }
 
-    // 로그인된 경우 다음 단계로 진행
-    onSubscribe(plan);
+    // 로그인된 경우 다음 단계로 진행 (billingCycle 정보도 함께 전달)
+    onSubscribe(plan, billingCycle);
   };
 
   const toggleAgreement = (planId: string) => {

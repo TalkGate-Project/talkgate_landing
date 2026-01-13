@@ -52,6 +52,15 @@ export const EXTERNAL_LINKS = {
 
   /** 개인정보처리방침 (메인 서비스) */
   privacyPolicy: '/privacy',
+
+  /** 개인정보 처리위탁에 대한 동의 */
+  privacyConsignment: '/privacy-consignment',
+
+  /** 고객정보 적법 수집 및 제3자 제공 책임 확인 */
+  dataCollection: '/data-collection',
+
+  /** Talkgate 마케팅 정보 수신 동의 */
+  marketingConsent: '/marketing-consent',
 } as const;
 
 // ============================================
