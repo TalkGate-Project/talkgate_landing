@@ -71,3 +71,22 @@ export interface BillingUpdateResponse {
   result: true;
   data: BillingInfo;
 }
+
+/**
+ * 약관 유형
+ */
+export type BillingTermsType =
+  | "ElectronicFinancialTransactions" // 전자금융거래 약관
+  | "CollectPersonalInfo" // 개인정보 수집 및 이용 약관
+  | "SharingPersonalInformation"; // 개인정보 제3자 제공약관
+
+/**
+ * 약관 조회 응답
+ */
+export interface BillingTermsResponse {
+  result: true;
+  data: {
+    termsTitle: string;
+    content: string;
+  };
+}
