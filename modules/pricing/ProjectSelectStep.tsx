@@ -54,7 +54,8 @@ export default function ProjectSelectStep({
     setLoading(true);
     setError(null);
     try {
-      const response = await ProjectsService.list();
+      // Admin 역할인 프로젝트만 조회
+      const response = await ProjectsService.listAdmin();
       const projectList = response.data?.data || [];
       setProjects(Array.isArray(projectList) ? projectList : []);
     } catch (err) {

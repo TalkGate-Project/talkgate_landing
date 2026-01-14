@@ -14,6 +14,14 @@ export const ProjectsService = {
   },
 
   /**
+   * 내가 어드민인 프로젝트 목록 조회
+   * Admin 역할인 프로젝트만 조회합니다.
+   */
+  listAdmin() {
+    return apiClient.get<ProjectListResponse>("/v1/projects/admin");
+  },
+
+  /**
    * 프로젝트 생성
    */
   create(input: ProjectCreateInput) {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Montserrat } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { Header, Footer } from '@/components';
+import { ErrorFeedbackModalProvider } from '@/components/common';
 import { BRAND, PAGE_METADATA } from '@/lib/constants';
 import { checkAuthStatus } from '@/lib/auth';
 import './globals.css';
@@ -61,9 +62,11 @@ export default async function RootLayout({
       <body
         className={`${plusJakartaSans.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col`}
       >
-        <Header isAuthenticated={isAuthenticated} />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ErrorFeedbackModalProvider>
+          <Header isAuthenticated={isAuthenticated} />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ErrorFeedbackModalProvider>
       </body>
     </html>
   );

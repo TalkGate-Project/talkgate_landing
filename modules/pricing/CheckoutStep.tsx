@@ -6,7 +6,42 @@ import type { BillingInfo } from "@/types/billing";
 import { ChevronUpIcon } from "@/components/icons";
 import { BillingService } from "@/lib/billing";
 import { SubscriptionService } from "@/lib/subscription";
+import { showErrorModal } from "@/lib/errorModalEvents";
 import BillingRegisterModal from "./BillingRegisterModal";
+
+// 정기과금(자동승인) 이용약관 내용
+const RECURRING_BILLING_TERMS = `1. 이용자는 본 신청서에 서명하거나 공인인증 및 그에 준하는 전자 인증절차를 통함으로써 본 서비스를 이용할 수 있습니다.
+
+2. 이용자가 납부하여야 할 요금에 대하여 별도의 통지 없이 이용자의 지급결제수단 정보를 사용하여 청구기관이 정한 지정 승인일(휴일인 경우 익영업일)에 승인 납부 됩니다.
+
+3. 이용자는 이용자와 결제기관과의 이용약관이나 약정서 규정에도 불구하고 안심클릭, ISP 등 별도의 인증 절차 없이 정기과금(자동승인) 처리 절차에 의하여 승인하여도 이의가 없습니다.
+
+4. 정기과금(자동승인) 승인일을 이용자가 지정하지 않은 경우 청구기관(재화 등을 공급하는 자)으로부터 사전 통지 받은 승인일을 최초 승인일로 하며, 승인일에 동일한 수종의 정기과금(자동승인)이 있는 경우 승인 우선 순위는 이용자의 결제기관이 정하는 바에 따릅니다.
+
+6. 정기과금 승인일이 영업일이 아닌 경우에는 다음 영업일을 승인일로 하며, 이용자가 정기과금(자동승인)의 신청(신규, 해지, 변경)을 원하는 경우 해당 승인일 30일 전까지 청구기관에 통지해야 합니다.
+
+8. 이용자의 지급결제수단의 승인한도가 청구기관의 청구금액보다 부족하거나 지급제한, 연체 등 이용자의 과실에 의해 발생하는 손해의 책임은 이용자에게 있습니다.
+
+9. 이용자가 본 서비스를 이용하는 과정에서 발생하는 청구금액의 이의 등 이의가 있는 경우에는 이용자와 청구기관이 협의하여 조정키로 합니다.
+
+10. 회사는 이용자와의 자동이체서비스 이용과 관련된 구체적인 권리, 의무를 정하기 위하여 본 약관과는 별도로 자동이체서비스이용약관을 제정할 수 있습니다`;
+
+// 구독 및 취소 약관 내용
+const SUBSCRIPTION_CANCEL_TERMS = `[구독 약관]
+
+주문이 처리되면 구독이 시작됩니다. 귀하의 구독은 귀하가 취소할 때까지 매월 통지 없이 자동적으로 갱신될 것입니다. 귀하는 우리가 귀하의 결제 방법을 저장하고 귀하가 취소할 때까지 매달 자동적으로 귀하의 결제 방법으로 청구하는 것을 승인합니다. 우리는 귀하가 취소할 때까지 매월 갱신시 귀하의 플랜에 대한 당시의 요금과 관련 세금(예: 요금에 포함되지 않은 경우, VAT)을 자동적으로 청구할 것입니다.
+
+우리는 귀하 플랜의 요율을 매월 갱신시 변경할 수 있으며, 요율이 변경되는 경우에는 취소 옵션과 함께 귀하에게 통지할 것입니다. 1개월 약정 기간에 해당 VAT 요율(또는 기타 포함되는 세금)이 변경되는 경우, 우리는 그에 따라 다음 과금일에 귀하의 플랜에 대한 세금 포함 요금을 조정할 것입니다.
+
+귀하의 기본 결제 방법이 실패하는 경우, 귀하는 우리가 귀하의 계정에 다른 결제 방법으로 청구하는 것을 승인합니다. 귀하가 우리에게 대체 결제 방법을 제공하지 않은 상태에서 결제하지 않거나 귀하 계정의 모든 결제 방법이 실패하는 경우, 우리는 귀하의 구독을 정지시킬 수 있습니다. 귀하는 언제든지 Talkgate 페이지에서 결제 정보를 편집할 수 있습니다.
+
+[취소 약관]
+
+귀하는 언제든지 Talkgate 페이지를 통해 또는 고객지원센터에 연락하여 가입을 취소할 수 있습니다. 최초 주문 후 14일 이내 취소하는 경우 결제금액에서 사용기간만큼 일할 계산 후 차감되어 환불됩니다. 15일 이후 취소하는 경우에는 결제 금액을 환불할 수 없으며, 해당 월의 결제 기간이 종료될 때까지 서비스가 계속됩니다.
+
+귀하는 재화 등이 내용이 표시, 광고 내용과 다르거나 계약내용과 다른 재화가 제공된 경우, 그 사실을 안 날 또는 알 수 있었던 날부터 15일 이내에 환불을 요청할 수 있습니다.
+
+우리는 귀하가 유료서비스를 선물 받거나, 프로모션 등을 통해 무료/무상으로 취득하는 등 귀하가 직접 비용을 지불하지 아니하고 이용하는 유료서비스에 대하여 귀하에게 유료서비스 결제 대금을 환불할 의무를 부담하지 않습니다.`;
 
 interface CheckoutStepProps {
   selectedPlan: PricingPlan;
@@ -33,6 +68,10 @@ export default function CheckoutStep({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // 약관 펼침 상태
+  const [showRecurringTerms, setShowRecurringTerms] = useState(false);
+  const [showCancelTerms, setShowCancelTerms] = useState(false);
 
   // 결제 수단 조회
   useEffect(() => {
@@ -94,8 +133,19 @@ export default function CheckoutStep({
         billingCycle: subscriptionBillingCycle,
       });
 
-      alert("구독이 완료되었습니다!");
-      // TODO: 구독 완료 후 대시보드로 이동
+      // 구독 성공 모달 표시
+      showErrorModal({
+        type: "success",
+        title: "구독 완료",
+        headline: "구독이 완료되었습니다!",
+        description: `${selectedProject.name} 프로젝트에 ${selectedPlan.badge || selectedPlan.name} 플랜이 적용되었습니다.`,
+        confirmText: "확인",
+        hideCancel: true,
+        onConfirm: () => {
+          // 확인 클릭 시 /pricing으로 새로고침하여 프로젝트 목록 업데이트
+          window.location.href = "/pricing?step=project";
+        },
+      });
     } catch (err: unknown) {
       console.error("구독 실패:", err);
       const error = err as { data?: { message?: string } };
@@ -302,8 +352,51 @@ export default function CheckoutStep({
         )}
 
         {/* Terms Agreement */}
-        <div className="mt-6">
-          <label className="flex items-start gap-2 cursor-pointer">
+        <div className="mt-6 space-y-4">
+          {/* 정기과금(자동승인) 이용약관 */}
+          <div className="border border-[#E2E2E2] rounded-[8px] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowRecurringTerms(!showRecurringTerms)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-[#F8F8F8] hover:bg-[#F0F0F0] transition-colors"
+            >
+              <span className="text-[14px] font-medium text-[#252525]">
+                정기과금(자동승인) 이용약관
+              </span>
+              <ChevronUpIcon className={`w-4 h-4 transition-transform ${showRecurringTerms ? "" : "rotate-180"}`} />
+            </button>
+            {showRecurringTerms && (
+              <div className="px-4 py-3 bg-white max-h-[200px] overflow-y-auto">
+                <p className="text-[12px] text-[#595959] whitespace-pre-line leading-[1.6]">
+                  {RECURRING_BILLING_TERMS}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 구독 및 취소 약관 */}
+          <div className="border border-[#E2E2E2] rounded-[8px] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowCancelTerms(!showCancelTerms)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-[#F8F8F8] hover:bg-[#F0F0F0] transition-colors"
+            >
+              <span className="text-[14px] font-medium text-[#252525]">
+                구독 및 취소 약관
+              </span>
+              <ChevronUpIcon className={`w-4 h-4 transition-transform ${showCancelTerms ? "" : "rotate-180"}`} />
+            </button>
+            {showCancelTerms && (
+              <div className="px-4 py-3 bg-white max-h-[200px] overflow-y-auto">
+                <p className="text-[12px] text-[#595959] whitespace-pre-line leading-[1.6]">
+                  {SUBSCRIPTION_CANCEL_TERMS}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 동의 체크박스 */}
+          <label className="flex items-start gap-2 cursor-pointer mt-4">
             <div className="relative flex-shrink-0">
               <input
                 type="checkbox"
@@ -334,7 +427,7 @@ export default function CheckoutStep({
               )}
             </div>
             <span className="font-normal text-[12px] md:text-[13px] leading-[18px] md:leading-[20px] text-[#595959] opacity-80">
-              이용약관에 명시된 대로 요금이 변경될 수 있으며, 언제든지
+              위 약관에 동의합니다. 이용약관에 명시된 대로 요금이 변경될 수 있으며, 언제든지
               구독을 취소할 수 있습니다. 구독함으로써 회사의{" "}
               <a href="/terms" className="text-[#00B55B] underline">
                 이용약관

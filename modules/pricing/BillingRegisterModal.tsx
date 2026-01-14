@@ -1,9 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon } from "@/components/icons";
+import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, ChevronUpIcon } from "@/components/icons";
 import { BillingService } from "@/lib/billing";
-import type { BillingRegisterInput } from "@/types/billing";
+import type { BillingRegisterInput, BillingTermsType } from "@/types/billing";
+
+// 나이스페이 약관 타입 정의
+type NicePayTerms = {
+  type: BillingTermsType;
+  title: string;
+  content: string | null;
+  loading: boolean;
+  expanded: boolean;
+  agreed: boolean;
+};
+
+const NICEPAY_TERMS_CONFIG: { type: BillingTermsType; label: string }[] = [
+  { type: "ElectronicFinancialTransactions", label: "전자금융거래 약관" },
+  { type: "CollectPersonalInfo", label: "개인정보 수집 및 이용 약관" },
+  { type: "SharingPersonalInformation", label: "개인정보 제3자 제공 약관" },
+];
 
 interface BillingRegisterModalProps {
   onClose: () => void;
@@ -27,6 +43,89 @@ export default function BillingRegisterModal({
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 나이스페이 약관 상태
+  const [nicePayTerms, setNicePayTerms] = useState<NicePayTerms[]>(
+    NICEPAY_TERMS_CONFIG.map((config) => ({
+      type: config.type,
+      title: config.label,
+      content: null,
+      loading: false,
+      expanded: false,
+      agreed: false,
+    }))
+  );
+
+  // 모든 약관 동의 여부
+  const allTermsAgreed = nicePayTerms.every((term) => term.agreed);
+
+  // 약관 내용 로드 (펼칠 때 lazy loading)
+  const loadTermsContent = async (type: BillingTermsType) => {
+    const termIndex = nicePayTerms.findIndex((t) => t.type === type);
+    if (termIndex === -1 || nicePayTerms[termIndex].content !== null) return;
+
+    setNicePayTerms((prev) =>
+      prev.map((t) =>
+        t.type === type ? { ...t, loading: true } : t
+      )
+    );
+
+    try {
+      const response = await BillingService.getTerms(type);
+      const data = response.data?.data;
+      setNicePayTerms((prev) =>
+        prev.map((t) =>
+          t.type === type
+            ? { ...t, content: data?.content || "약관 내용을 불러올 수 없습니다.", loading: false }
+            : t
+        )
+      );
+    } catch (err) {
+      console.error("약관 조회 실패:", err);
+      setNicePayTerms((prev) =>
+        prev.map((t) =>
+          t.type === type
+            ? { ...t, content: "약관 내용을 불러올 수 없습니다.", loading: false }
+            : t
+        )
+      );
+    }
+  };
+
+  // 약관 펼침/접기 토글
+  const toggleTermExpanded = (type: BillingTermsType) => {
+    setNicePayTerms((prev) =>
+      prev.map((t) => {
+        if (t.type === type) {
+          const newExpanded = !t.expanded;
+          if (newExpanded && t.content === null) {
+            loadTermsContent(type);
+          }
+          return { ...t, expanded: newExpanded };
+        }
+        return t;
+      })
+    );
+  };
+
+  // 약관 동의 토글
+  const toggleTermAgreed = (type: BillingTermsType) => {
+    setNicePayTerms((prev) =>
+      prev.map((t) =>
+        t.type === type ? { ...t, agreed: !t.agreed } : t
+      )
+    );
+    setError(null);
+  };
+
+  // 전체 동의
+  const toggleAllAgreed = () => {
+    const newValue = !allTermsAgreed;
+    setNicePayTerms((prev) =>
+      prev.map((t) => ({ ...t, agreed: newValue }))
+    );
+    setError(null);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -98,6 +197,11 @@ export default function BillingRegisterModal({
     }
     if (!formData.buyerTel) {
       setError("연락처를 입력해주세요.");
+      return;
+    }
+
+    if (!allTermsAgreed) {
+      setError("모든 약관에 동의해주세요.");
       return;
     }
 
@@ -297,9 +401,107 @@ export default function BillingRegisterModal({
           </div>
 
           {/* 안내 문구 */}
-          <p className="text-[12px] text-[#808080] mt-2">
+          <p className="text-[12px] text-[#808080] mt-2 mb-4">
             * 입력하신 카드 정보는 안전하게 암호화되어 처리됩니다.
           </p>
+
+          {/* 나이스페이 약관 동의 */}
+          <div className="border border-[#E2E2E2] rounded-[8px] overflow-hidden">
+            {/* 전체 동의 */}
+            <div className="px-4 py-3 bg-[#F8F8F8] border-b border-[#E2E2E2]">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <div className="relative flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={allTermsAgreed}
+                    onChange={toggleAllAgreed}
+                    disabled={submitting}
+                    className="w-5 h-5 appearance-none rounded-[5px] border border-[#B0B0B0] checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
+                  />
+                  {allTermsAgreed && (
+                    <svg
+                      className="absolute top-0 left-0 w-5 h-5 pointer-events-none"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M5 10L8.5 13.5L15 7"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-[14px] font-semibold text-[#252525]">
+                  전체 동의
+                </span>
+              </label>
+            </div>
+
+            {/* 개별 약관 */}
+            {nicePayTerms.map((term) => (
+              <div key={term.type} className="border-b border-[#E2E2E2] last:border-b-0">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <label className="flex items-center gap-2 cursor-pointer flex-1">
+                    <div className="relative flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={term.agreed}
+                        onChange={() => toggleTermAgreed(term.type)}
+                        disabled={submitting}
+                        className="w-4 h-4 appearance-none rounded-[4px] border border-[#B0B0B0] checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
+                      />
+                      {term.agreed && (
+                        <svg
+                          className="absolute top-0 left-0 w-4 h-4 pointer-events-none"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4 8L7 11L12 5"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-[13px] text-[#595959]">
+                      {term.title}
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => toggleTermExpanded(term.type)}
+                    className="text-[12px] text-[#808080] hover:text-[#252525] transition-colors flex items-center gap-1"
+                  >
+                    <span>상세보기</span>
+                    <ChevronUpIcon className={`w-3 h-3 transition-transform ${term.expanded ? "" : "rotate-180"}`} />
+                  </button>
+                </div>
+                {term.expanded && (
+                  <div className="px-4 py-3 bg-[#FAFAFA] border-t border-[#E2E2E2] max-h-[150px] overflow-y-auto">
+                    {term.loading ? (
+                      <div className="text-[12px] text-[#808080]">약관을 불러오는 중...</div>
+                    ) : (
+                      <p className="text-[11px] text-[#595959] whitespace-pre-line leading-[1.6]">
+                        {term.content}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* 등록 버튼 */}
           <button
