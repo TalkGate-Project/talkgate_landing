@@ -1,48 +1,100 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Project, PricingPlan, BillingCycle } from "@/types";
 import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/pricing";
 import { getLoginUrl, AUTH_COOKIE_NAME } from "@/lib/auth";
 
-type PricingStep = "project-select" | "plan-select" | "checkout";
+type PricingStep = "project" | "plan" | "checkout";
 
-export default function PricingPage() {
-  // Hydration 오류 방지: 초기값은 null로 설정
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [currentStep, setCurrentStep] = useState<PricingStep>("plan-select");
-  const [selectedProject, setSelectedProject] = useState<Project | undefined>();
+function PricingContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URL에서 상태 읽기
+  const stepFromUrl = searchParams.get("step") as PricingStep | null;
+  const projectIdFromUrl = searchParams.get("projectId");
+  const projectNameFromUrl = searchParams.get("projectName");
+
+  // 인증 상태 - 초기값을 함수로 계산 (hydration 후)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    // SSR에서는 null 반환
+    if (typeof window === "undefined") return null;
+
+    const cookies = document.cookie.split(";");
+    const authCookie = cookies.find((c) =>
+      c.trim().startsWith(`${AUTH_COOKIE_NAME}=`)
+    );
+
+    if (authCookie) {
+      const value = authCookie.split("=")[1];
+      return !!value && value !== "undefined" && value !== "null";
+    }
+    return false;
+  });
+
+  // 선택된 데이터
+  const [selectedProject, setSelectedProject] = useState<Project | undefined>(() => {
+    // URL에서 프로젝트 정보 복원
+    if (projectIdFromUrl && projectNameFromUrl) {
+      return {
+        id: projectIdFromUrl,
+        name: decodeURIComponent(projectNameFromUrl),
+      };
+    }
+    return undefined;
+  });
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | undefined>();
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>("monthly");
 
-  // 클라이언트에서만 인증 상태 확인 (Hydration 이후)
-  // Note: Hydration 오류 방지를 위해 useEffect에서 상태 설정이 필요합니다.
-  // 브라우저 환경에서만 사용 가능한 document.cookie에 접근하므로,
-  // 서버-클라이언트 불일치를 피하기 위해 useEffect 사용이 적절합니다.
+  // 현재 스텝 결정 (URL 기반)
+  // 비로그인 상태에서는 프로젝트 선택을 스킵하고 플랜 선택부터 시작
+  const getDefaultStep = (): PricingStep => {
+    if (!isAuthenticated) return "plan";
+    return "project";
+  };
+  const currentStep: PricingStep = stepFromUrl || getDefaultStep();
+
+  // URL 업데이트 함수
+  const updateUrl = useCallback(
+    (step: PricingStep, project?: Project) => {
+      const params = new URLSearchParams();
+      params.set("step", step);
+
+      if (project) {
+        params.set("projectId", project.id);
+        params.set("projectName", encodeURIComponent(project.name));
+      } else if (selectedProject && step !== "project") {
+        params.set("projectId", selectedProject.id);
+        params.set("projectName", encodeURIComponent(selectedProject.name));
+      }
+
+      router.push(`/pricing?${params.toString()}`, { scroll: false });
+    },
+    [router, selectedProject]
+  );
+
+  // Hydration 완료 후 인증 상태 재확인 (SSR → CSR 전환 시 필요)
   useEffect(() => {
-    const initializeAuth = () => {
+    if (isAuthenticated === null) {
       const cookies = document.cookie.split(";");
       const authCookie = cookies.find((c) =>
         c.trim().startsWith(`${AUTH_COOKIE_NAME}=`)
       );
-      
-      // 쿠키가 있고 값이 유효한 경우에만 인증됨으로 간주
+
       let authenticated = false;
       if (authCookie) {
-        const value = authCookie.split('=')[1];
-        authenticated = !!value && value !== 'undefined' && value !== 'null';
+        const value = authCookie.split("=")[1];
+        authenticated = !!value && value !== "undefined" && value !== "null";
       }
-      
-      // 한 번의 렌더링으로 모든 상태 업데이트
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR hydration 패턴
       setIsAuthenticated(authenticated);
-      // 로그인된 경우에만 project-select 단계로 시작
-      setCurrentStep(authenticated ? "plan-select" : "plan-select");
-    };
+    }
+  }, [isAuthenticated]);
 
-    initializeAuth();
-  }, []);
-
-  // 로딩 중일 때 (Hydration 완료 전)
+  // 로딩 중일 때
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -54,59 +106,135 @@ export default function PricingPage() {
   // 프로젝트 선택 핸들러
   const handleSelectProject = (project: Project) => {
     setSelectedProject(project);
-    setCurrentStep("plan-select");
+    updateUrl("plan", project);
   };
 
   // 플랜 구독 핸들러
   const handleSubscribe = (plan: PricingPlan, billingCycle: BillingCycle) => {
     setSelectedPlan(plan);
     setSelectedBillingCycle(billingCycle);
-    setCurrentStep("checkout");
+    updateUrl("checkout");
   };
 
   // 로그인 페이지로 이동
   const handleLogin = () => {
-    const loginUrl = getLoginUrl("/pricing");
+    // 로그인 후 프로젝트 선택 화면으로 이동하도록 returnUrl 설정
+    const returnUrl = `${window.location.origin}/pricing?step=project`;
+    const loginUrl = getLoginUrl(returnUrl);
     window.location.href = loginUrl;
   };
 
-  // 결제 화면에서 뒤로 가기
+  // 뒤로 가기 핸들러들
+  const handleBackFromPlan = () => {
+    updateUrl("project");
+    setSelectedProject(undefined);
+  };
+
   const handleBackFromCheckout = () => {
-    setCurrentStep("plan-select");
+    updateUrl("plan");
   };
 
   // 현재 단계에 따라 컴포넌트 렌더링
-  let content;
   switch (currentStep) {
-    case "project-select":
-      content = <ProjectSelectStep onSelectProject={handleSelectProject} />;
-      break;
-
-    case "plan-select":
-      content = (
-        <PlanSelectStep
-          selectedProject={selectedProject}
-          isAuthenticated={isAuthenticated}
-          onSubscribe={handleSubscribe}
-          onLogin={handleLogin}
+    case "project":
+      // 비로그인 상태에서 project 단계 접근 시 plan으로 리다이렉트
+      if (!isAuthenticated) {
+        return (
+          <PlanSelectStep
+            isAuthenticated={isAuthenticated}
+            selectedProject={selectedProject}
+            onSubscribe={handleSubscribe}
+            onLogin={handleLogin}
+          />
+        );
+      }
+      return (
+        <ProjectSelectStep
+          onSelectProject={handleSelectProject}
         />
       );
-      break;
+
+    case "plan":
+      // 로그인 상태에서 프로젝트가 선택되지 않았으면 프로젝트 선택 화면으로
+      if (isAuthenticated && !selectedProject && !projectIdFromUrl) {
+        return (
+          <ProjectSelectStep
+            onSelectProject={handleSelectProject}
+          />
+        );
+      }
+
+      return (
+        <PlanSelectStep
+          isAuthenticated={isAuthenticated}
+          selectedProject={selectedProject}
+          onSubscribe={handleSubscribe}
+          onLogin={handleLogin}
+          onBack={isAuthenticated ? handleBackFromPlan : undefined}
+        />
+      );
 
     case "checkout":
-      content = selectedPlan ? (
+      // 플랜이 선택되지 않았으면 플랜 선택 화면으로
+      if (!selectedPlan) {
+        // 로그인 상태이고 프로젝트가 없으면 프로젝트 선택부터
+        if (isAuthenticated && !selectedProject && !projectIdFromUrl) {
+          return (
+            <ProjectSelectStep
+              onSelectProject={handleSelectProject}
+            />
+          );
+        }
+        return (
+          <PlanSelectStep
+            isAuthenticated={isAuthenticated}
+            selectedProject={selectedProject}
+            onSubscribe={handleSubscribe}
+            onLogin={handleLogin}
+            onBack={isAuthenticated ? handleBackFromPlan : undefined}
+          />
+        );
+      }
+
+      return (
         <CheckoutStep
           selectedPlan={selectedPlan}
           selectedProject={selectedProject}
           billingCycle={selectedBillingCycle}
           onBack={handleBackFromCheckout}
         />
-      ) : null;
-      break;
+      );
 
     default:
-      content = null;
+      // 비로그인 상태에서는 플랜 선택부터
+      if (!isAuthenticated) {
+        return (
+          <PlanSelectStep
+            isAuthenticated={isAuthenticated}
+            selectedProject={selectedProject}
+            onSubscribe={handleSubscribe}
+            onLogin={handleLogin}
+          />
+        );
+      }
+      return (
+        <ProjectSelectStep
+          onSelectProject={handleSelectProject}
+        />
+      );
   }
+}
 
-  return <>{content}</>;
+export default function PricingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-[16px] text-[#808080]">불러오는 중...</div>
+        </div>
+      }
+    >
+      <PricingContent />
+    </Suspense>
+  );
 }
