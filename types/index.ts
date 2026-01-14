@@ -190,3 +190,10 @@ export interface CompanyInfo {
   address: string;
 }
 
+// Re-export API types
+export type {
+  ProjectInfo,
+  ProjectCreateInput,
+  ProjectCreateResponse,
+  ProjectListResponse,
+} from "./project";

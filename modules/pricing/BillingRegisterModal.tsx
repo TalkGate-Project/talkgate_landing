@@ -235,44 +235,46 @@ export default function BillingRegisterModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-[24px] md:rounded-[42px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-full max-w-[520px] p-6 md:p-[52px] max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[18px] md:text-[20px] font-bold text-[#252525]">
-            결제 수단 등록
-          </h2>
-          <button
-            aria-label="닫기"
-            className="cursor-pointer w-8 h-8 grid place-items-center hover:opacity-70 transition-opacity"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+      <div className="relative bg-white rounded-[24px] md:rounded-[42px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-full max-w-[520px] max-h-[90vh] flex flex-col overflow-hidden">
+        {/* 스크롤 가능한 내부 영역 */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-[52px]">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[18px] md:text-[20px] font-bold text-[#252525]">
+              결제 수단 등록
+            </h2>
+            <button
+              aria-label="닫기"
+              className="cursor-pointer w-8 h-8 grid place-items-center hover:opacity-70 transition-opacity"
+              onClick={onClose}
+              disabled={submitting}
             >
-              <path
-                d="M6 18L18 6M6 6L18 18"
-                stroke="#B0B0B0"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-[14px]">
-            {error}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 18L18 6M6 6L18 18"
+                  stroke="#B0B0B0"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-[14px]">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {/* 이메일 */}
           <div className="flex flex-col gap-2">
             <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
@@ -512,6 +514,7 @@ export default function BillingRegisterModal({
             {submitting ? "등록 중..." : "등록하기"}
           </button>
         </form>
+        </div>
       </div>
     </div>
   );

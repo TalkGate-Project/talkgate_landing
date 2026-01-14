@@ -36,7 +36,10 @@ function serverLog(level: "info" | "error" | "warn", message: string, data?: unk
 
 async function handleProxy(req: NextRequest, pathSegments: string[]) {
   const path = "/" + pathSegments.join("/");
-  const url = `${API_BASE_URL}${path}`;
+  // 쿼리 파라미터 전달
+  const searchParams = req.nextUrl.searchParams.toString();
+  const queryString = searchParams ? `?${searchParams}` : "";
+  const url = `${API_BASE_URL}${path}${queryString}`;
   const method = req.method;
   
   // 쿠키에서 액세스 토큰 가져오기
@@ -80,11 +83,12 @@ async function handleProxy(req: NextRequest, pathSegments: string[]) {
   const isSubscriptionRequest = path.includes("/subscriptions");
   
   if (isBillingRequest || isSubscriptionRequest) {
-    serverLog("info", `API Request: ${method} ${path}`, {
+    serverLog("info", `API Request: ${method} ${path}${queryString}`, {
       url,
       method,
       hasAuth: !!accessToken,
       projectId: projectId || null,
+      query: searchParams || null,
       body: bodyData ? maskSensitiveData(bodyData) : null,
     });
   }
