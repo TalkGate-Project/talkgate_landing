@@ -117,27 +117,27 @@ export function Footer() {
             >
               개인정보처리방침
             </Link>
-            <div className="h-3 w-px bg-[#EDEDED]" />
+            {/* <div className="h-3 w-px bg-[#EDEDED]" />
             <Link
               href={EXTERNAL_LINKS.privacyConsignment}
               className="hover:text-foreground transition-colors"
             >
               개인정보 처리위탁
-            </Link>
-            <div className="h-3 w-px bg-[#EDEDED]" />
+            </Link> */}
+            {/* <div className="h-3 w-px bg-[#EDEDED]" />
             <Link
               href={EXTERNAL_LINKS.dataCollection}
               className="hover:text-foreground transition-colors"
             >
               고객정보 수집 및 제3자 제공
-            </Link>
-            <div className="h-3 w-px bg-[#EDEDED]" />
+            </Link> */}
+            {/* <div className="h-3 w-px bg-[#EDEDED]" />
             <Link
               href={EXTERNAL_LINKS.marketingConsent}
               className="hover:text-foreground transition-colors"
             >
               마케팅 정보 수신 동의
-            </Link>
+            </Link> */}
           </div>
 
           {/* Copyright - Center */}
@@ -169,13 +169,13 @@ export function Footer() {
               개인정보처리방침
             </Link>
             <div className="h-3 w-px bg-border" />
-            <Link
+            {/* <Link
               href={EXTERNAL_LINKS.privacyConsignment}
               className="hover:text-foreground transition-colors"
             >
               개인정보 처리위탁
-            </Link>
-            <div className="h-3 w-px bg-border" />
+            </Link> */}
+            {/* <div className="h-3 w-px bg-border" />
             <Link
               href={EXTERNAL_LINKS.dataCollection}
               className="hover:text-foreground transition-colors"
@@ -188,7 +188,7 @@ export function Footer() {
               className="hover:text-foreground transition-colors"
             >
               마케팅 정보 수신 동의
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

@@ -1,65 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
+import type { SubscriptionPlan } from "@/types/subscription";
+import { SubscriptionService } from "@/lib/subscription";
 
 interface PlanSelectStepProps {
   selectedProject?: Project;
   isAuthenticated: boolean;
   onSubscribe: (plan: PricingPlan, billingCycle: BillingCycle) => void;
   onLogin: () => void;
+  onBack?: () => void;
 }
 
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    id: "basic",
+// API 플랜을 UI 플랜으로 변환
+function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPlan {
+  return {
+    id: String(plan.id),
     name: "Talkgate",
-    badge: "Basic",
-    description: "개인 및 소규모 팀을 위한 기본 플랜",
-    priceMonthly: 199000,
-    priceYearly: 597000,
+    badge: plan.name,
+    description: plan.description,
+    priceMonthly: plan.monthlyPrice,
+    priceYearly: plan.quarterlyPrice,
     priceUnit: "/ 매월",
-    features: [
-      "(필수) 정기결제 및 원클릭 결제 동의",
-      "(필수) 이용약관 및 결제 및 멤버십 유의사항",
-      "(필수) 멤버십 제 3자 개인정보 제공",
-    ],
+    features: [],
     ctaText: "구독하기",
-    ctaHref: "/checkout/basic",
-    maxMembers: 50,
-    aiTokensPerMonth: 100000,
-    smsCountPerMonth: 1000,
-  },
-  {
-    id: "premium",
-    name: "Talkgate",
-    badge: "Premium",
-    description: "성장하는 팀을 위한 프로페셔널 플랜",
-    priceMonthly: 299000,
-    priceYearly: 897000,
-    priceUnit: "/ 매월",
-    features: [
-      "(필수) 정기결제 및 원클릭 결제 동의",
-      "(필수) 이용약관 및 결제 및 멤버십 유의사항",
-      "(필수) 멤버십 제 3자 개인정보 제공",
-    ],
-    highlighted: true,
-    ctaText: "구독하기",
-    ctaHref: "/checkout/premium",
-    maxMembers: 100,
-    aiTokensPerMonth: 500000,
-    smsCountPerMonth: 5000,
-  },
-];
+    ctaHref: `/checkout/${plan.id}`,
+    maxMembers: plan.maxMembers,
+    aiTokensPerMonth: plan.aiUsageLimit,
+    smsCountPerMonth: plan.smsUsageLimit,
+    // 두 번째 플랜 이상을 highlighted로 표시 (Premium 등)
+    highlighted: index > 0,
+  };
+}
 
 export default function PlanSelectStep({
   selectedProject,
   isAuthenticated,
   onSubscribe,
   onLogin,
+  onBack,
 }: PlanSelectStepProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const [agreedPlans, setAgreedPlans] = useState<Record<string, boolean>>({});
+  const [plans, setPlans] = useState<PricingPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 플랜 데이터 로드
+  useEffect(() => {
+    const fetchPlans = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await SubscriptionService.getPlans();
+        const apiPlans = response.data?.data?.plans || [];
+        // sortOrder로 정렬
+        const sortedPlans = [...apiPlans].sort((a, b) => a.sortOrder - b.sortOrder);
+        const convertedPlans = sortedPlans.map((plan, index) => convertToPricingPlan(plan, index));
+        setPlans(convertedPlans);
+      } catch (err) {
+        console.error("플랜 조회 실패:", err);
+        setError("플랜 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
 
   const handleSubscribe = (plan: PricingPlan) => {
     // 로그인 상태 확인
@@ -80,16 +88,43 @@ export default function PlanSelectStep({
     onSubscribe(plan, billingCycle);
   };
 
-  const toggleAgreement = (planId: string) => {
-    setAgreedPlans((prev) => ({
-      ...prev,
-      [planId]: !prev[planId],
-    }));
-  };
-
   return (
     <section className="py-12 md:py-20 min-h-screen bg-white">
       <div className="max-w-[1192px] mx-auto px-4">
+        {/* 뒤로가기 및 선택된 프로젝트 표시 */}
+        {onBack && (
+          <div className="flex items-center gap-3 mb-6 md:mb-8">
+            <button
+              onClick={onBack}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full hover:bg-[#F8F8F8] transition-colors"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.5 15L7.5 10L12.5 5"
+                  stroke="#252525"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            {selectedProject && (
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] text-[#808080]">프로젝트:</span>
+                <span className="text-[14px] md:text-[16px] font-semibold text-[#252525]">
+                  {selectedProject.name}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-10.5 md:mb-12">
           <h1 className="text-[20px] md:text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] !mb-4">
@@ -128,20 +163,47 @@ export default function PlanSelectStep({
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-[16px] text-[#808080]">플랜 정보를 불러오는 중...</div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="text-[16px] text-red-500 mb-4">{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-[#252525] text-white rounded-full text-[14px] font-medium hover:bg-[#3a3a3a] transition-colors"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
+
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
-          {PRICING_PLANS.map((plan) => (
-            <PricingCard
-              key={plan.id}
-              plan={plan}
-              billingCycle={billingCycle}
-              agreed={true}
-              onToggleAgreement={() => toggleAgreement(plan.id)}
-              onSubscribe={() => handleSubscribe(plan)}
-              className={plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"}
-            />
-          ))}
-        </div>
+        {!loading && !error && plans.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
+            {plans.map((plan) => (
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                billingCycle={billingCycle}
+                onSubscribe={() => handleSubscribe(plan)}
+                className={plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && plans.length === 0 && (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-[16px] text-[#808080]">이용 가능한 플랜이 없습니다.</div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -150,8 +212,6 @@ export default function PlanSelectStep({
 interface PricingCardProps {
   plan: PricingPlan;
   billingCycle: BillingCycle;
-  agreed: boolean;
-  onToggleAgreement: () => void;
   onSubscribe: () => void;
   className?: string;
 }
@@ -159,8 +219,6 @@ interface PricingCardProps {
 function PricingCard({
   plan,
   billingCycle,
-  agreed,
-  onToggleAgreement,
   onSubscribe,
   className = "",
 }: PricingCardProps) {
@@ -359,67 +417,10 @@ function PricingCard({
         </p>
       </div>
 
-      {/* Agreement */}
-      {/* <div className="mb-6 md:mb-[42px]">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <div className="relative flex items-center justify-center">
-            <input
-              type="checkbox"
-              checked={agreed}
-              onChange={() => {
-                onToggleAgreement();
-              }}
-              className="w-5 h-5 appearance-none rounded-[5px] border-2 border-[#E2E2E2] checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors"
-            />
-            {agreed && (
-              <svg
-                className="absolute top-0 left-0 w-5 h-5 pointer-events-none"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5 10L8.5 13.5L15 7"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </div>
-          <span className="text-[13px] md:text-[14px] font-medium leading-[17px] text-[#252525] opacity-80">
-            모두 동의합니다.
-          </span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="ml-auto w-4 h-4 md:w-4 md:h-4"
-          >
-            <path
-              d="M4 6L8 10L12 6"
-              stroke="#959595"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </label>
-      </div> */}
-
       {/* CTA Button */}
       <button
-        onClick={() => {
-          onSubscribe();
-        }}
-        disabled={!agreed}
-        title={!agreed ? "약관에 동의해야 구독할 수 있습니다." : undefined}
-        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+        onClick={onSubscribe}
+        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors ${
           isHighlighted
             ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
             : "bg-[#000000] text-white hover:bg-[#252525]"
