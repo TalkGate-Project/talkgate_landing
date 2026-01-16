@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Project, PricingPlan, BillingCycle } from "@/types";
 import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/pricing";
+import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
 import { getLoginUrl, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 type PricingStep = "project" | "plan" | "checkout";
@@ -47,6 +48,7 @@ function PricingContent() {
   });
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | undefined>();
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>("monthly");
+  const [planSelectionContext, setPlanSelectionContext] = useState<PlanSelectionContext | undefined>();
 
   // 현재 스텝 결정 (URL 기반)
   // 비로그인 상태에서는 프로젝트 선택을 스킵하고 플랜 선택부터 시작
@@ -110,9 +112,14 @@ function PricingContent() {
   };
 
   // 플랜 구독 핸들러
-  const handleSubscribe = (plan: PricingPlan, billingCycle: BillingCycle) => {
+  const handleSubscribe = (
+    plan: PricingPlan,
+    billingCycle: BillingCycle,
+    context?: PlanSelectionContext
+  ) => {
     setSelectedPlan(plan);
     setSelectedBillingCycle(billingCycle);
+    setPlanSelectionContext(context);
     updateUrl("checkout");
   };
 
@@ -132,6 +139,7 @@ function PricingContent() {
 
   const handleBackFromCheckout = () => {
     updateUrl("plan");
+    setPlanSelectionContext(undefined);
   };
 
   // 현재 단계에 따라 컴포넌트 렌더링
@@ -202,6 +210,7 @@ function PricingContent() {
           selectedProject={selectedProject}
           billingCycle={selectedBillingCycle}
           onBack={handleBackFromCheckout}
+          planSelectionContext={planSelectionContext}
         />
       );
 

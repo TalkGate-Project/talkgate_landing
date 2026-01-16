@@ -1,14 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
-import type { SubscriptionPlan } from "@/types/subscription";
+import type { SubscriptionPlan, AdminProjectSubscription } from "@/types/subscription";
 import { SubscriptionService } from "@/lib/subscription";
+import { showErrorModal } from "@/lib/errorModalEvents";
+
+export type PlanSelectionContext = {
+  isPlanChange: boolean;
+  isUpgrade: boolean;
+};
 
 interface PlanSelectStepProps {
   selectedProject?: Project;
   isAuthenticated: boolean;
-  onSubscribe: (plan: PricingPlan, billingCycle: BillingCycle) => void;
+  onSubscribe: (
+    plan: PricingPlan,
+    billingCycle: BillingCycle,
+    context?: PlanSelectionContext
+  ) => void;
   onLogin: () => void;
   onBack?: () => void;
 }
@@ -43,8 +53,12 @@ export default function PlanSelectStep({
 }: PlanSelectStepProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [plans, setPlans] = useState<PricingPlan[]>([]);
+  const [planMeta, setPlanMeta] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [changingPlan, setChangingPlan] = useState(false);
 
   // 플랜 데이터 로드
   useEffect(() => {
@@ -56,8 +70,11 @@ export default function PlanSelectStep({
         const apiPlans = response.data?.data?.plans || [];
         // sortOrder로 정렬
         const sortedPlans = [...apiPlans].sort((a, b) => a.sortOrder - b.sortOrder);
-        const convertedPlans = sortedPlans.map((plan, index) => convertToPricingPlan(plan, index));
+        const convertedPlans = sortedPlans.map((plan, index) =>
+          convertToPricingPlan(plan, index)
+        );
         setPlans(convertedPlans);
+        setPlanMeta(sortedPlans);
       } catch (err) {
         console.error("플랜 조회 실패:", err);
         setError("플랜 정보를 불러오는데 실패했습니다.");
@@ -68,6 +85,54 @@ export default function PlanSelectStep({
 
     fetchPlans();
   }, []);
+
+  const normalizePlanName = (value: string) => value.trim().toLowerCase();
+
+  const currentPlanMeta = useMemo(() => {
+    if (!currentSubscription) return null;
+    const target = normalizePlanName(currentSubscription.subscriptionName);
+    return planMeta.find((plan) => normalizePlanName(plan.name) === target) || null;
+  }, [currentSubscription, planMeta]);
+
+  const currentPlanRank = currentPlanMeta?.sortOrder;
+
+  const getPlanRank = (plan: PricingPlan) => {
+    const target = normalizePlanName(plan.badge ?? plan.name);
+    return planMeta.find((meta) => normalizePlanName(meta.name) === target)?.sortOrder;
+  };
+
+  const selectedSubscriptionBillingCycle =
+    billingCycle === "yearly" ? "quarterly" : "monthly";
+
+  const hasActiveSubscription = Boolean(
+    currentSubscription?.subscriptionName && selectedProject
+  );
+
+  useEffect(() => {
+    const fetchSubscriptionInfo = async () => {
+      if (!isAuthenticated || !selectedProject) {
+        setCurrentSubscription(null);
+        return;
+      }
+
+      setLoadingSubscription(true);
+      try {
+        const response = await SubscriptionService.getAdminProjects();
+        const projects = response.data?.data?.projects || [];
+        const matched = projects.find(
+          (project) => String(project.projectId) === String(selectedProject.id)
+        );
+        setCurrentSubscription(matched || null);
+      } catch (err) {
+        console.error("프로젝트 구독 정보 조회 실패:", err);
+        setCurrentSubscription(null);
+      } finally {
+        setLoadingSubscription(false);
+      }
+    };
+
+    fetchSubscriptionInfo();
+  }, [isAuthenticated, selectedProject]);
 
   const handleSubscribe = (plan: PricingPlan) => {
     // 로그인 상태 확인
@@ -84,8 +149,90 @@ export default function PlanSelectStep({
       return;
     }
 
+    if (changingPlan || loadingSubscription) return;
+
+    const nextPlanRank = getPlanRank(plan);
+    const isSamePlan =
+      currentPlanRank !== undefined &&
+      nextPlanRank !== undefined &&
+      nextPlanRank === currentPlanRank;
+    const isSamePlanAndCycle =
+      isSamePlan &&
+      currentSubscription?.billingCycle === selectedSubscriptionBillingCycle;
+    const isQuarterlyToMonthlyPlanChange =
+      currentSubscription?.billingCycle === "quarterly" &&
+      selectedSubscriptionBillingCycle === "monthly" &&
+      !isSamePlan;
+    const isUpgrade =
+      currentPlanRank !== undefined &&
+      nextPlanRank !== undefined &&
+      nextPlanRank > currentPlanRank;
+    const isUpgradeWithShorterCycle =
+      isUpgrade &&
+      currentSubscription?.billingCycle === "quarterly" &&
+      selectedSubscriptionBillingCycle === "monthly";
+
+    if (
+      hasActiveSubscription &&
+      (isSamePlanAndCycle || isUpgradeWithShorterCycle || isQuarterlyToMonthlyPlanChange)
+    ) {
+      return;
+    }
+
+    if (hasActiveSubscription && currentPlanRank !== undefined && nextPlanRank !== undefined) {
+      if (!isUpgrade) {
+        const planName = plan.badge || plan.name;
+        showErrorModal({
+          type: "info",
+          title: "플랜 변경",
+          headline: `${planName} 구독상품을 변경할까요?`,
+          description:
+            "현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.",
+          confirmText: "변경",
+          cancelText: "취소",
+          onConfirm: async () => {
+            if (!selectedProject) return;
+            try {
+              setChangingPlan(true);
+              await SubscriptionService.changePlan(selectedProject.id, {
+                newPlanId: Number(plan.id),
+                newBillingCycle: selectedSubscriptionBillingCycle,
+              });
+              showErrorModal({
+                type: "success",
+                title: "플랜 변경",
+                headline: "구독 상품이 성공적으로 변경되었습니다.",
+                description: "변경된 상품은 다음 갱신일에 자동으로 적용됩니다.",
+                confirmText: "확인",
+                hideCancel: true,
+                onConfirm: () => {
+                  window.location.href = "/pricing?step=project";
+                },
+              });
+            } catch (err) {
+              console.error("플랜 변경 실패:", err);
+              showErrorModal({
+                type: "error",
+                title: "플랜 변경 실패",
+                headline: "플랜 변경에 실패했습니다.",
+                description: "잠시 후 다시 시도해주세요.",
+                confirmText: "확인",
+                hideCancel: true,
+              });
+            } finally {
+              setChangingPlan(false);
+            }
+          },
+        });
+        return;
+      }
+
+      onSubscribe(plan, billingCycle, { isPlanChange: true, isUpgrade: true });
+      return;
+    }
+
     // 로그인된 경우 다음 단계로 진행 (billingCycle 정보도 함께 전달)
-    onSubscribe(plan, billingCycle);
+    onSubscribe(plan, billingCycle, { isPlanChange: false, isUpgrade: false });
   };
 
   return (
@@ -186,15 +333,55 @@ export default function PlanSelectStep({
         {/* Pricing Cards */}
         {!loading && !error && plans.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
-            {plans.map((plan) => (
+            {plans.map((plan) => {
+              const nextPlanRank = getPlanRank(plan);
+              const isSamePlan =
+                currentPlanRank !== undefined &&
+                nextPlanRank !== undefined &&
+                nextPlanRank === currentPlanRank;
+              const isSamePlanAndCycle =
+                isSamePlan &&
+                currentSubscription?.billingCycle === selectedSubscriptionBillingCycle;
+              const isQuarterlyToMonthlyPlanChange =
+                currentSubscription?.billingCycle === "quarterly" &&
+                selectedSubscriptionBillingCycle === "monthly" &&
+                !isSamePlan;
+              const isUpgrade =
+                currentPlanRank !== undefined &&
+                nextPlanRank !== undefined &&
+                nextPlanRank > currentPlanRank;
+              const isUpgradeWithShorterCycle =
+                isUpgrade &&
+                currentSubscription?.billingCycle === "quarterly" &&
+                selectedSubscriptionBillingCycle === "monthly";
+              const isDisabled =
+                loadingSubscription ||
+                changingPlan ||
+                isSamePlanAndCycle ||
+                isUpgradeWithShorterCycle ||
+                isQuarterlyToMonthlyPlanChange;
+              const ctaText = hasActiveSubscription ? "플랜 변경" : plan.ctaText;
+              const disabledReason = isUpgradeWithShorterCycle
+                ? "업그레이드 시 현재 이용 중인 기간보다 짧게 변경할 수 없습니다."
+                : isQuarterlyToMonthlyPlanChange
+                ? "3개월 요금제 이용 중에는 다른 플랜의 월 요금제로 변경할 수 없습니다."
+                : isSamePlanAndCycle
+                ? "현재 구독 중인 상품입니다."
+                : undefined;
+
+              return (
               <PricingCard
                 key={plan.id}
                 plan={plan}
                 billingCycle={billingCycle}
                 onSubscribe={() => handleSubscribe(plan)}
                 className={plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"}
+                ctaText={ctaText}
+                isDisabled={isDisabled}
+                disabledReason={disabledReason}
               />
-            ))}
+            );
+            })}
           </div>
         )}
 
@@ -214,6 +401,9 @@ interface PricingCardProps {
   billingCycle: BillingCycle;
   onSubscribe: () => void;
   className?: string;
+  ctaText?: string;
+  isDisabled?: boolean;
+  disabledReason?: string;
 }
 
 function PricingCard({
@@ -221,6 +411,9 @@ function PricingCard({
   billingCycle,
   onSubscribe,
   className = "",
+  ctaText,
+  isDisabled = false,
+  disabledReason,
 }: PricingCardProps) {
   const price =
     billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
@@ -420,13 +613,15 @@ function PricingCard({
       {/* CTA Button */}
       <button
         onClick={onSubscribe}
-        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors ${
+        disabled={isDisabled}
+        title={disabledReason}
+        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
           isHighlighted
             ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
             : "bg-[#000000] text-white hover:bg-[#252525]"
         }`}
       >
-        {plan.ctaText}
+        {ctaText || plan.ctaText}
       </button>
     </div>
   );

@@ -8,6 +8,7 @@ import { BillingService } from "@/lib/billing";
 import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import BillingRegisterModal from "./BillingRegisterModal";
+import type { PlanSelectionContext } from "./PlanSelectStep";
 
 // 정기과금(자동승인) 이용약관 내용
 const RECURRING_BILLING_TERMS = `1. 이용자는 본 신청서에 서명하거나 공인인증 및 그에 준하는 전자 인증절차를 통함으로써 본 서비스를 이용할 수 있습니다.
@@ -48,6 +49,7 @@ interface CheckoutStepProps {
   selectedProject?: Project;
   billingCycle: BillingCycle;
   onBack: () => void;
+  planSelectionContext?: PlanSelectionContext;
 }
 
 export default function CheckoutStep({
@@ -55,6 +57,7 @@ export default function CheckoutStep({
   selectedProject,
   billingCycle,
   onBack,
+  planSelectionContext,
 }: CheckoutStepProps) {
   // 컴포넌트 마운트 시 스크롤을 맨 위로 올리기
   useEffect(() => {
@@ -68,6 +71,9 @@ export default function CheckoutStep({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [estimateAmount, setEstimateAmount] = useState<number | null>(null);
+  const [loadingEstimate, setLoadingEstimate] = useState(false);
+  const [estimateError, setEstimateError] = useState<string | null>(null);
   
   // 약관 펼침 상태
   const [showRecurringTerms, setShowRecurringTerms] = useState(false);
@@ -94,6 +100,39 @@ export default function CheckoutStep({
     fetchBillingInfo();
   }, []);
 
+  const subscriptionBillingCycle = billingCycle === "yearly" ? "quarterly" : "monthly";
+  const isPlanChange = planSelectionContext?.isPlanChange ?? false;
+  const isUpgrade = planSelectionContext?.isUpgrade ?? false;
+
+  useEffect(() => {
+    const fetchEstimate = async () => {
+      if (!isPlanChange || !isUpgrade || !selectedProject) {
+        setEstimateAmount(null);
+        setEstimateError(null);
+        return;
+      }
+
+      setLoadingEstimate(true);
+      setEstimateError(null);
+      try {
+        const response = await SubscriptionService.estimatePlanChange(selectedProject.id, {
+          newPlanId: Number(selectedPlan.id),
+          newBillingCycle: subscriptionBillingCycle,
+        });
+        const estimate = response.data?.data;
+        setEstimateAmount(estimate?.additionalCost ?? 0);
+      } catch (err) {
+        console.error("플랜 변경 금액 조회 실패:", err);
+        setEstimateError("플랜 변경 금액을 불러오지 못했습니다.");
+        setEstimateAmount(null);
+      } finally {
+        setLoadingEstimate(false);
+      }
+    };
+
+    fetchEstimate();
+  }, [isPlanChange, isUpgrade, selectedProject, selectedPlan.id, subscriptionBillingCycle]);
+
   const handleSubscribe = async () => {
     if (!agreedToTerms) {
       setError("이용약관 및 개인정보처리방침에 동의해주세요.");
@@ -116,40 +155,52 @@ export default function CheckoutStep({
     setError(null);
 
     try {
-      // 플랜 ID 매핑 (기존 하드코딩된 플랜 ID를 실제 API 플랜 ID로 변환 필요)
-      // 임시로 플랜 이름으로 ID 추측
-      const planIdMap: Record<string, number> = {
-        basic: 1,
-        premium: 2,
-      };
-      const planId = planIdMap[selectedPlan.id] || 1;
+      const planId = Number(selectedPlan.id);
 
-      // billingCycle 변환 (monthly, yearly -> monthly, quarterly)
-      const subscriptionBillingCycle = billingCycle === "yearly" ? "quarterly" : "monthly";
+      if (isPlanChange) {
+        await SubscriptionService.changePlan(selectedProject.id, {
+          newPlanId: planId,
+          newBillingCycle: subscriptionBillingCycle,
+        });
 
-      await SubscriptionService.start({
-        projectId: Number(selectedProject.id),
-        planId,
-        billingCycle: subscriptionBillingCycle,
-      });
+        showErrorModal({
+          type: "success",
+          title: "플랜 변경 완료",
+          headline: "플랜 변경이 완료되었습니다.",
+          description: "변경된 상품은 다음 갱신일에 자동으로 적용됩니다.",
+          confirmText: "확인",
+          hideCancel: true,
+          onConfirm: () => {
+            window.location.href = "/pricing?step=project";
+          },
+        });
+      } else {
+        await SubscriptionService.start({
+          projectId: Number(selectedProject.id),
+          planId,
+          billingCycle: subscriptionBillingCycle,
+        });
 
-      // 구독 성공 모달 표시
-      showErrorModal({
-        type: "success",
-        title: "구독 완료",
-        headline: "구독이 완료되었습니다!",
-        description: `${selectedProject.name} 프로젝트에 ${selectedPlan.badge || selectedPlan.name} 플랜이 적용되었습니다.`,
-        confirmText: "확인",
-        hideCancel: true,
-        onConfirm: () => {
-          // 확인 클릭 시 /pricing으로 새로고침하여 프로젝트 목록 업데이트
-          window.location.href = "/pricing?step=project";
-        },
-      });
+        // 구독 성공 모달 표시
+        showErrorModal({
+          type: "success",
+          title: "구독 완료",
+          headline: "구독이 완료되었습니다!",
+          description: `${selectedProject.name} 프로젝트에 ${selectedPlan.badge || selectedPlan.name} 플랜이 적용되었습니다.`,
+          confirmText: "확인",
+          hideCancel: true,
+          onConfirm: () => {
+            // 확인 클릭 시 /pricing으로 새로고침하여 프로젝트 목록 업데이트
+            window.location.href = "/pricing?step=project";
+          },
+        });
+      }
     } catch (err: unknown) {
-      console.error("구독 실패:", err);
+      console.error(isPlanChange ? "플랜 변경 실패:" : "구독 실패:", err);
       const error = err as { data?: { message?: string } };
-      const errorMessage = error?.data?.message || "구독에 실패했습니다. 다시 시도해주세요.";
+      const errorMessage =
+        error?.data?.message ||
+        (isPlanChange ? "플랜 변경에 실패했습니다. 다시 시도해주세요." : "구독에 실패했습니다. 다시 시도해주세요.");
       setError(errorMessage);
     } finally {
       setSubmitting(false);
@@ -177,13 +228,18 @@ export default function CheckoutStep({
   };
 
   // 가격 계산 (VAT 별도)
-  const planAmount = billingCycle === "monthly" ? selectedPlan.priceMonthly : (selectedPlan.priceYearly || selectedPlan.priceMonthly);
+  const basePlanAmount =
+    billingCycle === "monthly"
+      ? selectedPlan.priceMonthly
+      : selectedPlan.priceYearly || selectedPlan.priceMonthly;
+  const planAmount = isPlanChange && isUpgrade ? estimateAmount ?? 0 : basePlanAmount;
   const subtotal = planAmount; // 소계는 플랜금액
   const vat = Math.floor(planAmount * 0.1); // 부가가치세는 소계의 10%
   const total = planAmount + vat; // 지불 총액은 플랜금액 + 부가세
   const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
-  const billingLabel = billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
+  const billingLabel = isPlanChange ? "추가 청구 금액" : billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
+  const titleText = isPlanChange ? "플랜 변경" : "구독하기";
 
   // 카드 정보 마스킹
   const getMaskedCardNumber = () => {
@@ -203,7 +259,7 @@ export default function CheckoutStep({
             <ChevronUpIcon className="rotate-90" />
           </button>
           <h1 className="font-bold text-[20px] md:text-[24px] leading-[150%] tracking-[-0.03em] text-[#252525]">
-            구독하기
+            {titleText}
           </h1>
         </div>
 
@@ -218,7 +274,7 @@ export default function CheckoutStep({
             </span>
           </div>
           <p className="font-semibold text-[16px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#595959] mt-3 md:mt-4">
-            {billingPeriod} 구독하기
+            {isPlanChange ? "플랜 변경 결제" : `${billingPeriod} 구독하기`}
           </p>
         </div>
 
@@ -341,9 +397,9 @@ export default function CheckoutStep({
         </div>
 
         {/* Error Message */}
-        {error && (
+        {(error || estimateError) && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-[14px] mb-4">
-            {error}
+            {error || estimateError}
           </div>
         )}
 
@@ -441,10 +497,14 @@ export default function CheckoutStep({
         {/* Submit Button */}
         <button
           onClick={handleSubscribe}
-          disabled={submitting || !agreedToTerms || loadingBilling}
+          disabled={submitting || !agreedToTerms || loadingBilling || loadingEstimate || (isPlanChange && isUpgrade && estimateAmount === null)}
           className="w-full h-[48px] md:h-[52px] mt-8 rounded-[30px] bg-[#000000] text-white font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
-          {submitting ? "처리 중..." : "결제하기"}
+          {submitting
+            ? "처리 중..."
+            : loadingEstimate
+            ? "청구 금액 계산 중..."
+            : "결제하기"}
         </button>
       </div>
 
