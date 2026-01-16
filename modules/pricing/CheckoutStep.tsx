@@ -176,12 +176,11 @@ export default function CheckoutStep({
     }
   };
 
-  // 가격 계산 (VAT 포함)
-  const price = billingCycle === "monthly" ? selectedPlan.priceMonthly : (selectedPlan.priceYearly || selectedPlan.priceMonthly);
-  const subtotal = price;
-  const perSeat = Math.floor(subtotal / 1.1); // VAT 제외 금액
-  const vat = subtotal - perSeat;
-  const total = subtotal;
+  // 가격 계산 (VAT 별도)
+  const planAmount = billingCycle === "monthly" ? selectedPlan.priceMonthly : (selectedPlan.priceYearly || selectedPlan.priceMonthly);
+  const subtotal = planAmount; // 소계는 플랜금액
+  const vat = Math.floor(planAmount * 0.1); // 부가가치세는 소계의 10%
+  const total = planAmount + vat; // 지불 총액은 플랜금액 + 부가세
   const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
   const billingLabel = billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
@@ -232,12 +231,9 @@ export default function CheckoutStep({
                 {billingLabel}
               </h3>
               <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
-                {perSeat.toLocaleString()}원
+                {planAmount.toLocaleString()}원
               </p>
             </div>
-            <p className="font-medium text-[13px] leading-[150%] tracking-[-0.02em] text-right text-[#808080]">
-              seat당 {perSeat.toLocaleString()}원* (직원 수 무관)
-            </p>
             <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
           </div>
 
@@ -248,7 +244,7 @@ export default function CheckoutStep({
                 소계
               </h3>
               <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
-                {perSeat.toLocaleString()}원
+                {subtotal.toLocaleString()}원
               </p>
             </div>
           </div>
