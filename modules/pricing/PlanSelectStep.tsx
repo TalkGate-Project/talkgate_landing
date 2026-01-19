@@ -36,7 +36,7 @@ function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPla
     features: [],
     ctaText: "구독하기",
     ctaHref: `/checkout/${plan.id}`,
-    maxMembers: plan.maxMembers,
+    maxMembers: plan.memberCountLimit,
     aiTokensPerMonth: plan.aiUsageLimit,
     smsCountPerMonth: plan.smsUsageLimit,
     // 두 번째 플랜 이상을 highlighted로 표시 (Premium 등)
