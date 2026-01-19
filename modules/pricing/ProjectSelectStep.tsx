@@ -39,11 +39,67 @@ export default function ProjectSelectStep({
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Animation refs
+  const headerRef = useRef<HTMLDivElement>(null);
+  const createCardRef = useRef<HTMLDivElement>(null);
+  const projectsRef = useRef<HTMLDivElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
+  const [createCardVisible, setCreateCardVisible] = useState(false);
+  const [projectsVisible, setProjectsVisible] = useState(false);
 
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
   };
+
+  // Animation observers
+  useEffect(() => {
+    const observerOptions = { threshold: 0.2 };
+
+    const headerObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setHeaderVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    const createCardObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setCreateCardVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    const projectsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setProjectsVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    if (headerRef.current) headerObserver.observe(headerRef.current);
+    if (createCardRef.current) createCardObserver.observe(createCardRef.current);
+    if (projectsRef.current) projectsObserver.observe(projectsRef.current);
+
+    return () => {
+      headerObserver.disconnect();
+      createCardObserver.disconnect();
+      projectsObserver.disconnect();
+    };
+  }, [projects.length]); // projects가 로드되면 observer 재설정
 
   // 프로젝트 목록 로드
   useEffect(() => {
@@ -176,16 +232,19 @@ export default function ProjectSelectStep({
     <div className="min-h-screen bg-white">
       <div className="max-w-[1192px] mx-auto pt-[40px] md:pt-[74px] pb-12 md:pb-24 px-4">
         {/* Title Section */}
-        <h1 className="font-bold text-[24px] md:text-[32px] leading-[150%] text-center tracking-[-0.03em] text-[#252525] !mb-3">
-          구독할 프로젝트를 선택하세요
-        </h1>
-        <p className="font-normal text-[14px] md:text-[16px] leading-[150%] text-center tracking-[-0.02em] text-[#595959] !mb-[40px] md:!mb-[67px]">
-          플랜을 적용할 프로젝트를 선택하거나 새로운 프로젝트를 생성하세요.
-        </p>
+        <div ref={headerRef} className={`pricing-project-header ${headerVisible ? 'animate' : ''}`}>
+          <h1 className="font-bold text-[24px] md:text-[32px] leading-[150%] text-center tracking-[-0.03em] text-[#252525] !mb-3">
+            구독할 프로젝트를 선택하세요
+          </h1>
+          <p className="font-normal text-[14px] md:text-[16px] leading-[150%] text-center tracking-[-0.02em] text-[#595959] !mb-[40px] md:!mb-[67px]">
+            플랜을 적용할 프로젝트를 선택하거나 새로운 프로젝트를 생성하세요.
+          </p>
+        </div>
 
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-8 h-8 md:w-10 md:h-10 border-2 border-[#E2E2E2] border-t-[#00E272] rounded-full animate-spin mb-4" />
             <div className="text-[16px] text-[#808080]">프로젝트 목록을 불러오는 중...</div>
           </div>
         )}
@@ -207,9 +266,9 @@ export default function ProjectSelectStep({
         {!loading && !error && (
           <>
             {/* Create New Project Card - 중앙 단독 배치 */}
-            <div className="flex justify-center mb-6 md:mb-[32px]">
+            <div ref={createCardRef} className="flex justify-center mb-6 md:mb-[32px]">
               <div
-                className="w-full h-[180px] md:h-[225px] rounded-[14px] border-2 border-dashed border-[#E2E2E2] hover:border-[#00E272] transition-colors duration-200 bg-white flex flex-col items-center justify-center cursor-pointer px-4"
+                className={`w-full h-[180px] md:h-[225px] rounded-[14px] border-2 border-dashed border-[#E2E2E2] hover:border-[#00E272] transition-colors duration-200 bg-white flex flex-col items-center justify-center cursor-pointer px-4 pricing-create-card ${createCardVisible ? 'animate' : ''}`}
                 onClick={() => setShowCreateModal(true)}
               >
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#EDEDED] grid place-items-center">
@@ -241,12 +300,13 @@ export default function ProjectSelectStep({
 
             {/* Existing Projects - 2열 그리드 */}
             {projects.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[48px] mb-8 md:mb-[54px]">
-                {projects.map((p) => (
+              <div ref={projectsRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[48px] mb-8 md:mb-[54px]">
+                {projects.map((p, index) => (
                   <div
                     key={p.id}
-                    className="min-h-[200px] md:h-[225px] rounded-[14px] bg-[#F8F8F8] border border-[#E2E2E2] p-4 md:p-6 cursor-pointer hover:shadow-lg hover:border-[#00E272] transition-all"
+                    className={`min-h-[200px] md:h-[225px] rounded-[14px] bg-[#F8F8F8] border border-[#E2E2E2] p-4 md:p-6 cursor-pointer hover:shadow-lg hover:border-[#00E272] transition-all pricing-project-card ${projectsVisible ? 'animate' : ''}`}
                     onClick={() => handleSelectProject(p)}
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {/* Project Header */}
                     <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap">

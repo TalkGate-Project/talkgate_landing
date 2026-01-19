@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { BRAND } from "@/lib/constants";
 import type { TimelineItem } from "@/types";
@@ -9,15 +10,73 @@ interface IntroduceViewProps {
 }
 
 export function IntroduceView({ storyItems }: IntroduceViewProps) {
+  const heroRef = useRef<HTMLElement>(null);
+  const secondVisualRef = useRef<HTMLDivElement>(null);
+  const missionRef = useRef<HTMLElement>(null);
+  
+  const [heroVisible, setHeroVisible] = useState(false);
+  const [secondVisualVisible, setSecondVisualVisible] = useState(false);
+  const [missionVisible, setMissionVisible] = useState(false);
+
+  useEffect(() => {
+    const observerOptions = { threshold: 0.2 };
+
+    // Hero Section Observer
+    const heroObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setHeroVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    // Second Visual Observer
+    const secondVisualObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setSecondVisualVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    // Mission Section Observer
+    const missionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setMissionVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    if (heroRef.current) heroObserver.observe(heroRef.current);
+    if (secondVisualRef.current) secondVisualObserver.observe(secondVisualRef.current);
+    if (missionRef.current) missionObserver.observe(missionRef.current);
+
+    return () => {
+      heroObserver.disconnect();
+      secondVisualObserver.disconnect();
+      missionObserver.disconnect();
+    };
+  }, []);
+
   return (
     <div className="pb-[60px] md:pb-[80px]">
       {/* Hero Section */}
-      <section className="pt-[30px] md:pt-[54px] md:pb-[30px] px-4 md:px-0">
+      <section ref={heroRef} className="pt-[30px] md:pt-[54px] md:pb-[30px] px-4 md:px-0">
         <div className="md:max-w-[1200px] mx-auto">
           {/* Main Visual */}
           <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 text-white mb-[30px] md:mb-[50px] h-[400px] md:h-[526px]">
             {/* Background Image */}
-            <div className="absolute inset-0 z-0 introduce-hero-image">
+            <div className={`absolute inset-0 z-0 introduce-hero-image ${heroVisible ? 'animate' : ''}`}>
               <Image
                 src="/images/introduce-1.png"
                 alt="Talkgate Background"
@@ -33,8 +92,8 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
 
             {/* Content */}
             <div className="relative z-10 p-6 md:p-8 lg:p-[76px] flex items-end justify-start h-[400px] md:h-[526px]">
-              <div className="max-w-xl h-full flex flex-col justify-end">
-                <div className="mb-4 md:mb-0">
+              <div className={`max-w-xl h-full flex flex-col justify-end ${heroVisible ? 'animate' : ''}`}>
+                <div className={`mb-4 md:mb-0 introduce-hero-logo-wrapper ${heroVisible ? 'animate' : ''}`}>
                   <svg
                     width="208"
                     height="49"
@@ -69,7 +128,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     />
                   </svg>
                 </div>
-                <p className="!pb-5 mb:!pb-0 !mt-7 md:!mt-8 text-[14px] md:text-[20px] text-white md:text-[#474747] leading-[1.5] tracking-[-0.0em] font-bold">
+                <p className={`!pb-5 mb:!pb-0 !mt-7 md:!mt-8 text-[14px] md:text-[20px] text-white md:text-[#474747] leading-[1.5] tracking-[-0.0em] font-bold introduce-hero-text ${heroVisible ? 'animate' : ''}`}>
                   {/* 모바일 줄바꿈 */}
                   <span className="md:hidden">
                     미래의 고객 변화에 미리 대응하고
@@ -94,8 +153,8 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
           </div>
 
           {/* Second Visual + Description */}
-          <div className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-12 items-center mb-12 md:mb-24">
-            <div className="rounded-xl overflow-hidden w-full md:w-auto order-1">
+          <div ref={secondVisualRef} className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-12 items-center mb-12 md:mb-24">
+            <div className={`rounded-xl overflow-hidden w-full md:w-auto order-1 introduce-second-image ${secondVisualVisible ? 'animate' : ''}`}>
               <div className="w-full h-full flex items-center justify-center">
                 <Image
                   src="/images/introduce-2.png"
@@ -107,7 +166,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                 />
               </div>
             </div>
-            <div className="order-2 w-full md:w-auto">
+            <div className={`order-2 w-full md:w-auto introduce-second-text ${secondVisualVisible ? 'animate' : ''}`}>
               <p className="text-[20px] md:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-center md:text-right md:!pr-[88px]">
                 AI와 자동화 기술을 통해 비효율적인 상담
                 <br />
@@ -123,19 +182,19 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
       </section>
 
       {/* Mission Section */}
-      <section className="py-12 md:py-20 bg-background px-4 md:px-0">
+      <section ref={missionRef} className="py-12 md:py-20 bg-background px-4 md:px-0">
         <div className="md:max-w-[1200px] mx-auto">
-          <h2 className="text-[32px] md:text-[48px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6">
+          <h2 className={`text-[32px] md:text-[48px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6 introduce-mission-title ${missionVisible ? 'animate' : ''}`}>
             Our Mission
           </h2>
 
           <div className="">
-            <p className="text-[20px] md:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6">
+            <p className={`text-[20px] md:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6 introduce-mission-subtitle ${missionVisible ? 'animate' : ''}`}>
               복잡해지는 고객 여정 속에서, 기업의 성장을 가속할 수 있는 최적의
               솔루션은 여전히 부족합니다.
             </p>
 
-            <p className="text-[14px] md:text-[18px] text-[#252525] leading-[1.5] tracking-[-0.03em]">
+            <p className={`text-[14px] md:text-[18px] text-[#252525] leading-[1.5] tracking-[-0.03em] introduce-mission-content ${missionVisible ? 'animate' : ''}`}>
               {BRAND.name}은 중소기업과 스타트업이 더 빠르게 핵심 고객을 파악할
               수 있도록, 데이터 기반의 의사결정을 돕는 통합 관리 도구와 혁신적인
               고객 관리 시스템을 제공합니다. {BRAND.name}
