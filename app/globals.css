@@ -1298,6 +1298,73 @@ section .final-cta-container {
 } */
 
 /* ============================================
+   Hero Section Text Animations
+   ============================================ */
+
+/* Hero Title: Slide Up + Fade */
+.hero-title {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.hero-title.animate {
+  animation: heroTitleSlide 0.8s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes heroTitleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero Subtitle: Slide Up + Fade */
+.hero-subtitle {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.hero-subtitle.animate {
+  animation: heroSubtitleSlide 0.8s ease-out forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes heroSubtitleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero Buttons: Fade In */
+.hero-buttons {
+  opacity: 0;
+}
+
+.hero-buttons.animate {
+  animation: heroButtonsFade 0.8s ease-out forwards;
+  animation-delay: 0.8s;
+}
+
+@keyframes heroButtonsFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
    Introduce Page - Hero Image Position
    ============================================ */
 
@@ -1327,5 +1394,358 @@ section .final-cta-container {
 @media (min-width: 768px) {
   .introduce-hero-logo path {
     fill: #474747;
+  }
+}
+
+/* ============================================
+   Pricing Page Animations
+   ============================================ */
+
+/* Pricing Header: Slide Up */
+.pricing-header {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.pricing-header.animate {
+  animation: pricingHeaderSlide 0.6s ease-out forwards;
+}
+
+@keyframes pricingHeaderSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pricing Toggle: Fade In + Scale */
+.pricing-toggle {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.pricing-toggle.animate {
+  animation: pricingToggleFade 0.5s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes pricingToggleFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pricing Card: Slide Up */
+.pricing-card {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.pricing-card.animate {
+  animation: pricingCardSlide 0.7s ease-out forwards;
+}
+
+@keyframes pricingCardSlide {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Project Select Header: Slide Up */
+.pricing-project-header {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.pricing-project-header.animate {
+  animation: pricingProjectHeaderSlide 0.6s ease-out forwards;
+}
+
+@keyframes pricingProjectHeaderSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Create Project Card: Scale + Fade */
+.pricing-create-card {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.pricing-create-card.animate {
+  animation: pricingCreateCardFade 0.6s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes pricingCreateCardFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Project Card: Slide Up */
+.pricing-project-card {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.pricing-project-card.animate {
+  animation: pricingProjectCardSlide 0.7s ease-out forwards;
+}
+
+@keyframes pricingProjectCardSlide {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   Introduce Page Animations
+   ============================================ */
+
+/* Hero Section: Background Image - Fade In */
+.introduce-hero-image {
+  opacity: 0;
+}
+
+.introduce-hero-image.animate {
+  animation: introduceHeroImageFade 0.8s ease-out forwards;
+}
+
+@keyframes introduceHeroImageFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Hero Section: Logo - Slide Up */
+.introduce-hero-logo-wrapper {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.introduce-hero-logo-wrapper.animate {
+  animation: introduceHeroLogoSlide 0.7s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes introduceHeroLogoSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero Section: Text - Slide Up */
+.introduce-hero-text {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.introduce-hero-text.animate {
+  animation: introduceHeroTextSlide 0.7s ease-out forwards;
+  animation-delay: 0.4s;
+}
+
+@keyframes introduceHeroTextSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Second Visual: Image - Slide In from Left (Desktop) / Up (Mobile) */
+.introduce-second-image {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@media (min-width: 768px) {
+  .introduce-second-image {
+    transform: translateX(-30px);
+  }
+}
+
+.introduce-second-image.animate {
+  animation: introduceSecondImageSlideMobile 0.7s ease-out forwards;
+}
+
+@media (min-width: 768px) {
+  .introduce-second-image.animate {
+    animation: introduceSecondImageSlide 0.7s ease-out forwards;
+  }
+}
+
+@keyframes introduceSecondImageSlideMobile {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes introduceSecondImageSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Second Visual: Text - Slide In from Right (Desktop) / Up (Mobile) */
+.introduce-second-text {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@media (min-width: 768px) {
+  .introduce-second-text {
+    transform: translateX(30px);
+  }
+}
+
+.introduce-second-text.animate {
+  animation: introduceSecondTextSlideMobile 0.7s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@media (min-width: 768px) {
+  .introduce-second-text.animate {
+    animation: introduceSecondTextSlide 0.7s ease-out forwards;
+    animation-delay: 0.2s;
+  }
+}
+
+@keyframes introduceSecondTextSlideMobile {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes introduceSecondTextSlide {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mission Section: Title - Slide Up */
+.introduce-mission-title {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.introduce-mission-title.animate {
+  animation: introduceMissionTitleSlide 0.6s ease-out forwards;
+}
+
+@keyframes introduceMissionTitleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mission Section: Subtitle - Slide Up */
+.introduce-mission-subtitle {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.introduce-mission-subtitle.animate {
+  animation: introduceMissionSubtitleSlide 0.6s ease-out forwards;
+  animation-delay: 0.15s;
+}
+
+@keyframes introduceMissionSubtitleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mission Section: Content - Slide Up */
+.introduce-mission-content {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.introduce-mission-content.animate {
+  animation: introduceMissionContentSlide 0.6s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes introduceMissionContentSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

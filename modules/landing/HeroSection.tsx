@@ -76,17 +76,17 @@ export function HeroSection() {
   return (
     <section className="lg:py-4">
       <div className="relative container-hero h-[553px] md:h-[808px] md:min-h-[600px] md:max-h-[808px] flex flex-col items-center pt-[30px] pt-[72px] md:pt-[50px] pb-4 md:pb-0">
-        <h1 className="text-[28px] md:text-[38px] font-bold font-en leading-[1.3] text-[#ffffff] text-center z-20 tracking-[-0.03em] px-4">
+        <h1 className={`text-[28px] md:text-[38px] font-bold font-en leading-[1.3] text-[#ffffff] text-center z-20 tracking-[-0.03em] px-4 hero-title ${!isInitialLoad ? 'animate' : ''}`}>
           All your business
           <br />
           workflows in one place.
         </h1>
 
-        <p className="hero-description typo-body !mt-4 md:!mt-6 max-w-2xl text-[#ffffff] text-center z-20 whitespace-pre-line px-3 sm:px-4 text-xs sm:text-sm md:text-base leading-relaxed">
+        <p className={`hero-description typo-body !mt-4 md:!mt-6 max-w-2xl text-[#ffffff] text-center z-20 whitespace-pre-line px-3 sm:px-4 text-xs sm:text-sm md:text-base leading-relaxed hero-subtitle ${!isInitialLoad ? 'animate' : ''}`}>
           {BRAND.description}
         </p>
 
-        <div className="mt-[58px] md:mt-4 md:mt-6 flex gap-4 justify-center z-20 px-4">
+        <div className={`mt-[58px] md:mt-4 md:mt-6 flex gap-4 justify-center z-20 px-4 hero-buttons ${!isInitialLoad ? 'animate' : ''}`}>
           <Link href={getStartUrl()} className="btn btn-dark w-[96px]">
             시작하기
           </Link>

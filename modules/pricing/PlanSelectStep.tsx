@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
 import type { SubscriptionPlan, AdminProjectSubscription } from "@/types/subscription";
 import { SubscriptionService } from "@/lib/subscription";
@@ -59,6 +59,62 @@ export default function PlanSelectStep({
   const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [changingPlan, setChangingPlan] = useState(false);
+  
+  // Animation refs
+  const headerRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
+  const [toggleVisible, setToggleVisible] = useState(false);
+  const [cardsVisible, setCardsVisible] = useState(false);
+
+  // Animation observers
+  useEffect(() => {
+    const observerOptions = { threshold: 0.2 };
+
+    const headerObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setHeaderVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    const toggleObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setToggleVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    const cardsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setCardsVisible(true);
+          }
+        });
+      },
+      observerOptions
+    );
+
+    if (headerRef.current) headerObserver.observe(headerRef.current);
+    if (toggleRef.current) toggleObserver.observe(toggleRef.current);
+    if (cardsRef.current) cardsObserver.observe(cardsRef.current);
+
+    return () => {
+      headerObserver.disconnect();
+      toggleObserver.disconnect();
+      cardsObserver.disconnect();
+    };
+  }, [plans.length]); // plans가 로드되면 카드 observer 재설정
 
   // 플랜 데이터 로드
   useEffect(() => {
@@ -273,7 +329,7 @@ export default function PlanSelectStep({
         )}
 
         {/* Header */}
-        <div className="text-center mb-10.5 md:mb-12">
+        <div ref={headerRef} className={`text-center mb-10.5 md:mb-12 pricing-header ${headerVisible ? 'animate' : ''}`}>
           <h1 className="text-[20px] md:text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] !mb-4">
             복잡한 고민 없이,
             <br />
@@ -285,7 +341,7 @@ export default function PlanSelectStep({
         </div>
 
         {/* Billing Toggle */}
-        <div className="flex justify-center mb-9.5 md:mb-12">
+        <div ref={toggleRef} className={`flex justify-center mb-9.5 md:mb-12 pricing-toggle ${toggleVisible ? 'animate' : ''}`}>
           <div className="w-full md:w-auto inline-flex rounded-full bg-[#F8F8F8] p-1">
             <button
               className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
@@ -312,7 +368,8 @@ export default function PlanSelectStep({
 
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-8 h-8 md:w-10 md:h-10 border-2 border-[#E2E2E2] border-t-[#00E272] rounded-full animate-spin mb-4" />
             <div className="text-[16px] text-[#808080]">플랜 정보를 불러오는 중...</div>
           </div>
         )}
@@ -332,8 +389,8 @@ export default function PlanSelectStep({
 
         {/* Pricing Cards */}
         {!loading && !error && plans.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
-            {plans.map((plan) => {
+          <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
+            {plans.map((plan, index) => {
               const nextPlanRank = getPlanRank(plan);
               const isSamePlan =
                 currentPlanRank !== undefined &&
@@ -375,10 +432,11 @@ export default function PlanSelectStep({
                 plan={plan}
                 billingCycle={billingCycle}
                 onSubscribe={() => handleSubscribe(plan)}
-                className={plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"}
+                className={`${plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"} pricing-card ${cardsVisible ? 'animate' : ''}`}
                 ctaText={ctaText}
                 isDisabled={isDisabled}
                 disabledReason={disabledReason}
+                animationDelay={index * 0.1}
               />
             );
             })}
@@ -404,6 +462,7 @@ interface PricingCardProps {
   ctaText?: string;
   isDisabled?: boolean;
   disabledReason?: string;
+  animationDelay?: number;
 }
 
 function PricingCard({
@@ -414,6 +473,7 @@ function PricingCard({
   ctaText,
   isDisabled = false,
   disabledReason,
+  animationDelay = 0,
 }: PricingCardProps) {
   const price =
     billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly;
@@ -425,6 +485,7 @@ function PricingCard({
       className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${
         isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
       } ${className}`}
+      style={{ animationDelay: `${animationDelay}s` }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-5">
