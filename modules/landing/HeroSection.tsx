@@ -90,7 +90,7 @@ export function HeroSection() {
           <Link href={getStartUrl()} className="btn btn-dark w-[96px]">
             시작하기
           </Link>
-          <Link href="/case" className="btn btn-white w-[96px]">
+          <Link href="https://talkgate.channel.io/home" className="btn btn-white w-[96px]">
             상담요청
           </Link>
         </div>

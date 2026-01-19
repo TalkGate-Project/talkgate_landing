@@ -51,7 +51,7 @@ export function FinalCtaSection() {
               시작하기
             </Link>
             <Link
-              href="/contact"
+              href="https://talkgate.channel.io/home"
               className="w-[137px] md:w-auto px-3 md:px-6 py-1.5 md:py-2 h-[34px] md:h-auto bg-neutral-0 text-neutral-90 leading-[17px] md:leading-[1] text-[14px] rounded-[5px] font-semibold hover:bg-neutral-10 transition-colors flex items-center justify-center"
             >
               상담요청
