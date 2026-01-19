@@ -419,9 +419,9 @@ export default function PlanSelectStep({
                 isQuarterlyToMonthlyPlanChange;
               const ctaText = hasActiveSubscription ? "플랜 변경" : plan.ctaText;
               const disabledReason = isUpgradeWithShorterCycle
-                ? "업그레이드 시 현재 이용 중인 기간보다 짧게 변경할 수 없습니다."
+                ? "해당 구독 상품으로는 변경할 수 없어요."
                 : isQuarterlyToMonthlyPlanChange
-                ? "3개월 요금제 이용 중에는 다른 플랜의 월 요금제로 변경할 수 없습니다."
+                ? "해당 구독 상품으로는 변경할 수 없어요."
                 : isSamePlanAndCycle
                 ? "현재 구독 중인 상품입니다."
                 : undefined;
