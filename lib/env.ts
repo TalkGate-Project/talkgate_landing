@@ -42,9 +42,15 @@ export const env = {
   LANDING_URL: getEnvVar('NEXT_PUBLIC_LANDING_URL', 'https://talkgate.im'),
 
   /**
-   * API 베이스 URL (필요시)
+   * API 베이스 URL
+   * 
+   * 개발: https://api-dev.talkgate.im
+   * 프로덕션: https://api.talkgate.im
    */
-  API_BASE_URL: getOptionalEnvVar('NEXT_PUBLIC_API_BASE_URL'),
+  API_BASE_URL: getEnvVar(
+    'NEXT_PUBLIC_API_BASE_URL',
+    'https://api-dev.talkgate.im'
+  ),
 
   /**
    * API 타임아웃 (ms)
