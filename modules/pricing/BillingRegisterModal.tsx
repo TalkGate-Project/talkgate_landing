@@ -43,6 +43,7 @@ export default function BillingRegisterModal({
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCardNumberFocused, setIsCardNumberFocused] = useState(false);
 
   // 나이스페이 약관 상태
   const [nicePayTerms, setNicePayTerms] = useState<NicePayTerms[]>(
@@ -140,6 +141,22 @@ export default function BillingRegisterModal({
     const numbers = value.replace(/\D/g, "");
     const groups = numbers.match(/.{1,4}/g);
     return groups ? groups.join(" ") : "";
+  };
+
+  // 카드번호 마스킹 (가운데 8자리 마스킹)
+  // 예: 1234 5678 5678 1234 → 1234 **** **** 1234
+  const maskCardNumber = (value: string) => {
+    if (!value || value.length < 8) return value;
+    
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length < 8) return formatCardNumber(numbers);
+    
+    // 앞 4자리 + 가운데 8자리 마스킹 + 뒤 4자리
+    const first4 = numbers.slice(0, 4);
+    const last4 = numbers.slice(-4);
+    const masked = `${first4} **** **** ${last4}`;
+    
+    return masked;
   };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -334,8 +351,10 @@ export default function BillingRegisterModal({
             <div className="relative">
               <input
                 type="text"
-                value={formatCardNumber(formData.cardNo)}
+                value={isCardNumberFocused ? formatCardNumber(formData.cardNo) : maskCardNumber(formData.cardNo)}
                 onChange={handleCardNumberChange}
+                onFocus={() => setIsCardNumberFocused(true)}
+                onBlur={() => setIsCardNumberFocused(false)}
                 placeholder="1234 1234 1234 1234"
                 required
                 disabled={submitting}

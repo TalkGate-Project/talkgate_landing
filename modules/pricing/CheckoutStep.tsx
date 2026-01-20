@@ -354,12 +354,9 @@ export default function CheckoutStep({
                       <rect x="2" y="11" width="4" height="1" rx="0.5" fill="#888"/>
                     </svg>
                   </div>
-                  <div>
+                  <div className="flex items-center">
                     <p className="text-[14px] font-medium text-[#252525]">
                       {billingInfo.cardCompany || "신용카드"} {getMaskedCardNumber()}
-                    </p>
-                    <p className="text-[12px] text-[#808080]">
-                      {billingInfo.cardType || "신용"} | {billingInfo.ownerType === "personal" ? "개인" : "법인"}
                     </p>
                   </div>
                 </div>
