@@ -19,6 +19,33 @@ function getOptionalEnvVar(key: string): string | undefined {
   return process.env[key];
 }
 
+/**
+ * 프로덕션 환경인지 확인
+ * 호스트명이나 NODE_ENV를 기반으로 판단
+ */
+function isProduction(): boolean {
+  // 환경 변수가 명시적으로 설정되어 있으면 우선 사용
+  if (process.env.NEXT_PUBLIC_MAIN_SERVICE_URL) {
+    return process.env.NEXT_PUBLIC_MAIN_SERVICE_URL.includes('app.talkgate.im') && 
+           !process.env.NEXT_PUBLIC_MAIN_SERVICE_URL.includes('app-dev');
+  }
+  
+  // NODE_ENV 확인
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+  
+  // 런타임 호스트명 확인 (클라이언트 사이드)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    return hostname === 'talkgate.im' || hostname === 'landing.talkgate.im' || 
+           (hostname.includes('.talkgate.im') && !hostname.includes('dev') && !hostname.includes('localhost'));
+  }
+  
+  // 기본값: 개발 환경
+  return false;
+}
+
 export const env = {
   /**
    * 메인 서비스 URL
@@ -29,7 +56,7 @@ export const env = {
    */
   MAIN_SERVICE_URL: getEnvVar(
     'NEXT_PUBLIC_MAIN_SERVICE_URL',
-    'https://app-dev.talkgate.im'
+    isProduction() ? 'https://app.talkgate.im' : 'https://app-dev.talkgate.im'
   ),
 
   /**
@@ -49,7 +76,7 @@ export const env = {
    */
   API_BASE_URL: getEnvVar(
     'NEXT_PUBLIC_API_BASE_URL',
-    'https://api-dev.talkgate.im'
+    isProduction() ? 'https://api.talkgate.im' : 'https://api-dev.talkgate.im'
   ),
 
   /**
