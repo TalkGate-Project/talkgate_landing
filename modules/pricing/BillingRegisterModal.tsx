@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, ChevronUpIcon } from "@/components/icons";
 import { BillingService } from "@/lib/billing";
 import type { BillingRegisterInput, BillingTermsType } from "@/types/billing";
@@ -41,9 +41,24 @@ export default function BillingRegisterModal({
     buyerTel: "",
   });
 
+  // 카드번호를 4개 부분으로 분리
+  const [cardNumberParts, setCardNumberParts] = useState({
+    part1: "", // 앞 4자리
+    part2: "", // 중간 첫 4자리
+    part3: "", // 중간 두 번째 4자리
+    part4: "", // 뒤 4자리
+  });
+
+  // 카드번호 입력 필드 refs
+  const cardInputRefs = {
+    part1: useRef<HTMLInputElement>(null),
+    part2: useRef<HTMLInputElement>(null),
+    part3: useRef<HTMLInputElement>(null),
+    part4: useRef<HTMLInputElement>(null),
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isCardNumberFocused, setIsCardNumberFocused] = useState(false);
 
   // 나이스페이 약관 상태
   const [nicePayTerms, setNicePayTerms] = useState<NicePayTerms[]>(
@@ -136,33 +151,52 @@ export default function BillingRegisterModal({
     setError(null);
   };
 
-  // 카드번호 포맷팅 (1234 1234 1234 1234)
-  const formatCardNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const groups = numbers.match(/.{1,4}/g);
-    return groups ? groups.join(" ") : "";
-  };
-
-  // 카드번호 마스킹 (가운데 8자리 마스킹)
-  // 예: 1234 5678 5678 1234 → 1234 **** **** 1234
-  const maskCardNumber = (value: string) => {
-    if (!value || value.length < 8) return value;
-    
-    const numbers = value.replace(/\D/g, "");
-    if (numbers.length < 8) return formatCardNumber(numbers);
-    
-    // 앞 4자리 + 가운데 8자리 마스킹 + 뒤 4자리
-    const first4 = numbers.slice(0, 4);
-    const last4 = numbers.slice(-4);
-    const masked = `${first4} **** **** ${last4}`;
-    
-    return masked;
-  };
-
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 16);
-    setFormData((prev) => ({ ...prev, cardNo: value }));
+  // 카드번호 부분 업데이트 및 전체 카드번호 합치기
+  const handleCardNumberPartChange = (
+    part: "part1" | "part2" | "part3" | "part4",
+    value: string
+  ) => {
+    const numbers = value.replace(/\D/g, "").slice(0, 4);
+    setCardNumberParts((prev) => {
+      const updated = { ...prev, [part]: numbers };
+      // 전체 카드번호 업데이트
+      const fullCardNo = updated.part1 + updated.part2 + updated.part3 + updated.part4;
+      setFormData((prev) => ({ ...prev, cardNo: fullCardNo }));
+      
+      // 4자리 입력 완료 시 다음 필드로 자동 이동
+      if (numbers.length === 4) {
+        if (part === "part1" && cardInputRefs.part2.current) {
+          cardInputRefs.part2.current.focus();
+        } else if (part === "part2" && cardInputRefs.part3.current) {
+          cardInputRefs.part3.current.focus();
+        } else if (part === "part3" && cardInputRefs.part4.current) {
+          cardInputRefs.part4.current.focus();
+        }
+      }
+      
+      return updated;
+    });
     setError(null);
+  };
+
+  // 카드번호 부분에 키보드 이벤트 처리
+  const handleCardNumberKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    currentPart: "part1" | "part2" | "part3" | "part4"
+  ) => {
+    const input = e.currentTarget;
+    const value = input.value.replace(/\D/g, "");
+
+    // 백스페이스 처리: 빈 필드에서 백스페이스 시 이전 필드로 이동
+    if (e.key === "Backspace" && value.length === 0) {
+      if (currentPart === "part2" && cardInputRefs.part1.current) {
+        cardInputRefs.part1.current.focus();
+      } else if (currentPart === "part3" && cardInputRefs.part2.current) {
+        cardInputRefs.part2.current.focus();
+      } else if (currentPart === "part4" && cardInputRefs.part3.current) {
+        cardInputRefs.part3.current.focus();
+      }
+    }
   };
 
   // 만료일 포맷팅 (MM / YY)
@@ -349,18 +383,76 @@ export default function BillingRegisterModal({
               카드 번호 <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <input
-                type="text"
-                value={isCardNumberFocused ? formatCardNumber(formData.cardNo) : maskCardNumber(formData.cardNo)}
-                onChange={handleCardNumberChange}
-                onFocus={() => setIsCardNumberFocused(true)}
-                onBlur={() => setIsCardNumberFocused(false)}
-                placeholder="1234 1234 1234 1234"
-                required
-                disabled={submitting}
-                className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] pr-24 md:pr-28 text-[14px] text-[#000000] bg-white disabled:bg-gray-100"
-              />
-              <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {/* 모바일: 2x2 그리드, 데스크톱: 4개 가로 배치 */}
+              <div className="grid grid-cols-4 gap-1.5 md:gap-2">
+                {/* 앞 4자리 */}
+                <input
+                  ref={cardInputRefs.part1}
+                  type="text"
+                  inputMode="numeric"
+                  value={cardNumberParts.part1}
+                  onChange={(e) => handleCardNumberPartChange("part1", e.target.value)}
+                  onKeyDown={(e) => handleCardNumberKeyDown(e, "part1")}
+                  placeholder="1234"
+                  maxLength={4}
+                  required
+                  disabled={submitting}
+                  className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
+                />
+                {/* 중간 첫 4자리 (마스킹) */}
+                <input
+                  ref={cardInputRefs.part2}
+                  type="password"
+                  inputMode="numeric"
+                  value={cardNumberParts.part2}
+                  onChange={(e) => handleCardNumberPartChange("part2", e.target.value)}
+                  onKeyDown={(e) => handleCardNumberKeyDown(e, "part2")}
+                  placeholder="****"
+                  maxLength={4}
+                  required
+                  disabled={submitting}
+                  className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
+                />
+                {/* 중간 두 번째 4자리 (마스킹) */}
+                <input
+                  ref={cardInputRefs.part3}
+                  type="password"
+                  inputMode="numeric"
+                  value={cardNumberParts.part3}
+                  onChange={(e) => handleCardNumberPartChange("part3", e.target.value)}
+                  onKeyDown={(e) => handleCardNumberKeyDown(e, "part3")}
+                  placeholder="****"
+                  maxLength={4}
+                  required
+                  disabled={submitting}
+                  className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
+                />
+                {/* 뒤 4자리 */}
+                <div className="relative">
+                  <input
+                    ref={cardInputRefs.part4}
+                    type="text"
+                    inputMode="numeric"
+                    value={cardNumberParts.part4}
+                    onChange={(e) => handleCardNumberPartChange("part4", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part4")}
+                    placeholder="1234"
+                    maxLength={4}
+                    required
+                    disabled={submitting}
+                    className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
+                  />
+                  {/* 카드 아이콘은 데스크톱에서만 표시 */}
+                  {/* <div className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-1 pointer-events-none">
+                    <VisaIcon />
+                    <MastercardIcon />
+                    <AmexIcon />
+                    <DiscoverIcon />
+                  </div> */}
+                </div>
+              </div>
+              {/* 모바일에서 카드 아이콘을 아래에 표시 */}
+              <div className="md:hidden flex items-center justify-center gap-1 mt-2">
                 <VisaIcon />
                 <MastercardIcon />
                 <AmexIcon />
