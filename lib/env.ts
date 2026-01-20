@@ -6,44 +6,22 @@
  */
 
 function getEnvVar(key: string, defaultValue?: string): string {
-  const value = process.env[key] ?? defaultValue;
-
-  if (value === undefined) {
-    throw new Error(`Missing environment variable: ${key}`);
+  // 환경 변수가 설정되어 있으면 우선 사용
+  const value = process.env[key];
+  if (value) {
+    return value;
   }
-
-  return value;
+  
+  // 환경 변수가 없으면 기본값 사용
+  if (defaultValue !== undefined) {
+    return defaultValue;
+  }
+  
+  throw new Error(`Missing environment variable: ${key}`);
 }
 
 function getOptionalEnvVar(key: string): string | undefined {
   return process.env[key];
-}
-
-/**
- * 프로덕션 환경인지 확인
- * 호스트명이나 NODE_ENV를 기반으로 판단
- */
-function isProduction(): boolean {
-  // 환경 변수가 명시적으로 설정되어 있으면 우선 사용
-  if (process.env.NEXT_PUBLIC_MAIN_SERVICE_URL) {
-    return process.env.NEXT_PUBLIC_MAIN_SERVICE_URL.includes('app.talkgate.im') && 
-           !process.env.NEXT_PUBLIC_MAIN_SERVICE_URL.includes('app-dev');
-  }
-  
-  // NODE_ENV 확인
-  if (process.env.NODE_ENV === 'production') {
-    return true;
-  }
-  
-  // 런타임 호스트명 확인 (클라이언트 사이드)
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    return hostname === 'talkgate.im' || hostname === 'landing.talkgate.im' || 
-           (hostname.includes('.talkgate.im') && !hostname.includes('dev') && !hostname.includes('localhost'));
-  }
-  
-  // 기본값: 개발 환경
-  return false;
 }
 
 export const env = {
@@ -51,12 +29,15 @@ export const env = {
    * 메인 서비스 URL
    * 인증 리다이렉트, 대시보드 링크 등에 사용
    * 
-   * 개발: https://app-dev.talkgate.im
-   * 프로덕션: https://app.talkgate.im
+   * 환경 변수 NEXT_PUBLIC_MAIN_SERVICE_URL이 설정되어 있으면 그것을 사용합니다.
+   * 설정되어 있지 않으면 기본값을 사용합니다.
+   * 
+   * 개발 기본값: https://app-dev.talkgate.im
+   * 프로덕션 기본값: https://app.talkgate.im
    */
   MAIN_SERVICE_URL: getEnvVar(
     'NEXT_PUBLIC_MAIN_SERVICE_URL',
-    isProduction() ? 'https://app.talkgate.im' : 'https://app-dev.talkgate.im'
+    'https://app-dev.talkgate.im' // 기본값 (환경 변수가 없을 때만 사용)
   ),
 
   /**
@@ -71,12 +52,15 @@ export const env = {
   /**
    * API 베이스 URL
    * 
-   * 개발: https://api-dev.talkgate.im
-   * 프로덕션: https://api.talkgate.im
+   * 환경 변수 NEXT_PUBLIC_API_BASE_URL이 설정되어 있으면 그것을 사용합니다.
+   * 설정되어 있지 않으면 기본값을 사용합니다.
+   * 
+   * 개발 기본값: https://api-dev.talkgate.im
+   * 프로덕션 기본값: https://api.talkgate.im
    */
   API_BASE_URL: getEnvVar(
     'NEXT_PUBLIC_API_BASE_URL',
-    isProduction() ? 'https://api.talkgate.im' : 'https://api-dev.talkgate.im'
+    'https://api-dev.talkgate.im' // 기본값 (환경 변수가 없을 때만 사용)
   ),
 
   /**
