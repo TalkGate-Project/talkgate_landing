@@ -99,7 +99,25 @@ export const BRAND = {
 export const PAGE_METADATA = {
   main: {
     title: 'Talkgate | All your business workflows in one place.',
+    titleKo: '톡게이트 | 모든 비즈니스 워크플로우를 한 곳에서',
     description: BRAND.description,
+    keywords: [
+      'Talkgate',
+      '톡게이트',
+      '토크게이트',
+      'CRM',
+      '고객관리',
+      '상담관리',
+      '채팅 상담',
+      '고객 만족',
+      '비즈니스 워크플로우',
+      '통합 상담',
+      'AI 상담',
+      '고객 서비스',
+      '고객 관계 관리',
+      '상담 솔루션',
+      '고객 커뮤니케이션',
+    ],
   },
   pricing: {
     title: '요금제 | Talkgate',
