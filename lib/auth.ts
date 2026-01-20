@@ -86,17 +86,15 @@ export function isLoggedIn(): boolean {
 /**
  * 앱 도메인 URL 반환
  * 
+ * env.MAIN_SERVICE_URL에서 도메인을 추출하여 반환합니다.
  * 프로덕션: app.talkgate.im
  * 개발: app-dev.talkgate.im
  */
 export function getAppDomain(): string {
-  if (!isBrowser()) {
-    // 서버 사이드에서는 env 사용
-    return env.MAIN_SERVICE_URL.replace('https://', '').replace('http://', '');
-  }
-  
-  const isProduction = window.location.hostname === "talkgate.im";
-  return isProduction ? "app.talkgate.im" : "app-dev.talkgate.im";
+  // env.MAIN_SERVICE_URL에서 도메인 추출
+  const url = env.MAIN_SERVICE_URL;
+  const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+  return domain;
 }
 
 /**

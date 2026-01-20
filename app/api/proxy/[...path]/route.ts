@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { env } from "@/lib/env";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
+const API_BASE_URL = env.API_BASE_URL;
 
 // 민감한 정보를 마스킹하는 함수
 function maskSensitiveData(data: Record<string, unknown>): Record<string, unknown> {

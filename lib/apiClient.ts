@@ -64,7 +64,7 @@ export class ApiClient {
   constructor(options?: ApiClientOptions) {
     // 서버 API 프록시를 통해 요청하도록 변경 (httpOnly 쿠키 사용)
     // 프록시가 백엔드 API 경로를 그대로 전달하므로, 백엔드 경로를 그대로 사용
-    const backendUrl = options?.baseUrl ?? env.API_BASE_URL ?? "https://api-dev.talkgate.im";
+    const backendUrl = options?.baseUrl ?? env.API_BASE_URL;
     // 프록시 경로로 변환: https://api-dev.talkgate.im/v1/... -> /api/proxy/v1/...
     this.baseUrl = backendUrl.replace(/^https?:\/\/[^/]+/, '/api/proxy');
     this.timeoutMs = options?.timeoutMs ?? env.API_TIMEOUT_MS;
@@ -204,17 +204,9 @@ export class ApiClient {
       const pathname = window.location.pathname || "/";
       // Avoid redirect loops on public routes like /login, /signup, /forgot-password, oauth callback
       if (!isPublicRoute(pathname)) {
-        // 메인 도메인 계산
-        const host = window.location.host;
-        const hostWithoutPort = host.split(':')[0];
-        let mainDomain = host;
-        if (hostWithoutPort.includes('.talkgate.im')) {
-          if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
-            mainDomain = 'app.talkgate.im';
-          } else {
-            mainDomain = 'app-dev.talkgate.im';
-          }
-        }
+        // env.MAIN_SERVICE_URL에서 도메인 추출
+        const mainServiceUrl = env.MAIN_SERVICE_URL;
+        const mainDomain = mainServiceUrl.replace(/^https?:\/\//, '').split('/')[0];
         const protocol = window.location.protocol;
         // ✅ 메인 도메인의 /logout 페이지로 리다이렉트하여 쿠키 삭제 처리
         // 서브도메인에서 API 호출로 쿠키 삭제 시 Set-Cookie 헤더가 적용되기 전에

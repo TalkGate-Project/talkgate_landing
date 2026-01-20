@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { env } from "./lib/env";
 
 const nextConfig: NextConfig = {
   /**
@@ -19,7 +20,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Allow-Origin',
-            value: process.env.NEXT_PUBLIC_MAIN_SERVICE_URL || 'https://app.talkgate.im',
+            value: env.MAIN_SERVICE_URL,
           },
           {
             key: 'Access-Control-Allow-Methods',
