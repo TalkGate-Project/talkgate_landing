@@ -55,7 +55,7 @@ export default function ProjectSelectStep({
 
   // Animation observers
   useEffect(() => {
-    const observerOptions = { threshold: 0.2 };
+    const observerOptions = { threshold: 0.1, rootMargin: '50px' };
 
     const headerObserver = new IntersectionObserver(
       (entries) => {
@@ -94,10 +94,20 @@ export default function ProjectSelectStep({
     if (createCardRef.current) createCardObserver.observe(createCardRef.current);
     if (projectsRef.current) projectsObserver.observe(projectsRef.current);
 
+    // IntersectionObserver가 트리거되지 않을 경우를 대비해 일정 시간 후 강제로 표시
+    const fallbackTimer = setTimeout(() => {
+      setHeaderVisible(true);
+      setCreateCardVisible(true);
+      if (projects.length > 0) {
+        setProjectsVisible(true);
+      }
+    }, 100);
+
     return () => {
       headerObserver.disconnect();
       createCardObserver.disconnect();
       projectsObserver.disconnect();
+      clearTimeout(fallbackTimer);
     };
   }, [projects.length]); // projects가 로드되면 observer 재설정
 
@@ -117,6 +127,8 @@ export default function ProjectSelectStep({
     } catch (err) {
       console.error("프로젝트 목록 조회 실패:", err);
       setError("프로젝트 목록을 불러오는데 실패했습니다.");
+      // 에러가 발생해도 빈 배열로 설정하여 UI가 표시되도록 함
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -249,21 +261,21 @@ export default function ProjectSelectStep({
           </div>
         )}
 
-        {/* Error State */}
+        {/* Error State - 에러가 있어도 Content는 표시 */}
         {error && !loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="text-[16px] text-red-500 mb-4">{error}</div>
+          <div className="flex flex-col items-center justify-center py-4 mb-6">
+            <div className="text-[14px] text-red-500 mb-2">{error}</div>
             <button
               onClick={fetchProjects}
-              className="px-6 py-2 bg-[#252525] text-white rounded-full text-[14px] font-medium hover:bg-[#3a3a3a] transition-colors"
+              className="px-4 py-2 bg-[#252525] text-white rounded-full text-[12px] font-medium hover:bg-[#3a3a3a] transition-colors"
             >
               다시 시도
             </button>
           </div>
         )}
 
-        {/* Content */}
-        {!loading && !error && (
+        {/* Content - loading이 false이면 항상 표시 */}
+        {!loading && (
           <>
             {/* Create New Project Card - 중앙 단독 배치 */}
             <div ref={createCardRef} className="flex justify-center mb-6 md:mb-[32px]">
@@ -415,15 +427,6 @@ export default function ProjectSelectStep({
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-
-            {/* Empty State */}
-            {projects.length === 0 && (
-              <div className="text-center py-10">
-                <p className="text-[16px] text-[#808080]">
-                  아직 프로젝트가 없습니다. 새 프로젝트를 생성해주세요.
-                </p>
               </div>
             )}
           </>
