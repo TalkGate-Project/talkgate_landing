@@ -415,6 +415,29 @@ export default function TestContent() {
               >
                 강제 모달 (닫기 불가)
               </button>
+
+              {/* Plan Change Modal */}
+              <button
+                onClick={() =>
+                  showErrorModal({
+                    type: "info",
+                    title: "플랜 변경",
+                    headline: "Basic 구독상품을 변경할까요?",
+                    description: "현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.",
+                    confirmText: "변경",
+                    cancelText: "취소",
+                    onConfirm: () => {
+                      console.log("플랜 변경 확인됨");
+                    },
+                    onCancel: () => {
+                      console.log("플랜 변경 취소됨");
+                    },
+                  })
+                }
+                className="h-[40px] px-6 rounded-[8px] bg-[#3B82F6] text-white text-[14px] font-semibold hover:bg-[#2563eb] transition-colors"
+              >
+                플랜 변경 확인 모달
+              </button>
             </div>
           </div>
         </section>

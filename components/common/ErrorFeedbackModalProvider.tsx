@@ -209,7 +209,7 @@ export default function ErrorFeedbackModalProvider({
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-4 md:px-8 pt-7 pb-6">
+            <div className="!px-4 md:!px-8 !pt-7 !pb-6">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-[#252525]">
                   {state.title}
@@ -239,7 +239,7 @@ export default function ErrorFeedbackModalProvider({
                   </button>
                 )}
               </div>
-              <div className="mt-6 flex justify-center">
+              <div className="!mt-6 flex justify-center">
                 <div className="flex items-center justify-center rounded-full">
                   {state.type === "error" && (
                     <svg
@@ -310,7 +310,7 @@ export default function ErrorFeedbackModalProvider({
               </div>
               {state.headline && (
                 <p
-                  className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${
+                  className={`!mt-3 text-center text-[18px] font-semibold leading-[21px] ${
                     state.type === "error"
                       ? "text-[#D83232]"
                       : state.type === "success"
@@ -322,17 +322,17 @@ export default function ErrorFeedbackModalProvider({
                 </p>
               )}
               {state.description && (
-                <p className="mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-[#252525]">
+                <p className="!mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-[#252525]">
                   {state.description}
                 </p>
               )}
             </div>
             <div className="h-px w-full bg-[#E2E2E2]" />
-            <div className="flex justify-end gap-3 px-4 md:px-8 py-4">
+            <div className="flex justify-end gap-3 !px-4 md:!px-8 !py-4">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"
-                  className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#252525]"
+                  className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-[#E2E2E2] !px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#252525]"
                   onClick={handleCancel}
                 >
                   {state.cancelText}
@@ -340,7 +340,7 @@ export default function ErrorFeedbackModalProvider({
               ) : null}
               <button
                 type="button"
-                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
+                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] !px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
                   state.type === "error"
                     ? "bg-[#252525] text-white"
                     : state.type === "success"
