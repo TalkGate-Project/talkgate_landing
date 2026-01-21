@@ -6,8 +6,30 @@ import type { Project, PricingPlan, BillingCycle } from "@/types";
 import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/pricing";
 import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
 import { getLoginUrl, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { SubscriptionService } from "@/lib/subscription";
+import type { SubscriptionPlan } from "@/types/subscription";
 
 type PricingStep = "project" | "plan" | "checkout";
+
+// API 플랜을 UI 플랜으로 변환
+function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPlan {
+  return {
+    id: String(plan.id),
+    name: "Talkgate",
+    badge: plan.name,
+    description: plan.description,
+    priceMonthly: plan.monthlyPrice,
+    priceYearly: plan.quarterlyPrice,
+    priceUnit: "/ 매월",
+    features: [],
+    ctaText: "구독하기",
+    ctaHref: `/checkout/${plan.id}`,
+    maxMembers: plan.memberCountLimit,
+    aiTokensPerMonth: plan.aiUsageLimit,
+    smsCountPerMonth: plan.smsUsageLimit,
+    highlighted: index > 0,
+  };
+}
 
 export default function PricingContent() {
   const router = useRouter();
@@ -17,6 +39,8 @@ export default function PricingContent() {
   const stepFromUrl = searchParams.get("step") as PricingStep | null;
   const projectIdFromUrl = searchParams.get("projectId");
   const projectNameFromUrl = searchParams.get("projectName");
+  const billingCycleFromUrl = searchParams.get("billingCycle"); // "monthly" | "quarterly" | null
+  const planTypeFromUrl = searchParams.get("planType");
 
   // 인증 상태 - 초기값을 함수로 계산 (hydration 후)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
@@ -47,8 +71,17 @@ export default function PricingContent() {
     return undefined;
   });
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | undefined>();
-  const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>("monthly");
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>(() => {
+    // URL에서 billingCycle 복원 (quarterly는 yearly로 매핑)
+    if (billingCycleFromUrl === "monthly") {
+      return "monthly";
+    } else if (billingCycleFromUrl === "quarterly" || billingCycleFromUrl === "yearly") {
+      return "yearly";
+    }
+    return "monthly";
+  });
   const [planSelectionContext, setPlanSelectionContext] = useState<PlanSelectionContext | undefined>();
+  const [autoSelectingPlan, setAutoSelectingPlan] = useState(false);
 
   // 현재 스텝 결정 (URL 기반)
   // 비로그인 상태에서는 프로젝트 선택을 스킵하고 플랜 선택부터 시작
@@ -91,10 +124,66 @@ export default function PricingContent() {
         authenticated = !!value && value !== "undefined" && value !== "null";
       }
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR hydration 패턴
       setIsAuthenticated(authenticated);
     }
   }, [isAuthenticated]);
+
+  // URL 파라미터에서 플랜 자동 선택 (checkout 단계이고 planType이 있을 때)
+  useEffect(() => {
+    const shouldAutoSelect = 
+      stepFromUrl === "checkout" && 
+      planTypeFromUrl && 
+      billingCycleFromUrl &&
+      !selectedPlan &&
+      !autoSelectingPlan;
+
+    if (!shouldAutoSelect) return;
+
+    const autoSelectPlan = async () => {
+      setAutoSelectingPlan(true);
+      try {
+        // 플랜 목록 로드
+        const response = await SubscriptionService.getPlans();
+        const apiPlans = response.data?.data?.plans || [];
+        const sortedPlans = [...apiPlans].sort((a, b) => a.sortOrder - b.sortOrder);
+        const convertedPlans = sortedPlans.map((plan, index) =>
+          convertToPricingPlan(plan, index)
+        );
+
+        // planType에 맞는 플랜 찾기 (basic -> Basic, pro -> Pro)
+        const planTypeMap: Record<string, string> = {
+          basic: "Basic",
+          pro: "Pro",
+        };
+        const targetPlanName = planTypeMap[planTypeFromUrl.toLowerCase()];
+        
+        if (targetPlanName) {
+          const foundPlan = convertedPlans.find((plan) => {
+            const badge = plan.badge?.toLowerCase() || "";
+            return badge === targetPlanName.toLowerCase();
+          });
+
+          if (foundPlan) {
+            // 플랜 선택 및 billingCycle 설정 (quarterly는 yearly로 매핑)
+            setSelectedPlan(foundPlan);
+            const billingCycle: BillingCycle = 
+              billingCycleFromUrl === "quarterly" || billingCycleFromUrl === "yearly" 
+                ? "yearly" 
+                : "monthly";
+            setSelectedBillingCycle(billingCycle);
+            // planSelectionContext는 기본값으로 설정 (플랜 변경이 아닌 새 구독으로 가정)
+            setPlanSelectionContext({ isPlanChange: false, isUpgrade: false });
+          }
+        }
+      } catch (err) {
+        console.error("플랜 자동 선택 실패:", err);
+      } finally {
+        setAutoSelectingPlan(false);
+      }
+    };
+
+    autoSelectPlan();
+  }, [stepFromUrl, planTypeFromUrl, billingCycleFromUrl, selectedPlan, autoSelectingPlan]);
 
   // 로딩 중일 때
   if (isAuthenticated === null) {
@@ -183,6 +272,18 @@ export default function PricingContent() {
       );
 
     case "checkout":
+      // 플랜 자동 선택 중이면 로딩 표시
+      if (autoSelectingPlan) {
+        return (
+          <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 md:w-10 md:h-10 border-2 border-[#E2E2E2] border-t-[#00E272] rounded-full animate-spin mx-auto mb-4" />
+              <div className="text-[16px] text-[#808080]">플랜 정보를 불러오는 중...</div>
+            </div>
+          </div>
+        );
+      }
+
       // 플랜이 선택되지 않았으면 플랜 선택 화면으로
       if (!selectedPlan) {
         // 로그인 상태이고 프로젝트가 없으면 프로젝트 선택부터
