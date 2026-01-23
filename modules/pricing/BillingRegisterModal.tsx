@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, ChevronUpIcon } from "@/components/icons";
+import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon } from "@/components/icons";
 import { BillingService } from "@/lib/billing";
 import type { BillingRegisterInput, BillingTermsType } from "@/types/billing";
 
@@ -218,6 +218,19 @@ export default function BillingRegisterModal({
     return `${formData.expMonth} / ${formData.expYear}`;
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 11);
+    setFormData((prev) => ({ ...prev, buyerTel: value }));
+    setError(null);
+  };
+
+  const formatPhone = (value: string) => {
+    if (!value) return "";
+    if (value.length <= 3) return value;
+    if (value.length <= 7) return `${value.slice(0, 3)}-${value.slice(3)}`;
+    return `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7)}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -284,39 +297,34 @@ export default function BillingRegisterModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-[24px] md:rounded-[42px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-full max-w-[520px] max-h-[90vh] flex flex-col overflow-hidden">
-        {/* 스크롤 가능한 내부 영역 */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-[52px]">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-[18px] md:text-[20px] font-bold text-[#252525]">
-              결제 수단 등록
-            </h2>
-            <button
-              aria-label="닫기"
-              className="cursor-pointer w-8 h-8 grid place-items-center hover:opacity-70 transition-opacity"
-              onClick={onClose}
-              disabled={submitting}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 18L18 6M6 6L18 18"
-                  stroke="#B0B0B0"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center md:items-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
+
+      {/* Modal */}
+      <div
+        className="relative w-full h-full md:h-auto md:w-[524px] bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] md:max-h-[90vh] overflow-y-auto flex flex-col"
+        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 md:px-7 pt-4 md:pt-7 pb-4 md:pb-6">
+          <button
+            onClick={onClose}
+            className="text-foreground hover:text-neutral-60 transition-colors cursor-pointer flex-shrink-0"
+            disabled={submitting}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <h2 className="text-[18px] font-semibold text-foreground">
+            결제수단 등록
+          </h2>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-4 md:px-7 pb-4 md:pb-7">
 
           {/* Error Message */}
           {error && (
@@ -325,211 +333,183 @@ export default function BillingRegisterModal({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          {/* 이메일 */}
-          <div className="flex flex-col gap-2">
-            <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-              이메일 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              name="buyerEmail"
-              value={formData.buyerEmail}
-              onChange={handleInputChange}
-              placeholder="email@company.com"
-              required
-              disabled={submitting}
-              className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] text-[14px] text-[#000000] bg-white disabled:bg-gray-100"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col" noValidate>
+          {/* Forms */}
+          <div className="space-y-[10px] mb-6">
+            {/* 카드 소유자 이름 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">카드 소유자 이름</label>
+              <input
+                type="text"
+                name="buyerName"
+                value={formData.buyerName}
+                onChange={handleInputChange}
+                className="w-full h-[40px] px-3 py-2 bg-white dark:bg-white border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="카드 소유자 이름을 입력하세요"
+                required
+                disabled={submitting}
+              />
+            </div>
 
-          {/* 카드 소유자 이름 */}
-          <div className="flex flex-col gap-2">
-            <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-              카드 소유자 이름 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="buyerName"
-              value={formData.buyerName}
-              onChange={handleInputChange}
-              placeholder="홍길동"
-              required
-              disabled={submitting}
-              className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] text-[14px] text-[#000000] bg-white disabled:bg-gray-100"
-            />
-          </div>
-
-          {/* 연락처 */}
-          <div className="flex flex-col gap-2">
-            <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-              연락처 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              name="buyerTel"
-              value={formData.buyerTel}
-              onChange={handleInputChange}
-              placeholder="01012345678"
-              required
-              disabled={submitting}
-              className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] text-[14px] text-[#000000] bg-white disabled:bg-gray-100"
-            />
-          </div>
-
-          {/* 카드 번호 */}
-          <div className="flex flex-col gap-2">
-            <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-              카드 번호 <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              {/* 모바일: 2x2 그리드, 데스크톱: 4개 가로 배치 */}
-              <div className="grid grid-cols-4 gap-1.5 md:gap-2">
-                {/* 앞 4자리 */}
-                <input
-                  ref={cardInputRefs.part1}
-                  type="text"
-                  inputMode="numeric"
-                  value={cardNumberParts.part1}
-                  onChange={(e) => handleCardNumberPartChange("part1", e.target.value)}
-                  onKeyDown={(e) => handleCardNumberKeyDown(e, "part1")}
-                  placeholder="1234"
-                  maxLength={4}
-                  required
-                  disabled={submitting}
-                  className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
-                />
-                {/* 중간 첫 4자리 (마스킹) */}
-                <input
-                  ref={cardInputRefs.part2}
-                  type="password"
-                  inputMode="numeric"
-                  value={cardNumberParts.part2}
-                  onChange={(e) => handleCardNumberPartChange("part2", e.target.value)}
-                  onKeyDown={(e) => handleCardNumberKeyDown(e, "part2")}
-                  placeholder="****"
-                  maxLength={4}
-                  required
-                  disabled={submitting}
-                  className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
-                />
-                {/* 중간 두 번째 4자리 (마스킹) */}
-                <input
-                  ref={cardInputRefs.part3}
-                  type="password"
-                  inputMode="numeric"
-                  value={cardNumberParts.part3}
-                  onChange={(e) => handleCardNumberPartChange("part3", e.target.value)}
-                  onKeyDown={(e) => handleCardNumberKeyDown(e, "part3")}
-                  placeholder="****"
-                  maxLength={4}
-                  required
-                  disabled={submitting}
-                  className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
-                />
-                {/* 뒤 4자리 */}
-                <div className="relative">
+            {/* 카드 번호 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">카드 번호</label>
+              <div className="relative">
+                {/* 4개의 input으로 분리 */}
+                <div className="grid grid-cols-4 gap-1.5 md:gap-2">
+                  {/* 앞 4자리 */}
                   <input
-                    ref={cardInputRefs.part4}
+                    ref={cardInputRefs.part1}
                     type="text"
                     inputMode="numeric"
-                    value={cardNumberParts.part4}
-                    onChange={(e) => handleCardNumberPartChange("part4", e.target.value)}
-                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part4")}
+                    value={cardNumberParts.part1}
+                    onChange={(e) => handleCardNumberPartChange("part1", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part1")}
                     placeholder="1234"
                     maxLength={4}
-                    required
                     disabled={submitting}
-                    className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-[#000000] bg-white disabled:bg-gray-100 text-center"
+                    className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-white dark:bg-white focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
                   />
-                  {/* 카드 아이콘은 데스크톱에서만 표시 */}
-                  {/* <div className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-1 pointer-events-none">
+                  {/* 중간 첫 4자리 (마스킹) */}
+                  <input
+                    ref={cardInputRefs.part2}
+                    type="password"
+                    inputMode="numeric"
+                    value={cardNumberParts.part2}
+                    onChange={(e) => handleCardNumberPartChange("part2", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part2")}
+                    placeholder="****"
+                    maxLength={4}
+                    disabled={submitting}
+                    className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-white dark:bg-white focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                  />
+                  {/* 중간 두 번째 4자리 (마스킹) */}
+                  <input
+                    ref={cardInputRefs.part3}
+                    type="password"
+                    inputMode="numeric"
+                    value={cardNumberParts.part3}
+                    onChange={(e) => handleCardNumberPartChange("part3", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part3")}
+                    placeholder="****"
+                    maxLength={4}
+                    disabled={submitting}
+                    className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-white dark:bg-white focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                  />
+                  {/* 뒤 4자리 */}
+                  <div className="relative">
+                    <input
+                      ref={cardInputRefs.part4}
+                      type="text"
+                      inputMode="numeric"
+                      value={cardNumberParts.part4}
+                      onChange={(e) => handleCardNumberPartChange("part4", e.target.value)}
+                      onKeyDown={(e) => handleCardNumberKeyDown(e, "part4")}
+                      placeholder="1234"
+                      maxLength={4}
+                      disabled={submitting}
+                      className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-white dark:bg-white focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+                {/* 모바일에서 카드 아이콘을 아래에 표시 */}
+                {formData.cardNo.length > 0 && (
+                  <div className="md:hidden flex items-center justify-center gap-1 mt-2">
                     <VisaIcon />
                     <MastercardIcon />
                     <AmexIcon />
                     <DiscoverIcon />
-                  </div> */}
-                </div>
-              </div>
-              {/* 모바일에서 카드 아이콘을 아래에 표시 */}
-              <div className="md:hidden flex items-center justify-center gap-1 mt-2">
-                <VisaIcon />
-                <MastercardIcon />
-                <AmexIcon />
-                <DiscoverIcon />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* 만료일 & 카드 비밀번호 */}
-          <div className="flex gap-2 md:gap-3">
-            <div className="flex-1 flex flex-col gap-1">
-              <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-                만료일 <span className="text-red-500">*</span>
-              </label>
+            {/* 만료기간 및 비밀번호 앞 2자리 */}
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-[4px]">
+                <label className="block text-[13px] text-neutral-60">만료기간</label>
+                <input
+                  type="text"
+                  value={getExpiryDisplayValue()}
+                  onChange={handleExpiryChange}
+                  className="w-full h-[40px] px-3 py-2 bg-white dark:bg-white border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  placeholder="MM / YY"
+                  maxLength={7}
+                  disabled={submitting}
+                />
+              </div>
+              <div className="flex-1 space-y-[4px]">
+                <label className="block text-[13px] text-neutral-60">비밀번호 앞 2자리</label>
+                <input
+                  type="password"
+                  name="cardPw"
+                  value={formData.cardPw}
+                  onChange={handleInputChange}
+                  className="w-full h-[40px] px-3 py-2 bg-white dark:bg-white border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  placeholder="••"
+                  maxLength={2}
+                  disabled={submitting}
+                />
+              </div>
+            </div>
+
+            {/* 생년월일 / 사업자번호 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">생년월일 (6자리) 또는 사업자번호 (10자리)</label>
               <input
                 type="text"
-                value={getExpiryDisplayValue()}
-                onChange={handleExpiryChange}
-                placeholder="MM / YY"
-                required
-                disabled={submitting}
-                className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] text-[14px] text-[#808080] bg-white disabled:bg-gray-100"
-              />
-            </div>
-            <div className="flex-1 flex flex-col gap-1">
-              <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-                카드 비밀번호 앞 2자리 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                name="cardPw"
-                value={formData.cardPw}
+                name="idNo"
+                value={formData.idNo}
                 onChange={handleInputChange}
-                placeholder="••"
-                required
-                maxLength={2}
+                className="w-full h-[40px] px-3 py-2 bg-white dark:bg-white border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="YYMMDD 또는 사업자번호"
+                maxLength={10}
                 disabled={submitting}
-                className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] text-[14px] text-[#808080] bg-white disabled:bg-gray-100"
+              />
+            </div>
+
+            {/* 이메일 정보 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">이메일</label>
+              <input
+                type="email"
+                name="buyerEmail"
+                value={formData.buyerEmail}
+                onChange={handleInputChange}
+                className="w-full h-[40px] px-3 py-2 bg-white dark:bg-white border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="이메일을 입력하세요"
+                disabled={submitting}
+              />
+            </div>
+
+            {/* 연락처 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">연락처</label>
+              <input
+                type="tel"
+                name="buyerTel"
+                value={formatPhone(formData.buyerTel)}
+                onChange={handlePhoneChange}
+                className="w-full h-[40px] px-3 py-2 bg-white dark:bg-white border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="010-0000-0000"
+                maxLength={13}
+                disabled={submitting}
               />
             </div>
           </div>
-
-          {/* 생년월일/사업자번호 */}
-          <div className="flex flex-col gap-2">
-            <label className="font-normal text-[12px] md:text-[13px] leading-[16px] text-[#808080]">
-              생년월일(6자리) 또는 사업자등록번호(10자리) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="idNo"
-              value={formData.idNo}
-              onChange={handleInputChange}
-              placeholder="YYMMDD 또는 사업자등록번호"
-              required
-              maxLength={10}
-              disabled={submitting}
-              className="w-full h-[40px] rounded-[6px] border border-[#E2E2E2] px-3 py-[10px] text-[14px] text-[#000000] bg-white disabled:bg-gray-100"
-            />
-          </div>
-
-          {/* 안내 문구 */}
-          <p className="text-[12px] text-[#808080] mt-2 mb-4">
-            * 입력하신 카드 정보는 안전하게 암호화되어 처리됩니다.
-          </p>
 
           {/* 나이스페이 약관 동의 */}
-          <div className="border border-[#E2E2E2] rounded-[8px] overflow-hidden">
+          <div className="border border-neutral-30 rounded-[8px] overflow-hidden">
             {/* 전체 동의 */}
-            <div className="px-4 py-3 bg-[#F8F8F8] border-b border-[#E2E2E2]">
+            <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-20 border-b border-neutral-30">
               <label className="flex items-center gap-2 cursor-pointer">
-                <div className="relative flex-shrink-0">
+                <div className="relative flex-shrink-0 flex items-center justify-center w-5 h-5">
                   <input
                     type="checkbox"
                     checked={allTermsAgreed}
                     onChange={toggleAllAgreed}
                     disabled={submitting}
-                    className="w-5 h-5 appearance-none rounded-[5px] border border-[#B0B0B0] checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
+                    className="w-5 h-5 appearance-none rounded-[5px] border border-neutral-50 checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
                   />
                   {allTermsAgreed && (
                     <svg
@@ -550,7 +530,7 @@ export default function BillingRegisterModal({
                     </svg>
                   )}
                 </div>
-                <span className="text-[14px] font-semibold text-[#252525]">
+                <span className="text-[14px] font-semibold text-foreground">
                   전체 동의
                 </span>
               </label>
@@ -558,16 +538,16 @@ export default function BillingRegisterModal({
 
             {/* 개별 약관 */}
             {nicePayTerms.map((term) => (
-              <div key={term.type} className="border-b border-[#E2E2E2] last:border-b-0">
+              <div key={term.type} className="border-b border-neutral-30 last:border-b-0">
                 <div className="flex items-center justify-between px-4 py-3">
                   <label className="flex items-center gap-2 cursor-pointer flex-1">
-                    <div className="relative flex-shrink-0">
+                    <div className="relative flex-shrink-0 flex items-center justify-center w-4 h-4">
                       <input
                         type="checkbox"
                         checked={term.agreed}
                         onChange={() => toggleTermAgreed(term.type)}
                         disabled={submitting}
-                        className="w-4 h-4 appearance-none rounded-[4px] border border-[#B0B0B0] checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
+                        className="w-4 h-4 appearance-none rounded-[4px] border border-neutral-50 checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
                       />
                       {term.agreed && (
                         <svg
@@ -588,25 +568,40 @@ export default function BillingRegisterModal({
                         </svg>
                       )}
                     </div>
-                    <span className="text-[13px] text-[#595959]">
+                    <span className="text-[13px] text-neutral-70">
                       {term.title}
                     </span>
                   </label>
                   <button
                     type="button"
                     onClick={() => toggleTermExpanded(term.type)}
-                    className="text-[12px] text-[#808080] hover:text-[#252525] transition-colors flex items-center gap-1"
+                    className="cursor-pointer text-[12px] text-neutral-60 hover:text-foreground transition-colors flex items-center gap-1"
                   >
                     <span>상세보기</span>
-                    <ChevronUpIcon className={`w-3 h-3 transition-transform ${term.expanded ? "" : "rotate-180"}`} />
+                    <svg
+                      className={`w-3 h-3 transition-transform ${term.expanded ? "" : "rotate-180"}`}
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M3 4.5L6 7.5L9 4.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </button>
                 </div>
                 {term.expanded && (
-                  <div className="px-4 py-3 bg-[#FAFAFA] border-t border-[#E2E2E2] max-h-[150px] overflow-y-auto">
+                  <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-20 border-t border-neutral-30 max-h-[150px] overflow-y-auto">
                     {term.loading ? (
-                      <div className="text-[12px] text-[#808080]">약관을 불러오는 중...</div>
+                      <div className="text-[12px] text-neutral-60">약관을 불러오는 중...</div>
                     ) : (
-                      <p className="text-[11px] text-[#595959] whitespace-pre-line leading-[1.6]">
+                      <p className="text-[11px] text-neutral-70 whitespace-pre-line leading-[1.6]">
                         {term.content}
                       </p>
                     )}
@@ -615,16 +610,22 @@ export default function BillingRegisterModal({
               </div>
             ))}
           </div>
+        </form>
+        </div>
 
-          {/* 등록 버튼 */}
+        {/* Divider - 패딩/마진 없이 전체 너비 */}
+        <div className="w-full h-[1px] bg-border"></div>
+
+        {/* Action Button - 모바일에서 하단 고정 */}
+        <div className="px-4 md:px-7 py-4 mt-auto md:mt-0">
           <button
-            type="submit"
+            type="button"
+            onClick={handleSubmit}
             disabled={submitting}
-            className="w-full h-[48px] md:h-[52px] mt-4 rounded-[30px] bg-[#000000] text-white font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full px-3 py-1.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "등록 중..." : "등록하기"}
           </button>
-        </form>
         </div>
       </div>
     </div>

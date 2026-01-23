@@ -556,11 +556,7 @@ function PricingCard({
       {/* Price */}
       <div className="mb-4 md:mb-6">
         <div className="flex items-end md:items-baseline gap-0">
-          <span className={`font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center ${
-            billingCycle === "yearly" 
-              ? "text-[36px] md:text-[40px]" 
-              : "text-[42px] md:text-[48px]"
-          }`}>
+          <span className={`font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center text-[36px] md:text-[40px]`}>
             ₩ {price?.toLocaleString()}
           </span>
           <span className="text-[14px] md:text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
