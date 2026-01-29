@@ -89,7 +89,7 @@ export default function PlanSelectStep({
   const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [changingPlan, setChangingPlan] = useState(false);
-  
+
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLDivElement>(null);
@@ -367,7 +367,7 @@ export default function PlanSelectStep({
         )}
 
         {/* Header */}
-        <div ref={headerRef} className={`text-center mb-10.5 md:mb-12 pricing-header ${headerVisible ? 'animate' : ''}`}>
+        <div ref={headerRef} className={`text-center mb-1 md:mb-3 pricing-header ${headerVisible ? 'animate' : ''}`}>
           <h1 className="text-[20px] md:text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] !mb-4">
             복잡한 고민 없이,
             <br />
@@ -378,25 +378,39 @@ export default function PlanSelectStep({
           </p>
         </div>
 
+        {/* coupon registration */}
+        {selectedProject && (
+          <div className="max-w-[334px] h-[34px] gap-2 md:gap-3 mb-9.5 md:mb-12 mx-auto flex">
+            <input
+              type="text"
+              placeholder="쿠폰코드를 입력해주세요."
+              className="w-full border border-[#E2E2E266] h-full px-2 md:px-3 text-[14px] rounded-[10px] tracking-[-0.02em] text-[#595959] focus:outline-none focus:border-[#00E272]"
+            />
+            <button
+              className="w-full max-w-[62px] md:max-w-[72px] border border-[#E2E2E266] rounded-[10px] text-[14px] tracking-[-0.02em] hover:bg-[#E2E2E266] transition-colors"
+            >
+              쿠폰등록
+            </button>
+          </div>
+        )}
+
         {/* Billing Toggle */}
         <div ref={toggleRef} className={`flex justify-center mb-9.5 md:mb-12 pricing-toggle ${toggleVisible ? 'animate' : ''}`}>
           <div className="w-full md:w-auto inline-flex rounded-full bg-[#F8F8F8] p-1">
             <button
-              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
-                billingCycle === "monthly"
-                  ? "bg-[#252525] text-white"
-                  : "text-[#808080] cursor-pointer"
-              }`}
+              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${billingCycle === "monthly"
+                ? "bg-[#252525] text-white"
+                : "text-[#808080] cursor-pointer"
+                }`}
               onClick={() => setBillingCycle("monthly")}
             >
               월마다
             </button>
             <button
-              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
-                billingCycle === "yearly"
-                  ? "bg-[#252525] text-white"
-                  : "text-[#808080] cursor-pointer"
-              }`}
+              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${billingCycle === "yearly"
+                ? "bg-[#252525] text-white"
+                : "text-[#808080] cursor-pointer"
+                }`}
               onClick={() => setBillingCycle("yearly")}
             >
               3개월마다
@@ -459,24 +473,24 @@ export default function PlanSelectStep({
               const disabledReason = isUpgradeWithShorterCycle
                 ? "해당 구독 상품으로는 변경할 수 없어요."
                 : isQuarterlyToMonthlyPlanChange
-                ? "해당 구독 상품으로는 변경할 수 없어요."
-                : isSamePlanAndCycle
-                ? "현재 구독 중인 상품입니다."
-                : undefined;
+                  ? "해당 구독 상품으로는 변경할 수 없어요."
+                  : isSamePlanAndCycle
+                    ? "현재 구독 중인 상품입니다."
+                    : undefined;
 
               return (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                billingCycle={billingCycle}
-                onSubscribe={() => handleSubscribe(plan)}
-                className={`${plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"} pricing-card ${cardsVisible ? 'animate' : ''}`}
-                ctaText={ctaText}
-                isDisabled={isDisabled}
-                disabledReason={disabledReason}
-                animationDelay={index * 0.1}
-              />
-            );
+                <PricingCard
+                  key={plan.id}
+                  plan={plan}
+                  billingCycle={billingCycle}
+                  onSubscribe={() => handleSubscribe(plan)}
+                  className={`${plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"} pricing-card ${cardsVisible ? 'animate' : ''}`}
+                  ctaText={ctaText}
+                  isDisabled={isDisabled}
+                  disabledReason={disabledReason}
+                  animationDelay={index * 0.1}
+                />
+              );
             })}
           </div>
         )}
@@ -520,9 +534,8 @@ function PricingCard({
 
   return (
     <div
-      className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${
-        isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
-      } ${className}`}
+      className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
+        } ${className}`}
       style={{ animationDelay: `${animationDelay}s` }}
     >
       {/* Header */}
@@ -572,11 +585,10 @@ function PricingCard({
         </div>
         {plan.badge && (
           <span
-            className={`px-2 md:px-3 py-1 rounded-[30px] text-[12px] md:text-[14px] font-medium ${
-              isHighlighted
-                ? "bg-[#D6FAE8] text-[#00B55B]"
-                : "bg-[#E2E2E2] text-[#595959]"
-            } opacity-80`}
+            className={`px-2 md:px-3 py-1 rounded-[30px] text-[12px] md:text-[14px] font-medium ${isHighlighted
+              ? "bg-[#D6FAE8] text-[#00B55B]"
+              : "bg-[#E2E2E2] text-[#595959]"
+              } opacity-80`}
           >
             {plan.badge}
           </span>
@@ -710,11 +722,10 @@ function PricingCard({
         onClick={onSubscribe}
         disabled={isDisabled}
         title={disabledReason}
-        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-          isHighlighted
-            ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
-            : "bg-[#000000] text-white hover:bg-[#252525]"
-        }`}
+        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isHighlighted
+          ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
+          : "bg-[#000000] text-white hover:bg-[#252525]"
+          }`}
       >
         {ctaText || plan.ctaText}
       </button>
