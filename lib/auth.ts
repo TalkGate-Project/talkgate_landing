@@ -27,6 +27,24 @@ function isBrowser(): boolean {
 }
 
 /**
+ * returnUrl 등에 쓸 랜딩 기준 URL.
+ * 브라우저면 현재 접속 origin(dev.talkgate.im / talkgate.im 등),
+ * SSR이면 env.LANDING_URL → 동일 빌드가 여러 도메인에 서빙되어도 returnUrl 불일치 방지.
+ */
+function getLandingBaseUrl(): string {
+  if (isBrowser()) return window.location.origin;
+  return env.LANDING_URL.replace(/\/$/, "");
+}
+
+/** 경로 또는 전체 URL → returnUrl로 사용할 전체 URL */
+function toReturnUrl(base: string, pathOrUrl: string): string {
+  const s = pathOrUrl.trim();
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  const path = s.startsWith("/") ? s : `/${s}`;
+  return `${base.replace(/\/$/, "")}${path}`;
+}
+
+/**
  * 프로덕션 도메인인지 확인
  */
 function isProductionDomain(): boolean {
@@ -84,6 +102,23 @@ export function isLoggedIn(): boolean {
 }
 
 /**
+ * 액세스/리프레시 토큰이 **둘 다** 없는지 확인.
+ * 클라이언트 전용. 둘 다 없으면 true (비로그인).
+ * /pricing 등에서 비로그인 시 더미 플랜 선택 페이지로 보낼 때 사용.
+ */
+export function areBothTokensMissing(): boolean {
+  if (!isBrowser()) return true;
+  const hasValid = (name: string) => {
+    const cookies = document.cookie.split(";");
+    const c = cookies.find((x) => x.trim().startsWith(`${name}=`));
+    if (!c) return false;
+    const v = (c.split("=")[1] ?? "").trim();
+    return !!v && v !== "undefined" && v !== "null";
+  };
+  return !hasValid(ACCESS_COOKIE) && !hasValid(REFRESH_COOKIE);
+}
+
+/**
  * 앱 도메인 URL 반환
  * 
  * env.MAIN_SERVICE_URL에서 도메인을 추출하여 반환합니다.
@@ -102,8 +137,9 @@ export function getAppDomain(): string {
  *
  * 메인 서비스의 로그인 페이지로 리다이렉트하며,
  * returnUrl을 쿼리 파라미터로 전달합니다.
+ * returnUrl은 현재 접속 도메인(dev.talkgate.im / talkgate.im 등) 기준으로 생성합니다.
  *
- * @param returnPath - 로그인 후 돌아올 경로 (기본: '/')
+ * @param returnPath - 로그인 후 돌아올 경로 (기본: '/') 또는 전체 URL
  * @returns 메인 서비스 로그인 URL
  *
  * @example
@@ -112,7 +148,8 @@ export function getAppDomain(): string {
  * ```
  */
 export function getLoginUrl(returnPath: string = '/'): string {
-  const returnUrl = `${env.LANDING_URL}${returnPath}`;
+  const base = getLandingBaseUrl();
+  const returnUrl = toReturnUrl(base, returnPath);
   const loginUrl = new URL('/login', env.MAIN_SERVICE_URL);
   loginUrl.searchParams.set('returnUrl', returnUrl);
 
@@ -121,12 +158,14 @@ export function getLoginUrl(returnPath: string = '/'): string {
 
 /**
  * 회원가입 URL 생성
+ * returnUrl은 현재 접속 도메인 기준으로 생성합니다.
  *
- * @param returnPath - 가입 후 돌아올 경로 (기본: '/')
+ * @param returnPath - 가입 후 돌아올 경로 (기본: '/') 또는 전체 URL
  * @returns 메인 서비스 회원가입 URL
  */
 export function getSignupUrl(returnPath: string = '/'): string {
-  const returnUrl = `${env.LANDING_URL}${returnPath}`;
+  const base = getLandingBaseUrl();
+  const returnUrl = toReturnUrl(base, returnPath);
   const signupUrl = new URL('/signup', env.MAIN_SERVICE_URL);
   signupUrl.searchParams.set('returnUrl', returnUrl);
 
@@ -162,10 +201,10 @@ export function getDashboardUrl(): string {
  * 로그아웃 URL 생성
  *
  * 메인 서비스의 로그아웃 페이지로 리다이렉트하며,
- * returnUrl을 쿼리 파라미터로 전달합니다.
- * 메인 서비스에서 로그아웃 처리 후 콜백 URL로 돌아옵니다.
+ * callbackUrl/returnUrl을 쿼리 파라미터로 전달합니다.
+ * 두 URL 모두 현재 접속 도메인 기준으로 생성합니다.
  *
- * @param returnPath - 로그아웃 후 돌아올 경로 (기본: '/')
+ * @param returnPath - 로그아웃 후 돌아올 경로 (기본: '/') 또는 전체 URL
  * @returns 메인 서비스 로그아웃 URL
  *
  * @example
@@ -174,10 +213,10 @@ export function getDashboardUrl(): string {
  * ```
  */
 export function getLogoutUrl(returnPath: string = '/'): string {
-  // 로그아웃 콜백 URL 생성 (메인 서비스에서 로그아웃 처리 후 돌아올 URL)
-  const callbackUrl = `${env.LANDING_URL}/api/auth/logout-callback`;
-  const returnUrl = `${env.LANDING_URL}${returnPath}`;
-  
+  const base = getLandingBaseUrl();
+  const callbackUrl = `${base}/api/auth/logout-callback`;
+  const returnUrl = toReturnUrl(base, returnPath);
+
   const logoutUrl = new URL('/logout', env.MAIN_SERVICE_URL);
   logoutUrl.searchParams.set('callbackUrl', callbackUrl);
   logoutUrl.searchParams.set('returnUrl', returnUrl);
@@ -300,13 +339,11 @@ export const COOKIE_OPTIONS = {
 
 /**
  * 서버 사이드에서 인증 상태 확인
- * 
- * 메인 서비스의 API 프록시를 통해 인증 상태를 확인합니다.
- * httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 서버 API를 통해 확인합니다.
+ *
+ * /api/proxy와 동일하게 API_BASE_URL + tg_access_token 쿠키 기반으로 검증합니다.
  *
  * @example
  * ```tsx
- * // Server Component에서 사용
  * import { cookies } from 'next/headers';
  * import { checkAuthStatus } from '@/lib/auth';
  *
@@ -318,22 +355,25 @@ export const COOKIE_OPTIONS = {
  * ```
  */
 export async function checkAuthStatus(
-  cookieStore: { getAll: () => Array<{ name: string; value: string }> }
+  cookieStore: { get: (name: string) => { value: string } | undefined; getAll: () => Array<{ name: string; value: string }> }
 ): Promise<boolean> {
   try {
-    // 모든 쿠키를 가져와서 Cookie 헤더로 전달
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(cookie => `${cookie.name}=${cookie.value}`)
-      .join('; ');
+    const accessToken =
+      cookieStore.get?.('tg_access_token')?.value ??
+      cookieStore.getAll().find((c) => c.name === 'tg_access_token')?.value;
 
-    const response = await fetch(`${env.MAIN_SERVICE_URL}/api/proxy/v1/auth/user`, {
+    if (!accessToken || accessToken === 'undefined' || accessToken === 'null') {
+      return false;
+    }
+
+    const response = await fetch(`${env.API_BASE_URL}/v1/auth/user`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
       },
-      cache: 'no-store', // 매번 최신 상태 확인
+      cache: 'no-store',
     });
 
     return response.ok;

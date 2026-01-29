@@ -16,9 +16,11 @@ export const ProjectsService = {
   /**
    * 내가 어드민인 프로젝트 목록 조회
    * Admin 역할인 프로젝트만 조회합니다.
+   * @param options.suppressAutoLogout - true면 401 시 자동 로그아웃 리다이렉트 생략 (pricing 등)
    */
-  listAdmin() {
-    return apiClient.get<ProjectListResponse>("/v1/projects/admin");
+  listAdmin(options?: { suppressAutoLogout?: boolean }) {
+    const reqOpts = options?.suppressAutoLogout ? { suppressAutoLogout: true } : {};
+    return apiClient.get<ProjectListResponse>("/v1/projects/admin", reqOpts);
   },
 
   /**
