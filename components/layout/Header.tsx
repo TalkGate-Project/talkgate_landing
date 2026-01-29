@@ -5,18 +5,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/constants";
 import { getLoginUrl, getStartUrl, clearAuthCookies } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { SideDrawer } from "./SideDrawer";
 
 interface HeaderProps {
-  /** 인증 여부 (서버에서 전달) */
+  /** 인증 여부 (서버 초기값, useAuth로 클라이언트 재검사함) */
   isAuthenticated?: boolean;
   /** SSR 시 요청 Host 기반 랜딩 base URL (returnUrl 등용) */
   landingBaseUrl?: string;
 }
 
-export function Header({ isAuthenticated = false, landingBaseUrl }: HeaderProps) {
+export function Header({ isAuthenticated: initialAuth = false, landingBaseUrl }: HeaderProps) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { isAuthenticated, checkAuth } = useAuth({ initialAuth });
 
   /**
    * 로그아웃 처리
@@ -24,22 +26,28 @@ export function Header({ isAuthenticated = false, landingBaseUrl }: HeaderProps)
    * 2. 새로고침으로 새로운 데이터 로드
    */
   const handleLogout = () => {
-    // 1. 쿠키 삭제
     clearAuthCookies();
-
-    // 2. 새로고침으로 새로운 데이터 로드
     window.location.reload();
   };
+
+  // 탭 복귀 시 인증 재검사 (다른 탭에서 로그인 후 돌아오면 로그인 유지 반영)
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") checkAuth();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [checkAuth]);
 
   // 모바일에서 드로워가 열려있을 때 body 스크롤 방지
   useEffect(() => {
     if (isDrawerOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isDrawerOpen]);
 
