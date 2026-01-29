@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Montserrat } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { Header, Footer } from '@/components';
-import { ErrorFeedbackModalProvider } from '@/components/common';
+import { ErrorFeedbackModalProvider, LandingBaseUrlProvider } from '@/components/common';
 import { BRAND, PAGE_METADATA, COMPANY_INFO } from '@/lib/constants';
 import { checkAuthStatus, getLandingBaseUrlFromRequest } from '@/lib/auth';
 import './globals.css';
@@ -174,11 +174,13 @@ export default async function RootLayout({
       <body
         className={`${plusJakartaSans.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col`}
       >
-        <ErrorFeedbackModalProvider>
-          <Header isAuthenticated={isAuthenticated} landingBaseUrl={landingBaseUrl} />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </ErrorFeedbackModalProvider>
+        <LandingBaseUrlProvider landingBaseUrl={landingBaseUrl}>
+          <ErrorFeedbackModalProvider>
+            <Header isAuthenticated={isAuthenticated} landingBaseUrl={landingBaseUrl} />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </ErrorFeedbackModalProvider>
+        </LandingBaseUrlProvider>
       </body>
     </html>
   );

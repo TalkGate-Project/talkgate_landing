@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 /**
  * 서버 API를 통해 인증 상태 확인
@@ -24,10 +24,8 @@ async function checkAuthFromClient(): Promise<boolean> {
   try {
     const response = await fetch('/api/auth/check', {
       method: 'GET',
-      credentials: 'include', // httpOnly 쿠키를 포함하기 위해 필수
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
     });
 
@@ -51,47 +49,35 @@ interface UseAuthOptions {
 /**
  * 인증 상태 관리 훅
  * 
+ * 마운트 시 /api/auth/check 호출로 클라이언트에서 재검사하여
+ * 로그인 유지(쿠키 기반) 상태를 헤더 등에 반영합니다.
+ * 
  * @example
  * ```tsx
- * 'use client';
- * 
- * function MyComponent({ initialAuth }: { initialAuth: boolean }) {
- *   const { isAuthenticated, checkAuth } = useAuth({ initialAuth });
- *   
- *   return (
- *     <div>
- *       {isAuthenticated ? '로그인됨' : '로그아웃됨'}
- *       <button onClick={checkAuth}>상태 새로고침</button>
- *     </div>
- *   );
- * }
+ * const { isAuthenticated, checkAuth } = useAuth({ initialAuth });
  * ```
  */
 export function useAuth({
   initialAuth = false,
-  pollingInterval = 0, // 기본적으로 폴링 비활성화
+  pollingInterval = 0,
 }: UseAuthOptions = {}) {
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuth);
 
-  // 인증 상태 확인 함수
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const auth = await checkAuthFromClient();
     setIsAuthenticated(auth);
     return auth;
-  };
-
-  // 마운트 시 초기 확인
-  useEffect(() => {
-    checkAuth();
   }, []);
 
-  // 폴링 (선택적)
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   useEffect(() => {
     if (pollingInterval <= 0) return;
-
     const intervalId = setInterval(checkAuth, pollingInterval);
     return () => clearInterval(intervalId);
-  }, [pollingInterval]);
+  }, [pollingInterval, checkAuth]);
 
   return {
     isAuthenticated,
