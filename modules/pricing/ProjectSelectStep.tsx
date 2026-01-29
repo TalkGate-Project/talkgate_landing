@@ -120,14 +120,13 @@ export default function ProjectSelectStep({
     setLoading(true);
     setError(null);
     try {
-      // Admin 역할인 프로젝트만 조회
-      const response = await ProjectsService.listAdmin();
+      // Admin 역할인 프로젝트만 조회 (401 시 자동 로그아웃 비활성화 → pricing 페이지 유지)
+      const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
       const projectList = response.data?.data || [];
       setProjects(Array.isArray(projectList) ? projectList : []);
     } catch (err) {
       console.error("프로젝트 목록 조회 실패:", err);
       setError("프로젝트 목록을 불러오는데 실패했습니다.");
-      // 에러가 발생해도 빈 배열로 설정하여 UI가 표시되도록 함
       setProjects([]);
     } finally {
       setLoading(false);

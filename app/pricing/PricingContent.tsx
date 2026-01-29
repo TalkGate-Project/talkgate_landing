@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Project, PricingPlan, BillingCycle } from "@/types";
 import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/pricing";
 import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
-import { getLoginUrl, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { getLoginUrl } from "@/lib/auth";
 import { SubscriptionService } from "@/lib/subscription";
 import type { SubscriptionPlan } from "@/types/subscription";
 
@@ -42,22 +42,8 @@ export default function PricingContent() {
   const billingCycleFromUrl = searchParams.get("billingCycle"); // "monthly" | "quarterly" | null
   const planTypeFromUrl = searchParams.get("planType");
 
-  // 인증 상태 - 초기값을 함수로 계산 (hydration 후)
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    // SSR에서는 null 반환
-    if (typeof window === "undefined") return null;
-
-    const cookies = document.cookie.split(";");
-    const authCookie = cookies.find((c) =>
-      c.trim().startsWith(`${AUTH_COOKIE_NAME}=`)
-    );
-
-    if (authCookie) {
-      const value = authCookie.split("=")[1];
-      return !!value && value !== "undefined" && value !== "null";
-    }
-    return false;
-  });
+  // 인증 상태 - 헤더와 동일하게 /api/auth/check(메인 서비스 API 검증) 사용 → 비로그인 시 플랜 페이지
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   // 선택된 데이터
   const [selectedProject, setSelectedProject] = useState<Project | undefined>(() => {
@@ -110,27 +96,31 @@ export default function PricingContent() {
     [router, selectedProject]
   );
 
-  // Hydration 완료 후 인증 상태 재확인 (SSR → CSR 전환 시 필요)
+  // 마운트 시 /api/auth/check로 인증 확인 (헤더·레이아웃과 동일 검증)
   useEffect(() => {
-    if (isAuthenticated === null) {
-      const cookies = document.cookie.split(";");
-      const authCookie = cookies.find((c) =>
-        c.trim().startsWith(`${AUTH_COOKIE_NAME}=`)
-      );
-
-      let authenticated = false;
-      if (authCookie) {
-        const value = authCookie.split("=")[1];
-        authenticated = !!value && value !== "undefined" && value !== "null";
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/check", { credentials: "include", cache: "no-store" });
+        const data = res.ok ? await res.json() : { authenticated: false };
+        if (!cancelled) setIsAuthenticated(data.authenticated === true);
+      } catch {
+        if (!cancelled) setIsAuthenticated(false);
       }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-      setIsAuthenticated(authenticated);
-    }
-  }, [isAuthenticated]);
+  // 비로그인인데 step=project면 URL을 step=plan으로 정리 (플랜 페이지가 맞음)
+  useEffect(() => {
+    if (isAuthenticated !== false || stepFromUrl !== "project") return;
+    router.replace("/pricing?step=plan", { scroll: false });
+  }, [isAuthenticated, stepFromUrl, router]);
 
   // URL 파라미터에서 플랜 자동 선택 (checkout 단계이고 planType이 있을 때)
   useEffect(() => {
     const shouldAutoSelect = 
+      isAuthenticated === true &&
       stepFromUrl === "checkout" && 
       planTypeFromUrl && 
       billingCycleFromUrl &&
@@ -183,7 +173,7 @@ export default function PricingContent() {
     };
 
     autoSelectPlan();
-  }, [stepFromUrl, planTypeFromUrl, billingCycleFromUrl, selectedPlan, autoSelectingPlan]);
+  }, [isAuthenticated, stepFromUrl, planTypeFromUrl, billingCycleFromUrl, selectedPlan, autoSelectingPlan]);
 
   // 로딩 중일 때
   if (isAuthenticated === null) {
@@ -212,12 +202,9 @@ export default function PricingContent() {
     updateUrl("checkout");
   };
 
-  // 로그인 페이지로 이동
+  // 로그인 페이지로 이동 (returnUrl = 현재 도메인 기준 /pricing?step=project)
   const handleLogin = () => {
-    // 로그인 후 프로젝트 선택 화면으로 이동하도록 returnUrl 설정
-    const returnUrl = `${window.location.origin}/pricing?step=project`;
-    const loginUrl = getLoginUrl(returnUrl);
-    window.location.href = loginUrl;
+    window.location.href = getLoginUrl("/pricing?step=project");
   };
 
   // 뒤로 가기 핸들러들
@@ -234,12 +221,12 @@ export default function PricingContent() {
   // 현재 단계에 따라 컴포넌트 렌더링
   switch (currentStep) {
     case "project":
-      // 비로그인 상태에서 project 단계 접근 시 plan으로 리다이렉트
+      // 비로그인(액세스·리프레시 둘 다 없음) → 프로젝트 미선택 더미 플랜 선택으로
       if (!isAuthenticated) {
         return (
           <PlanSelectStep
             isAuthenticated={isAuthenticated}
-            selectedProject={selectedProject}
+            selectedProject={undefined}
             onSubscribe={handleSubscribe}
             onLogin={handleLogin}
           />
@@ -264,7 +251,7 @@ export default function PricingContent() {
       return (
         <PlanSelectStep
           isAuthenticated={isAuthenticated}
-          selectedProject={selectedProject}
+          selectedProject={isAuthenticated ? selectedProject : undefined}
           onSubscribe={handleSubscribe}
           onLogin={handleLogin}
           onBack={isAuthenticated ? handleBackFromPlan : undefined}
@@ -297,7 +284,7 @@ export default function PricingContent() {
         return (
           <PlanSelectStep
             isAuthenticated={isAuthenticated}
-            selectedProject={selectedProject}
+            selectedProject={isAuthenticated ? selectedProject : undefined}
             onSubscribe={handleSubscribe}
             onLogin={handleLogin}
             onBack={isAuthenticated ? handleBackFromPlan : undefined}
@@ -316,12 +303,12 @@ export default function PricingContent() {
       );
 
     default:
-      // 비로그인 상태에서는 플랜 선택부터
+      // 비로그인(둘 다 토큰 없음) → 더미 플랜 선택
       if (!isAuthenticated) {
         return (
           <PlanSelectStep
             isAuthenticated={isAuthenticated}
-            selectedProject={selectedProject}
+            selectedProject={undefined}
             onSubscribe={handleSubscribe}
             onLogin={handleLogin}
           />

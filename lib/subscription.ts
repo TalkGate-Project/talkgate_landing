@@ -47,9 +47,11 @@ export const SubscriptionService = {
    * Admin 프로젝트 구독 정보 조회
    * 사용자가 Admin인 모든 프로젝트의 구독 정보를 조회합니다.
    * 각 프로젝트의 멤버 수, AI/SMS 사용량, 구독 정보 등을 포함합니다.
+   * @param options.suppressAutoLogout - true면 401 시 자동 로그아웃 리다이렉트 생략 (pricing 등)
    */
-  getAdminProjects() {
-    return apiClient.get<AdminProjectsSubscriptionResponse>("/v1/subscriptions/admin/projects");
+  getAdminProjects(options?: { suppressAutoLogout?: boolean }) {
+    const reqOpts = options?.suppressAutoLogout ? { suppressAutoLogout: true } : {};
+    return apiClient.get<AdminProjectsSubscriptionResponse>("/v1/subscriptions/admin/projects", reqOpts);
   },
 
   /**
