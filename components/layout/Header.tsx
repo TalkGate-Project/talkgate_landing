@@ -10,9 +10,11 @@ import { SideDrawer } from "./SideDrawer";
 interface HeaderProps {
   /** 인증 여부 (서버에서 전달) */
   isAuthenticated?: boolean;
+  /** SSR 시 요청 Host 기반 랜딩 base URL (returnUrl 등용) */
+  landingBaseUrl?: string;
 }
 
-export function Header({ isAuthenticated = false }: HeaderProps) {
+export function Header({ isAuthenticated = false, landingBaseUrl }: HeaderProps) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -181,13 +183,13 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               <>
                 {/* 모바일에서는 로그인 버튼 숨김 (사이드 드로워로 이동) */}
                 <Link
-                  href={getLoginUrl(pathname)}
+                  href={getLoginUrl(pathname, landingBaseUrl)}
                   className="typo-body-sm font-medium text-[#252525] hover:text-[#808080] transition-colors hidden md:flex"
                 >
                   로그인
                 </Link>
                 {/* 모바일에서는 시작하기 버튼만 표시 */}
-                <Link href={getStartUrl(false)} className="btn btn-dark">
+                <Link href={getStartUrl(false, landingBaseUrl)} className="btn btn-dark">
                   시작하기
                 </Link>
               </>
@@ -202,6 +204,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
         onClose={() => setIsDrawerOpen(false)}
         isAuthenticated={isAuthenticated}
         pathname={pathname}
+        landingBaseUrl={landingBaseUrl}
         onLogout={handleLogout}
       />
     </>

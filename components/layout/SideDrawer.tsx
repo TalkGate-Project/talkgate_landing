@@ -9,6 +9,8 @@ interface SideDrawerProps {
   onClose: () => void;
   isAuthenticated: boolean;
   pathname: string;
+  /** SSR 시 랜딩 base URL (로그인 returnUrl용) */
+  landingBaseUrl?: string;
   onLogout: () => void;
 }
 
@@ -17,6 +19,7 @@ export function SideDrawer({
   onClose,
   isAuthenticated,
   pathname,
+  landingBaseUrl,
   onLogout,
 }: SideDrawerProps) {
   // 배경 오버레이 클릭 시 닫기
@@ -111,7 +114,7 @@ export function SideDrawer({
               </button>
             ) : (
               <Link
-                href={getLoginUrl(pathname)}
+                href={getLoginUrl(pathname, landingBaseUrl)}
                 onClick={onClose}
                 className="typo-body-sm font-medium text-[#252525] transition-colors"
               >

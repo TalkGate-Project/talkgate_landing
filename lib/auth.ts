@@ -36,6 +36,19 @@ function getLandingBaseUrl(): string {
   return env.LANDING_URL.replace(/\/$/, "");
 }
 
+/**
+ * 요청 헤더로 랜딩 기준 URL 계산 (서버 전용).
+ * SSR 시 Link href에 env.LANDING_URL 대신 요청 Host 사용 → dev/talkgate 등 도메인 불일치 방지.
+ * @param headers - next/headers의 headers() 반환값
+ */
+export function getLandingBaseUrlFromRequest(headers: Headers): string {
+  const host = headers.get("x-forwarded-host") || headers.get("host") || "";
+  const proto = headers.get("x-forwarded-proto") || "https";
+  if (!host) return env.LANDING_URL.replace(/\/$/, "");
+  const base = `${proto === "https" ? "https" : "http"}://${host}`.replace(/\/$/, "");
+  return base;
+}
+
 /** 경로 또는 전체 URL → returnUrl로 사용할 전체 URL */
 function toReturnUrl(base: string, pathOrUrl: string): string {
   const s = pathOrUrl.trim();
@@ -140,15 +153,16 @@ export function getAppDomain(): string {
  * returnUrl은 현재 접속 도메인(dev.talkgate.im / talkgate.im 등) 기준으로 생성합니다.
  *
  * @param returnPath - 로그인 후 돌아올 경로 (기본: '/') 또는 전체 URL
- * @returns 메인 서비스 로그인 URL
+ * @param baseUrlOverride - SSR 시 서버에서 넘긴 랜딩 기준 URL (요청 Host 기반). 있으면 이걸 사용.
  *
  * @example
  * ```tsx
  * <Link href={getLoginUrl('/pricing')}>로그인</Link>
+ * <Link href={getLoginUrl(pathname, landingBaseUrl)}>로그인</Link>
  * ```
  */
-export function getLoginUrl(returnPath: string = '/'): string {
-  const base = getLandingBaseUrl();
+export function getLoginUrl(returnPath: string = '/', baseUrlOverride?: string): string {
+  const base = baseUrlOverride ?? getLandingBaseUrl();
   const returnUrl = toReturnUrl(base, returnPath);
   const loginUrl = new URL('/login', env.MAIN_SERVICE_URL);
   loginUrl.searchParams.set('returnUrl', returnUrl);
@@ -161,10 +175,10 @@ export function getLoginUrl(returnPath: string = '/'): string {
  * returnUrl은 현재 접속 도메인 기준으로 생성합니다.
  *
  * @param returnPath - 가입 후 돌아올 경로 (기본: '/') 또는 전체 URL
- * @returns 메인 서비스 회원가입 URL
+ * @param baseUrlOverride - SSR 시 서버에서 넘긴 랜딩 기준 URL. 있으면 이걸 사용.
  */
-export function getSignupUrl(returnPath: string = '/'): string {
-  const base = getLandingBaseUrl();
+export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string): string {
+  const base = baseUrlOverride ?? getLandingBaseUrl();
   const returnUrl = toReturnUrl(base, returnPath);
   const signupUrl = new URL('/signup', env.MAIN_SERVICE_URL);
   signupUrl.searchParams.set('returnUrl', returnUrl);
@@ -180,14 +194,13 @@ export function getSignupUrl(returnPath: string = '/'): string {
  * - 미인증: 메인 서비스 회원가입
  *
  * @param isAuthenticated - 인증 여부
- * @returns 적절한 URL
+ * @param baseUrlOverride - SSR 시 랜딩 기준 URL (미인증 회원가입 returnUrl용).
  */
-export function getStartUrl(isAuthenticated: boolean = false): string {
+export function getStartUrl(isAuthenticated: boolean = false, baseUrlOverride?: string): string {
   if (isAuthenticated) {
     return `${env.MAIN_SERVICE_URL}/dashboard`;
   }
-
-  return getSignupUrl('/');
+  return getSignupUrl('/', baseUrlOverride);
 }
 
 /**
@@ -205,15 +218,15 @@ export function getDashboardUrl(): string {
  * 두 URL 모두 현재 접속 도메인 기준으로 생성합니다.
  *
  * @param returnPath - 로그아웃 후 돌아올 경로 (기본: '/') 또는 전체 URL
- * @returns 메인 서비스 로그아웃 URL
+ * @param baseUrlOverride - SSR 시 랜딩 기준 URL. 있으면 이걸 사용.
  *
  * @example
  * ```tsx
  * <Link href={getLogoutUrl('/')}>로그아웃</Link>
  * ```
  */
-export function getLogoutUrl(returnPath: string = '/'): string {
-  const base = getLandingBaseUrl();
+export function getLogoutUrl(returnPath: string = '/', baseUrlOverride?: string): string {
+  const base = baseUrlOverride ?? getLandingBaseUrl();
   const callbackUrl = `${base}/api/auth/logout-callback`;
   const returnUrl = toReturnUrl(base, returnPath);
 

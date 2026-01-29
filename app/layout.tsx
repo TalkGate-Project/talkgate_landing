@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Montserrat } from 'next/font/google';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { Header, Footer } from '@/components';
 import { ErrorFeedbackModalProvider } from '@/components/common';
 import { BRAND, PAGE_METADATA, COMPANY_INFO } from '@/lib/constants';
-import { checkAuthStatus } from '@/lib/auth';
+import { checkAuthStatus, getLandingBaseUrlFromRequest } from '@/lib/auth';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -104,9 +104,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 서버에서 인증 상태 확인 (메인 서비스 API를 통해)
   const cookieStore = await cookies();
   const isAuthenticated = await checkAuthStatus(cookieStore);
+  const headersList = await headers();
+  const landingBaseUrl = getLandingBaseUrlFromRequest(headersList);
 
   const siteUrl = 'https://talkgate.im';
 
@@ -174,7 +175,7 @@ export default async function RootLayout({
         className={`${plusJakartaSans.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col`}
       >
         <ErrorFeedbackModalProvider>
-          <Header isAuthenticated={isAuthenticated} />
+          <Header isAuthenticated={isAuthenticated} landingBaseUrl={landingBaseUrl} />
           <main className="flex-1">{children}</main>
           <Footer />
         </ErrorFeedbackModalProvider>
