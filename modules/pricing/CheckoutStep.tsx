@@ -375,7 +375,7 @@ export default function CheckoutStep({
           </h3>
 
           {isCouponCheckout && couponInfo ? (
-            <div className="p-4 bg-[#F8F8F8] rounded-[12px] border border-[#E2E2E2]">
+            <div className="px-4 py-3.5 bg-[#F8F8F8] rounded-[12px] mt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[8px] bg-[#E8F5E9] flex items-center justify-center flex-shrink-0">
                   <svg width="34" height="20" viewBox="0 0 34 20" fill="none" xmlns="http://www.w3.org/2000/svg">
