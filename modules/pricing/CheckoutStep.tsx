@@ -261,7 +261,8 @@ export default function CheckoutStep({
   const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
   const billingLabel = isPlanChange ? "추가 청구 금액" : billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
-  const titleText = isPlanChange ? "플랜 변경" : "구독하기";
+  const planDisplayName = selectedPlan.badge || selectedPlan.name;
+  const titleText = isPlanChange ? "플랜 변경" : `${planDisplayName} 구독하기`;
 
   // 카드 정보 마스킹
   const getMaskedCardNumber = () => {

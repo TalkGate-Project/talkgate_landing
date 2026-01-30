@@ -24,36 +24,6 @@ interface PlanSelectStepProps {
   onBack?: () => void;
 }
 
-// 비로그인 시 API 호출 없이 사용하는 더미 플랜 (401·자동 로그아웃 방지)
-const DUMMY_PLANS: SubscriptionPlan[] = [
-  {
-    id: 0,
-    name: "Basic",
-    description: "스타트업과 소규모 팀을 위한 플랜",
-    monthlyPrice: 99000,
-    quarterlyPrice: 267300,
-    aiUsageLimit: 10000,
-    smsUsageLimit: 500,
-    memberCountLimit: 5,
-    maxMembers: 5,
-    maxCustomers: 500,
-    sortOrder: 0,
-  },
-  {
-    id: 1,
-    name: "Premium",
-    description: "성장하는 팀을 위한 플랜",
-    monthlyPrice: 199000,
-    quarterlyPrice: 537300,
-    aiUsageLimit: 50000,
-    smsUsageLimit: 2000,
-    memberCountLimit: 20,
-    maxMembers: 20,
-    maxCustomers: 2000,
-    sortOrder: 1,
-  },
-];
-
 // API 플랜을 UI 플랜으로 변환
 function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPlan {
   return {
@@ -150,21 +120,12 @@ export default function PlanSelectStep({
     };
   }, [plans.length]); // plans가 로드되면 카드 observer 재설정
 
-  // 플랜 데이터 로드 (비로그인 시 API 호출 없이 더미 사용 → 401/자동 로그아웃 방지)
+  // 플랜 데이터 로드 (구독 플랜 조회 API는 토큰 불필요, 로그인 여부와 무관하게 호출)
   useEffect(() => {
     const fetchPlans = async () => {
       setLoading(true);
       setError(null);
       try {
-        if (!isAuthenticated) {
-          const sortedPlans = [...DUMMY_PLANS].sort((a, b) => a.sortOrder - b.sortOrder);
-          const convertedPlans = sortedPlans.map((plan, index) =>
-            convertToPricingPlan(plan, index)
-          );
-          setPlans(convertedPlans);
-          setPlanMeta(sortedPlans);
-          return;
-        }
         const response = await SubscriptionService.getPlans();
         const apiPlans = response.data?.data?.plans || [];
         const sortedPlans = [...apiPlans].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -182,7 +143,7 @@ export default function PlanSelectStep({
     };
 
     fetchPlans();
-  }, [isAuthenticated]);
+  }, []);
 
   const normalizePlanName = (value: string) => value.trim().toLowerCase();
 
