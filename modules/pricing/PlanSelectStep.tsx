@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
-import type { SubscriptionPlan, AdminProjectSubscription } from "@/types/subscription";
+import type { SubscriptionPlan, AdminProjectSubscription, CouponInfoForCheckout } from "@/types/subscription";
 import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
@@ -17,7 +17,8 @@ interface PlanSelectStepProps {
   onSubscribe: (
     plan: PricingPlan,
     billingCycle: BillingCycle,
-    context?: PlanSelectionContext
+    context?: PlanSelectionContext,
+    couponInfo?: CouponInfoForCheckout
   ) => void;
   onLogin: () => void;
   onBack?: () => void;
@@ -89,6 +90,9 @@ export default function PlanSelectStep({
   const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [changingPlan, setChangingPlan] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
@@ -329,6 +333,53 @@ export default function PlanSelectStep({
     onSubscribe(plan, billingCycle, { isPlanChange: false, isUpgrade: false });
   };
 
+  const handleCouponRegister = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      setCouponError("쿠폰 코드를 입력해주세요.");
+      return;
+    }
+    if (!selectedProject) return;
+
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const response = await SubscriptionService.couponInfo(selectedProject.id, { code });
+      const data = response.data?.data;
+      if (!data) {
+        setCouponError("쿠폰 정보를 불러올 수 없습니다.");
+        return;
+      }
+      if (!data.canUse) {
+        setCouponError(data.unavailableReason || "이 쿠폰을 사용할 수 없습니다.");
+        return;
+      }
+      const billingCycleFromCoupon: BillingCycle =
+        data.billingCycle === "quarterly" ? "yearly" : "monthly";
+      const plan = plans.find((p) => p.id === String(data.plan.id));
+      if (!plan) {
+        setCouponError("해당 쿠폰의 플랜 정보를 찾을 수 없습니다.");
+        return;
+      }
+      onSubscribe(plan, billingCycleFromCoupon, undefined, {
+        code,
+        info: data,
+      });
+    } catch (err: unknown) {
+      const apiError = err as { data?: { code?: string; message?: string } };
+      const message =
+        apiError?.data?.message ||
+        (apiError?.data?.code === "INVALID_COUPON"
+          ? "유효하지 않은 쿠폰입니다."
+          : apiError?.data?.code === "COUPON_EXPIRED"
+            ? "만료된 쿠폰입니다."
+            : "쿠폰 확인에 실패했습니다.");
+      setCouponError(message);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   return (
     <section className="py-12 md:py-20 min-h-screen bg-white">
       <div className="max-w-[1192px] mx-auto px-4">
@@ -380,17 +431,36 @@ export default function PlanSelectStep({
 
         {/* coupon registration */}
         {selectedProject && (
-          <div className="max-w-[334px] h-[34px] gap-2 md:gap-3 mb-9.5 md:mb-12 mx-auto flex">
-            <input
-              type="text"
-              placeholder="쿠폰코드를 입력해주세요."
-              className="w-full border border-[#E2E2E266] h-full px-2 md:px-3 text-[14px] rounded-[10px] tracking-[-0.02em] text-[#595959] focus:outline-none focus:border-[#00E272]"
-            />
-            <button
-              className="w-full max-w-[62px] md:max-w-[72px] border border-[#E2E2E266] rounded-[10px] text-[14px] tracking-[-0.02em] hover:bg-[#E2E2E266] transition-colors"
-            >
-              쿠폰등록
-            </button>
+          <div className="max-w-[334px] mx-auto mb-9.5 md:mb-12">
+            <div className="h-[34px] gap-2 md:gap-3 flex">
+              <input
+                type="text"
+                placeholder="쿠폰코드를 입력해주세요."
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value);
+                  setCouponError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCouponRegister();
+                  }
+                }}
+                className="w-full border border-[#E2E2E266] h-full px-2 md:px-3 text-[14px] rounded-[10px] tracking-[-0.02em] text-[#595959] focus:outline-none focus:border-[#00E272]"
+              />
+              <button
+                type="button"
+                onClick={handleCouponRegister}
+                disabled={couponLoading || !couponCode.trim()}
+                className="w-full max-w-[62px] md:max-w-[72px] border border-[#E2E2E266] rounded-[10px] text-[14px] tracking-[-0.02em] hover:bg-[#E2E2E266] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {couponLoading ? "확인 중..." : "쿠폰등록"}
+              </button>
+            </div>
+            {couponError && (
+              <p className="mt-2 text-[13px] text-red-500 text-center">{couponError}</p>
+            )}
           </div>
         )}
 

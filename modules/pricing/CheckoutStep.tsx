@@ -9,6 +9,7 @@ import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import BillingRegisterModal from "./BillingRegisterModal";
 import type { PlanSelectionContext } from "./PlanSelectStep";
+import type { CouponInfoForCheckout } from "@/types/subscription";
 
 // 정기과금(자동승인) 이용약관 내용
 const RECURRING_BILLING_TERMS = `1. 이용자는 본 신청서에 서명하거나 공인인증 및 그에 준하는 전자 인증절차를 통함으로써 본 서비스를 이용할 수 있습니다.
@@ -50,6 +51,8 @@ interface CheckoutStepProps {
   billingCycle: BillingCycle;
   onBack: () => void;
   planSelectionContext?: PlanSelectionContext;
+  /** 쿠폰으로 진입한 경우 (info API로 검증 완료된 상태) */
+  couponInfo?: CouponInfoForCheckout;
 }
 
 export default function CheckoutStep({
@@ -58,6 +61,7 @@ export default function CheckoutStep({
   billingCycle,
   onBack,
   planSelectionContext,
+  couponInfo,
 }: CheckoutStepProps) {
   // 컴포넌트 마운트 시 스크롤을 맨 위로 올리기
   useEffect(() => {
@@ -79,14 +83,17 @@ export default function CheckoutStep({
   const [showRecurringTerms, setShowRecurringTerms] = useState(false);
   const [showCancelTerms, setShowCancelTerms] = useState(false);
 
-  // 결제 수단 조회
+  // 결제 수단 조회 (쿠폰 결제 시에는 스킵)
   useEffect(() => {
+    if (couponInfo) {
+      setLoadingBilling(false);
+      return;
+    }
     const fetchBillingInfo = async () => {
       setLoadingBilling(true);
       try {
         const response = await BillingService.list();
         const billingInfos = response.data?.data?.billingInfos || [];
-        // 활성화된 결제 수단 중 첫 번째를 사용
         const activeBilling = billingInfos.find((b) => b.isActive) || billingInfos[0] || null;
         setBillingInfo(activeBilling);
       } catch (err) {
@@ -98,11 +105,12 @@ export default function CheckoutStep({
     };
 
     fetchBillingInfo();
-  }, []);
+  }, [couponInfo]);
 
   const subscriptionBillingCycle = billingCycle === "yearly" ? "quarterly" : "monthly";
   const isPlanChange = planSelectionContext?.isPlanChange ?? false;
   const isUpgrade = planSelectionContext?.isUpgrade ?? false;
+  const isCouponCheckout = Boolean(couponInfo);
 
   useEffect(() => {
     const fetchEstimate = async () => {
@@ -139,13 +147,12 @@ export default function CheckoutStep({
       return;
     }
 
-    // 결제 수단이 없으면 등록 안내 모달 표시
-    if (!billingInfo) {
+    // 쿠폰이 아닌 경우에만 결제 수단 필요
+    if (!isCouponCheckout && !billingInfo) {
       setShowConfirmModal(true);
       return;
     }
 
-    // 프로젝트가 선택되지 않은 경우 (임시로 에러 처리, 실제로는 플로우에서 프로젝트 선택 필요)
     if (!selectedProject) {
       setError("프로젝트를 먼저 선택해주세요.");
       return;
@@ -156,6 +163,22 @@ export default function CheckoutStep({
 
     try {
       const planId = Number(selectedPlan.id);
+
+      if (isCouponCheckout && couponInfo) {
+        await SubscriptionService.couponApply(selectedProject.id, { code: couponInfo.code });
+        showErrorModal({
+          type: "success",
+          title: "구독 완료",
+          headline: "구독이 완료되었습니다!",
+          description: `${selectedProject.name} 프로젝트에 쿠폰이 적용된 ${selectedPlan.badge || selectedPlan.name} 플랜이 활성화되었습니다.`,
+          confirmText: "확인",
+          hideCancel: true,
+          onConfirm: () => {
+            window.location.href = "/pricing?step=project";
+          },
+        });
+        return;
+      }
 
       if (isPlanChange) {
         await SubscriptionService.changePlan(selectedProject.id, {
@@ -181,7 +204,6 @@ export default function CheckoutStep({
           billingCycle: subscriptionBillingCycle,
         });
 
-        // 구독 성공 모달 표시
         showErrorModal({
           type: "success",
           title: "구독 완료",
@@ -190,7 +212,6 @@ export default function CheckoutStep({
           confirmText: "확인",
           hideCancel: true,
           onConfirm: () => {
-            // 확인 클릭 시 /pricing으로 새로고침하여 프로젝트 목록 업데이트
             window.location.href = "/pricing?step=project";
           },
         });
@@ -227,15 +248,16 @@ export default function CheckoutStep({
     }
   };
 
-  // 가격 계산 (VAT 별도)
+  // 가격 계산 (VAT 별도). 쿠폰 시 실제 결제액은 0원
   const basePlanAmount =
     billingCycle === "monthly"
       ? selectedPlan.priceMonthly
       : selectedPlan.priceYearly || selectedPlan.priceMonthly;
   const planAmount = isPlanChange && isUpgrade ? estimateAmount ?? 0 : basePlanAmount;
-  const subtotal = planAmount; // 소계는 플랜금액
-  const vat = Math.floor(planAmount * 0.1); // 부가가치세는 소계의 10%
-  const total = planAmount + vat; // 지불 총액은 플랜금액 + 부가세
+  const subtotal = planAmount;
+  const vat = Math.floor(planAmount * 0.1);
+  const totalOriginal = planAmount + vat;
+  const total = isCouponCheckout ? 0 : totalOriginal;
   const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
   const billingLabel = isPlanChange ? "추가 청구 금액" : billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
@@ -263,9 +285,14 @@ export default function CheckoutStep({
           </h1>
         </div>
 
-        {/* 가격 섹션 */}
+        {/* 가격 섹션 (쿠폰 시 원가 삭선 + 0원 표시) */}
         <div className="mb-7 md:mb-12">
-          <div className="flex items-baseline">
+          <div className="flex items-baseline flex-wrap gap-x-2">
+            {isCouponCheckout && (
+              <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-[#252525] line-through">
+                ₩ {totalOriginal.toLocaleString()}
+              </span>
+            )}
             <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-center text-[#252525]">
               ₩ {total.toLocaleString()}
             </span>
@@ -318,13 +345,22 @@ export default function CheckoutStep({
             <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
           </div>
 
-          {/* 당일 지불 총액 */}
+          {/* 당일 지불 총액 (쿠폰 시 원가 삭선 + 0원) */}
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
               당일 지불 총액
             </h3>
             <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
-              {total.toLocaleString()}원
+              {isCouponCheckout ? (
+                <span className="inline-flex items-center gap-2">
+                  <span>{total.toLocaleString()}원</span>
+                  <span className="line-through text-[#808080] font-normal">
+                    ₩ {totalOriginal.toLocaleString()}
+                  </span>
+                </span>
+              ) : (
+                `${total.toLocaleString()}원`
+              )}
             </p>
           </div>
         </div>
@@ -332,13 +368,35 @@ export default function CheckoutStep({
         {/* 구분선 */}
         <div className="w-full h-px bg-[#E2E2E2] my-8 md:my-10" />
 
-        {/* 결제 수단 정보 */}
+        {/* 결제 수단 / 쿠폰 정보 */}
         <div className="mb-6">
           <h3 className="font-semibold text-[16px] md:text-[18px] text-[#252525] mb-4">
             결제 수단
           </h3>
-          
-          {loadingBilling ? (
+
+          {isCouponCheckout && couponInfo ? (
+            <div className="p-4 bg-[#F8F8F8] rounded-[12px] border border-[#E2E2E2]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[8px] bg-[#E8F5E9] flex items-center justify-center flex-shrink-0">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#00B55B]">
+                    <path d="M21 5H3C2.44772 5 2 5.44772 2 6V18C2 18.5523 2.44772 19 3 19H21C21.5523 19 22 18.5523 22 18V6C22 5.44772 21.5523 5 21 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M2 9H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M7 14H7.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[14px] font-medium text-[#252525]">
+                    {couponInfo.info.name}
+                  </p>
+                  {couponInfo.info.description && (
+                    <p className="text-[13px] text-[#595959] mt-0.5">
+                      {couponInfo.info.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : loadingBilling ? (
             <div className="flex items-center justify-center py-8">
               <span className="text-[14px] text-[#808080]">결제 수단 확인 중...</span>
             </div>
@@ -491,17 +549,21 @@ export default function CheckoutStep({
           </label>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Button (쿠폰 시에도 결제하기 라벨 유지) */}
         <button
           onClick={handleSubscribe}
-          disabled={submitting || !agreedToTerms || loadingBilling || loadingEstimate || (isPlanChange && isUpgrade && estimateAmount === null)}
+          disabled={
+            submitting ||
+            !agreedToTerms ||
+            (!isCouponCheckout && (loadingBilling || (isPlanChange && isUpgrade && estimateAmount === null) || loadingEstimate))
+          }
           className="w-full h-[48px] md:h-[52px] mt-8 rounded-[30px] bg-[#000000] text-white font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {submitting
             ? "처리 중..."
-            : loadingEstimate
-            ? "청구 금액 계산 중..."
-            : "결제하기"}
+            : !isCouponCheckout && loadingEstimate
+              ? "청구 금액 계산 중..."
+              : "결제하기"}
         </button>
       </div>
 
