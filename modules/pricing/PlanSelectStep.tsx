@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
-import type { SubscriptionPlan, AdminProjectSubscription } from "@/types/subscription";
+import type { SubscriptionPlan, AdminProjectSubscription, CouponInfoForCheckout } from "@/types/subscription";
 import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
@@ -17,41 +17,12 @@ interface PlanSelectStepProps {
   onSubscribe: (
     plan: PricingPlan,
     billingCycle: BillingCycle,
-    context?: PlanSelectionContext
+    context?: PlanSelectionContext,
+    couponInfo?: CouponInfoForCheckout
   ) => void;
   onLogin: () => void;
   onBack?: () => void;
 }
-
-// 비로그인 시 API 호출 없이 사용하는 더미 플랜 (401·자동 로그아웃 방지)
-const DUMMY_PLANS: SubscriptionPlan[] = [
-  {
-    id: 0,
-    name: "Basic",
-    description: "스타트업과 소규모 팀을 위한 플랜",
-    monthlyPrice: 99000,
-    quarterlyPrice: 267300,
-    aiUsageLimit: 10000,
-    smsUsageLimit: 500,
-    memberCountLimit: 5,
-    maxMembers: 5,
-    maxCustomers: 500,
-    sortOrder: 0,
-  },
-  {
-    id: 1,
-    name: "Premium",
-    description: "성장하는 팀을 위한 플랜",
-    monthlyPrice: 199000,
-    quarterlyPrice: 537300,
-    aiUsageLimit: 50000,
-    smsUsageLimit: 2000,
-    memberCountLimit: 20,
-    maxMembers: 20,
-    maxCustomers: 2000,
-    sortOrder: 1,
-  },
-];
 
 // API 플랜을 UI 플랜으로 변환
 function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPlan {
@@ -89,7 +60,10 @@ export default function PlanSelectStep({
   const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [changingPlan, setChangingPlan] = useState(false);
-  
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLDivElement>(null);
@@ -146,21 +120,12 @@ export default function PlanSelectStep({
     };
   }, [plans.length]); // plans가 로드되면 카드 observer 재설정
 
-  // 플랜 데이터 로드 (비로그인 시 API 호출 없이 더미 사용 → 401/자동 로그아웃 방지)
+  // 플랜 데이터 로드 (구독 플랜 조회 API는 토큰 불필요, 로그인 여부와 무관하게 호출)
   useEffect(() => {
     const fetchPlans = async () => {
       setLoading(true);
       setError(null);
       try {
-        if (!isAuthenticated) {
-          const sortedPlans = [...DUMMY_PLANS].sort((a, b) => a.sortOrder - b.sortOrder);
-          const convertedPlans = sortedPlans.map((plan, index) =>
-            convertToPricingPlan(plan, index)
-          );
-          setPlans(convertedPlans);
-          setPlanMeta(sortedPlans);
-          return;
-        }
         const response = await SubscriptionService.getPlans();
         const apiPlans = response.data?.data?.plans || [];
         const sortedPlans = [...apiPlans].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -178,7 +143,7 @@ export default function PlanSelectStep({
     };
 
     fetchPlans();
-  }, [isAuthenticated]);
+  }, []);
 
   const normalizePlanName = (value: string) => value.trim().toLowerCase();
 
@@ -329,6 +294,53 @@ export default function PlanSelectStep({
     onSubscribe(plan, billingCycle, { isPlanChange: false, isUpgrade: false });
   };
 
+  const handleCouponRegister = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      setCouponError("쿠폰 코드를 입력해주세요.");
+      return;
+    }
+    if (!selectedProject) return;
+
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const response = await SubscriptionService.couponInfo(selectedProject.id, { code });
+      const data = response.data?.data;
+      if (!data) {
+        setCouponError("쿠폰 정보를 불러올 수 없습니다.");
+        return;
+      }
+      if (!data.canUse) {
+        setCouponError(data.unavailableReason || "이 쿠폰을 사용할 수 없습니다.");
+        return;
+      }
+      const billingCycleFromCoupon: BillingCycle =
+        data.billingCycle === "quarterly" ? "yearly" : "monthly";
+      const plan = plans.find((p) => p.id === String(data.plan.id));
+      if (!plan) {
+        setCouponError("해당 쿠폰의 플랜 정보를 찾을 수 없습니다.");
+        return;
+      }
+      onSubscribe(plan, billingCycleFromCoupon, undefined, {
+        code,
+        info: data,
+      });
+    } catch (err: unknown) {
+      const apiError = err as { data?: { code?: string; message?: string } };
+      const message =
+        apiError?.data?.message ||
+        (apiError?.data?.code === "INVALID_COUPON"
+          ? "유효하지 않은 쿠폰입니다."
+          : apiError?.data?.code === "COUPON_EXPIRED"
+            ? "만료된 쿠폰입니다."
+            : "쿠폰 확인에 실패했습니다.");
+      setCouponError(message);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   return (
     <section className="py-12 md:py-20 min-h-screen bg-white">
       <div className="max-w-[1192px] mx-auto px-4">
@@ -367,7 +379,7 @@ export default function PlanSelectStep({
         )}
 
         {/* Header */}
-        <div ref={headerRef} className={`text-center mb-10.5 md:mb-12 pricing-header ${headerVisible ? 'animate' : ''}`}>
+        <div ref={headerRef} className={`text-center mb-1 md:mb-3 pricing-header ${headerVisible ? 'animate' : ''}`}>
           <h1 className="text-[20px] md:text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] !mb-4">
             복잡한 고민 없이,
             <br />
@@ -378,25 +390,58 @@ export default function PlanSelectStep({
           </p>
         </div>
 
+        {/* coupon registration */}
+        {selectedProject && (
+          <div className="max-w-[334px] mx-auto mb-9.5 md:mb-12">
+            <div className="h-[34px] gap-2 md:gap-3 flex">
+              <input
+                type="text"
+                placeholder="쿠폰코드를 입력해주세요."
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value);
+                  setCouponError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCouponRegister();
+                  }
+                }}
+                className="w-full border border-[#E2E2E266] h-full px-2 md:px-3 text-[14px] rounded-[10px] tracking-[-0.02em] text-[#595959] focus:outline-none focus:border-[#00E272]"
+              />
+              <button
+                type="button"
+                onClick={handleCouponRegister}
+                disabled={couponLoading || !couponCode.trim()}
+                className="w-full max-w-[62px] md:max-w-[72px] border border-[#E2E2E266] rounded-[10px] text-[14px] tracking-[-0.02em] hover:bg-[#E2E2E266] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {couponLoading ? "확인 중..." : "쿠폰등록"}
+              </button>
+            </div>
+            {couponError && (
+              <p className="mt-2 text-[13px] text-red-500 text-center">{couponError}</p>
+            )}
+          </div>
+        )}
+
         {/* Billing Toggle */}
         <div ref={toggleRef} className={`flex justify-center mb-9.5 md:mb-12 pricing-toggle ${toggleVisible ? 'animate' : ''}`}>
           <div className="w-full md:w-auto inline-flex rounded-full bg-[#F8F8F8] p-1">
             <button
-              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
-                billingCycle === "monthly"
-                  ? "bg-[#252525] text-white"
-                  : "text-[#808080] cursor-pointer"
-              }`}
+              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${billingCycle === "monthly"
+                ? "bg-[#252525] text-white"
+                : "text-[#808080] cursor-pointer"
+                }`}
               onClick={() => setBillingCycle("monthly")}
             >
               월마다
             </button>
             <button
-              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${
-                billingCycle === "yearly"
-                  ? "bg-[#252525] text-white"
-                  : "text-[#808080] cursor-pointer"
-              }`}
+              className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${billingCycle === "yearly"
+                ? "bg-[#252525] text-white"
+                : "text-[#808080] cursor-pointer"
+                }`}
               onClick={() => setBillingCycle("yearly")}
             >
               3개월마다
@@ -459,24 +504,24 @@ export default function PlanSelectStep({
               const disabledReason = isUpgradeWithShorterCycle
                 ? "해당 구독 상품으로는 변경할 수 없어요."
                 : isQuarterlyToMonthlyPlanChange
-                ? "해당 구독 상품으로는 변경할 수 없어요."
-                : isSamePlanAndCycle
-                ? "현재 구독 중인 상품입니다."
-                : undefined;
+                  ? "해당 구독 상품으로는 변경할 수 없어요."
+                  : isSamePlanAndCycle
+                    ? "현재 구독 중인 상품입니다."
+                    : undefined;
 
               return (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                billingCycle={billingCycle}
-                onSubscribe={() => handleSubscribe(plan)}
-                className={`${plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"} pricing-card ${cardsVisible ? 'animate' : ''}`}
-                ctaText={ctaText}
-                isDisabled={isDisabled}
-                disabledReason={disabledReason}
-                animationDelay={index * 0.1}
-              />
-            );
+                <PricingCard
+                  key={plan.id}
+                  plan={plan}
+                  billingCycle={billingCycle}
+                  onSubscribe={() => handleSubscribe(plan)}
+                  className={`${plan.highlighted ? "order-1 md:order-2" : "order-2 md:order-1"} pricing-card ${cardsVisible ? 'animate' : ''}`}
+                  ctaText={ctaText}
+                  isDisabled={isDisabled}
+                  disabledReason={disabledReason}
+                  animationDelay={index * 0.1}
+                />
+              );
             })}
           </div>
         )}
@@ -520,9 +565,8 @@ function PricingCard({
 
   return (
     <div
-      className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${
-        isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
-      } ${className}`}
+      className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
+        } ${className}`}
       style={{ animationDelay: `${animationDelay}s` }}
     >
       {/* Header */}
@@ -572,11 +616,10 @@ function PricingCard({
         </div>
         {plan.badge && (
           <span
-            className={`px-2 md:px-3 py-1 rounded-[30px] text-[12px] md:text-[14px] font-medium ${
-              isHighlighted
-                ? "bg-[#D6FAE8] text-[#00B55B]"
-                : "bg-[#E2E2E2] text-[#595959]"
-            } opacity-80`}
+            className={`px-2 md:px-3 py-1 rounded-[30px] text-[12px] md:text-[14px] font-medium ${isHighlighted
+              ? "bg-[#D6FAE8] text-[#00B55B]"
+              : "bg-[#E2E2E2] text-[#595959]"
+              } opacity-80`}
           >
             {plan.badge}
           </span>
@@ -710,11 +753,10 @@ function PricingCard({
         onClick={onSubscribe}
         disabled={isDisabled}
         title={disabledReason}
-        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-          isHighlighted
-            ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
-            : "bg-[#000000] text-white hover:bg-[#252525]"
-        }`}
+        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isHighlighted
+          ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
+          : "bg-[#000000] text-white hover:bg-[#252525]"
+          }`}
       >
         {ctaText || plan.ctaText}
       </button>

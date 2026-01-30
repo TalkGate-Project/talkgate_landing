@@ -7,7 +7,7 @@ import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/prici
 import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
 import { getLoginUrl } from "@/lib/auth";
 import { SubscriptionService } from "@/lib/subscription";
-import type { SubscriptionPlan } from "@/types/subscription";
+import type { SubscriptionPlan, CouponInfoForCheckout } from "@/types/subscription";
 
 type PricingStep = "project" | "plan" | "checkout";
 
@@ -67,6 +67,7 @@ export default function PricingContent() {
     return "monthly";
   });
   const [planSelectionContext, setPlanSelectionContext] = useState<PlanSelectionContext | undefined>();
+  const [couponInfo, setCouponInfo] = useState<CouponInfoForCheckout | undefined>();
   const [autoSelectingPlan, setAutoSelectingPlan] = useState(false);
 
   // 현재 스텝 결정 (URL 기반)
@@ -190,15 +191,17 @@ export default function PricingContent() {
     updateUrl("plan", project);
   };
 
-  // 플랜 구독 핸들러
+  // 플랜 구독 핸들러 (쿠폰 적용 시 couponInfo 전달)
   const handleSubscribe = (
     plan: PricingPlan,
     billingCycle: BillingCycle,
-    context?: PlanSelectionContext
+    context?: PlanSelectionContext,
+    coupon?: CouponInfoForCheckout
   ) => {
     setSelectedPlan(plan);
     setSelectedBillingCycle(billingCycle);
     setPlanSelectionContext(context);
+    setCouponInfo(coupon);
     updateUrl("checkout");
   };
 
@@ -216,6 +219,7 @@ export default function PricingContent() {
   const handleBackFromCheckout = () => {
     updateUrl("plan");
     setPlanSelectionContext(undefined);
+    setCouponInfo(undefined);
   };
 
   // 현재 단계에 따라 컴포넌트 렌더링
@@ -299,6 +303,7 @@ export default function PricingContent() {
           billingCycle={selectedBillingCycle}
           onBack={handleBackFromCheckout}
           planSelectionContext={planSelectionContext}
+          couponInfo={couponInfo}
         />
       );
 

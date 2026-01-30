@@ -9,6 +9,7 @@ import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import BillingRegisterModal from "./BillingRegisterModal";
 import type { PlanSelectionContext } from "./PlanSelectStep";
+import type { CouponInfoForCheckout } from "@/types/subscription";
 
 // 정기과금(자동승인) 이용약관 내용
 const RECURRING_BILLING_TERMS = `1. 이용자는 본 신청서에 서명하거나 공인인증 및 그에 준하는 전자 인증절차를 통함으로써 본 서비스를 이용할 수 있습니다.
@@ -50,6 +51,8 @@ interface CheckoutStepProps {
   billingCycle: BillingCycle;
   onBack: () => void;
   planSelectionContext?: PlanSelectionContext;
+  /** 쿠폰으로 진입한 경우 (info API로 검증 완료된 상태) */
+  couponInfo?: CouponInfoForCheckout;
 }
 
 export default function CheckoutStep({
@@ -58,6 +61,7 @@ export default function CheckoutStep({
   billingCycle,
   onBack,
   planSelectionContext,
+  couponInfo,
 }: CheckoutStepProps) {
   // 컴포넌트 마운트 시 스크롤을 맨 위로 올리기
   useEffect(() => {
@@ -74,19 +78,22 @@ export default function CheckoutStep({
   const [estimateAmount, setEstimateAmount] = useState<number | null>(null);
   const [loadingEstimate, setLoadingEstimate] = useState(false);
   const [estimateError, setEstimateError] = useState<string | null>(null);
-  
+
   // 약관 펼침 상태
   const [showRecurringTerms, setShowRecurringTerms] = useState(false);
   const [showCancelTerms, setShowCancelTerms] = useState(false);
 
-  // 결제 수단 조회
+  // 결제 수단 조회 (쿠폰 결제 시에는 스킵)
   useEffect(() => {
+    if (couponInfo) {
+      setLoadingBilling(false);
+      return;
+    }
     const fetchBillingInfo = async () => {
       setLoadingBilling(true);
       try {
         const response = await BillingService.list();
         const billingInfos = response.data?.data?.billingInfos || [];
-        // 활성화된 결제 수단 중 첫 번째를 사용
         const activeBilling = billingInfos.find((b) => b.isActive) || billingInfos[0] || null;
         setBillingInfo(activeBilling);
       } catch (err) {
@@ -98,11 +105,12 @@ export default function CheckoutStep({
     };
 
     fetchBillingInfo();
-  }, []);
+  }, [couponInfo]);
 
   const subscriptionBillingCycle = billingCycle === "yearly" ? "quarterly" : "monthly";
   const isPlanChange = planSelectionContext?.isPlanChange ?? false;
   const isUpgrade = planSelectionContext?.isUpgrade ?? false;
+  const isCouponCheckout = Boolean(couponInfo);
 
   useEffect(() => {
     const fetchEstimate = async () => {
@@ -139,13 +147,12 @@ export default function CheckoutStep({
       return;
     }
 
-    // 결제 수단이 없으면 등록 안내 모달 표시
-    if (!billingInfo) {
+    // 쿠폰이 아닌 경우에만 결제 수단 필요
+    if (!isCouponCheckout && !billingInfo) {
       setShowConfirmModal(true);
       return;
     }
 
-    // 프로젝트가 선택되지 않은 경우 (임시로 에러 처리, 실제로는 플로우에서 프로젝트 선택 필요)
     if (!selectedProject) {
       setError("프로젝트를 먼저 선택해주세요.");
       return;
@@ -156,6 +163,22 @@ export default function CheckoutStep({
 
     try {
       const planId = Number(selectedPlan.id);
+
+      if (isCouponCheckout && couponInfo) {
+        await SubscriptionService.couponApply(selectedProject.id, { code: couponInfo.code });
+        showErrorModal({
+          type: "success",
+          title: "구독 완료",
+          headline: "구독이 완료되었습니다!",
+          description: `${selectedProject.name} 프로젝트에 쿠폰이 적용된 ${selectedPlan.badge || selectedPlan.name} 플랜이 활성화되었습니다.`,
+          confirmText: "확인",
+          hideCancel: true,
+          onConfirm: () => {
+            window.location.href = "/pricing?step=project";
+          },
+        });
+        return;
+      }
 
       if (isPlanChange) {
         await SubscriptionService.changePlan(selectedProject.id, {
@@ -181,7 +204,6 @@ export default function CheckoutStep({
           billingCycle: subscriptionBillingCycle,
         });
 
-        // 구독 성공 모달 표시
         showErrorModal({
           type: "success",
           title: "구독 완료",
@@ -190,7 +212,6 @@ export default function CheckoutStep({
           confirmText: "확인",
           hideCancel: true,
           onConfirm: () => {
-            // 확인 클릭 시 /pricing으로 새로고침하여 프로젝트 목록 업데이트
             window.location.href = "/pricing?step=project";
           },
         });
@@ -227,19 +248,21 @@ export default function CheckoutStep({
     }
   };
 
-  // 가격 계산 (VAT 별도)
+  // 가격 계산 (VAT 별도). 쿠폰 시 실제 결제액은 0원
   const basePlanAmount =
     billingCycle === "monthly"
       ? selectedPlan.priceMonthly
       : selectedPlan.priceYearly || selectedPlan.priceMonthly;
   const planAmount = isPlanChange && isUpgrade ? estimateAmount ?? 0 : basePlanAmount;
-  const subtotal = planAmount; // 소계는 플랜금액
-  const vat = Math.floor(planAmount * 0.1); // 부가가치세는 소계의 10%
-  const total = planAmount + vat; // 지불 총액은 플랜금액 + 부가세
+  const subtotal = planAmount;
+  const vat = Math.floor(planAmount * 0.1);
+  const totalOriginal = planAmount + vat;
+  const total = isCouponCheckout ? 0 : totalOriginal;
   const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
   const billingLabel = isPlanChange ? "추가 청구 금액" : billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
-  const titleText = isPlanChange ? "플랜 변경" : "구독하기";
+  const planDisplayName = selectedPlan.badge || selectedPlan.name;
+  const titleText = isPlanChange ? "플랜 변경" : `${planDisplayName} 구독하기`;
 
   // 카드 정보 마스킹
   const getMaskedCardNumber = () => {
@@ -263,12 +286,17 @@ export default function CheckoutStep({
           </h1>
         </div>
 
-        {/* 가격 섹션 */}
+        {/* 가격 섹션 (쿠폰 시 원가 삭선 + 0원 표시) */}
         <div className="mb-7 md:mb-12">
-          <div className="flex items-baseline">
+          <div className="flex items-baseline flex-wrap gap-x-2">
             <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-center text-[#252525]">
               ₩ {total.toLocaleString()}
             </span>
+            {isCouponCheckout && (
+              <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-[#808080] line-through">
+                ₩ {totalOriginal.toLocaleString()}
+              </span>
+            )}
             <span className="font-normal text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
               {priceUnit}
             </span>
@@ -318,13 +346,22 @@ export default function CheckoutStep({
             <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
           </div>
 
-          {/* 당일 지불 총액 */}
+          {/* 당일 지불 총액 (쿠폰 시 원가 삭선 + 0원) */}
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
               당일 지불 총액
             </h3>
             <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
-              {total.toLocaleString()}원
+              {isCouponCheckout ? (
+                <span className="inline-flex items-center gap-2">
+                  <span>{total.toLocaleString()}원</span>
+                  <span className="line-through text-[#808080] font-normal">
+                    ₩ {totalOriginal.toLocaleString()}
+                  </span>
+                </span>
+              ) : (
+                `${total.toLocaleString()}원`
+              )}
             </p>
           </div>
         </div>
@@ -332,13 +369,31 @@ export default function CheckoutStep({
         {/* 구분선 */}
         <div className="w-full h-px bg-[#E2E2E2] my-8 md:my-10" />
 
-        {/* 결제 수단 정보 */}
+        {/* 결제 수단 / 쿠폰 정보 */}
         <div className="mb-6">
           <h3 className="font-semibold text-[16px] md:text-[18px] text-[#252525] mb-4">
             결제 수단
           </h3>
-          
-          {loadingBilling ? (
+
+          {isCouponCheckout && couponInfo ? (
+            <div className="px-4 py-3.5 bg-[#F8F8F8] rounded-[12px] mt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[8px] bg-[#E8F5E9] flex items-center justify-center flex-shrink-0">
+                  <svg width="34" height="20" viewBox="0 0 34 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M33.9923 13.2414C32.2612 13.1794 31.0045 11.6842 31.033 9.8827C31.0604 8.12861 32.3083 6.7003 33.9956 6.64438L33.9923 1.4271C33.9923 0.653984 33.4325 0.0814441 32.7685 0L28.7893 0.106971C28.6896 0.593205 28.4245 0.825381 28.087 0.815657C27.7792 0.807148 27.5611 0.519054 27.4395 0.102109L1.24136 0.00121558C0.54563 0.0826597 0.00657386 0.656415 0.00547822 1.43196L0 6.64438C1.72892 6.7003 2.98891 8.18817 2.96591 10.0006C2.9429 11.7474 1.69167 13.1867 0.00438257 13.2414L0.0241042 18.5668C0.0273911 19.4408 0.812967 19.9587 1.56458 19.8991L27.4362 20C27.5633 19.5198 27.8011 19.2427 28.1999 19.2755C28.476 19.2974 28.6864 19.6037 28.8321 19.9939L32.7148 19.8991C33.5289 19.8092 34 19.16 34 18.3298L33.9934 13.2438L33.9923 13.2414ZM27.846 1.45505C28.1747 1.29824 28.5516 1.43439 28.7094 1.79785C28.8354 2.08837 28.74 2.53206 28.3993 2.73993C28.1473 2.89309 27.7342 2.7533 27.5743 2.45913C27.3902 2.12119 27.4976 1.62037 27.846 1.45505ZM28.3664 4.74078C27.9906 4.88786 27.6236 4.66176 27.5228 4.32748C27.4056 3.93606 27.5765 3.5021 27.972 3.39148C28.3007 3.29909 28.6425 3.53249 28.74 3.87163C28.8343 4.20106 28.6283 4.63988 28.3664 4.74199V4.74078ZM28.4694 18.6021C28.1594 18.7954 27.7573 18.6799 27.5874 18.3894C27.3935 18.0563 27.4779 17.5409 27.8515 17.3585C28.1911 17.1932 28.5779 17.35 28.7225 17.7293C28.8244 17.9955 28.7028 18.4574 28.4683 18.6033L28.4694 18.6021ZM28.3741 16.6693C27.9884 16.8188 27.6291 16.5879 27.5239 16.2572C27.399 15.8646 27.5776 15.4306 27.9753 15.3212C28.293 15.2337 28.6502 15.4683 28.7368 15.7856C28.8332 16.1381 28.6294 16.5708 28.3741 16.6705V16.6693ZM28.407 14.6612C28.1374 14.824 27.709 14.6721 27.5655 14.3779C27.3924 14.023 27.4998 13.5452 27.8591 13.3739C28.1867 13.217 28.5571 13.3739 28.7083 13.7288C28.8376 14.0315 28.7302 14.4679 28.407 14.6624V14.6612ZM27.8548 11.3937C28.1955 11.2308 28.5768 11.3888 28.7258 11.7729C28.8266 12.0318 28.7017 12.4998 28.4672 12.6445C28.1605 12.8329 27.754 12.7126 27.5918 12.4318C27.3924 12.0853 27.4768 11.576 27.8548 11.3949V11.3937ZM28.3675 10.702C27.9895 10.8454 27.628 10.6266 27.5217 10.2851C27.4023 9.90336 27.5809 9.4694 27.9742 9.35756C28.2952 9.2664 28.6469 9.501 28.7379 9.82678C28.8343 10.1708 28.6316 10.6011 28.3675 10.702ZM28.4059 8.70358C28.155 8.86039 27.7101 8.70723 27.5765 8.43372C27.3968 8.06418 27.4965 7.58646 27.857 7.41385C28.1824 7.25825 28.5549 7.40655 28.7127 7.76029C28.843 8.05324 28.728 8.50179 28.4059 8.70236V8.70358ZM28.2711 6.75621C27.9326 6.82915 27.594 6.59576 27.5195 6.30888C27.4121 5.89923 27.5633 5.4604 28.0399 5.36559C28.3456 5.30481 28.7148 5.63423 28.7554 5.90774C28.8167 6.31739 28.568 6.693 28.2711 6.75743V6.75621Z" fill="#252526" />
+                    <path d="M8.50041 8.88616C7.82446 8.96922 7.65058 9.90364 7.90895 10.6328C8.00079 10.8918 8.36081 11.0909 8.60939 11.0958C8.82491 11.0994 9.18983 10.8576 9.27799 10.5632C9.41269 10.1113 9.38575 9.67889 9.22166 9.29657C9.11758 9.0535 8.72572 8.85928 8.50041 8.88616Z" fill="#252526" />
+                    <path d="M19.6281 8.88C19.4432 8.88 19.0734 9.08032 18.9914 9.26721C18.7795 9.74602 18.7783 10.2309 18.9914 10.7061C19.0783 10.9003 19.4396 11.1006 19.6281 11.1043C19.8155 11.108 20.1914 10.8869 20.2735 10.6646C20.4596 10.1577 20.4437 9.71793 20.2539 9.27942C20.1718 9.08887 19.8143 8.88123 19.6294 8.88H19.6281Z" fill="#252526" />
+                    <path d="M16.1253 9.00589L15.5767 8.95703L15.5742 9.90977C16.0714 9.77908 16.2342 9.72167 16.2722 9.5812C16.3114 9.43707 16.2685 9.01933 16.124 9.00589H16.1253Z" fill="#252526" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[16px] font-medium text-[#252525]">
+                    {couponInfo.info.name}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : loadingBilling ? (
             <div className="flex items-center justify-center py-8">
               <span className="text-[14px] text-[#808080]">결제 수단 확인 중...</span>
             </div>
@@ -348,10 +403,10 @@ export default function CheckoutStep({
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-7 bg-[#252525] rounded flex items-center justify-center">
                     <svg width="24" height="16" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="24" height="16" rx="2" fill="#252525"/>
-                      <rect x="2" y="4" width="4" height="3" rx="0.5" fill="#FFD700"/>
-                      <rect x="2" y="9" width="6" height="1" rx="0.5" fill="#888"/>
-                      <rect x="2" y="11" width="4" height="1" rx="0.5" fill="#888"/>
+                      <rect width="24" height="16" rx="2" fill="#252525" />
+                      <rect x="2" y="4" width="4" height="3" rx="0.5" fill="#FFD700" />
+                      <rect x="2" y="9" width="6" height="1" rx="0.5" fill="#888" />
+                      <rect x="2" y="11" width="4" height="1" rx="0.5" fill="#888" />
                     </svg>
                   </div>
                   <div className="flex items-center">
@@ -372,7 +427,7 @@ export default function CheckoutStep({
             <div className="p-4 bg-[#FFF9E6] rounded-[12px]">
               <div className="flex items-start gap-3">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mt-0.5">
-                  <path d="M10 6V10M10 14H10.01M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M10 6V10M10 14H10.01M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <div className="flex-1">
                   <p className="text-[14px] font-medium text-[#92400E] mb-1">
@@ -491,17 +546,21 @@ export default function CheckoutStep({
           </label>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Button (쿠폰 시에도 결제하기 라벨 유지) */}
         <button
           onClick={handleSubscribe}
-          disabled={submitting || !agreedToTerms || loadingBilling || loadingEstimate || (isPlanChange && isUpgrade && estimateAmount === null)}
+          disabled={
+            submitting ||
+            !agreedToTerms ||
+            (!isCouponCheckout && (loadingBilling || (isPlanChange && isUpgrade && estimateAmount === null) || loadingEstimate))
+          }
           className="w-full h-[48px] md:h-[52px] mt-8 rounded-[30px] bg-[#000000] text-white font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {submitting
             ? "처리 중..."
-            : loadingEstimate
-            ? "청구 금액 계산 중..."
-            : "결제하기"}
+            : !isCouponCheckout && loadingEstimate
+              ? "청구 금액 계산 중..."
+              : "결제하기"}
         </button>
       </div>
 
@@ -513,7 +572,7 @@ export default function CheckoutStep({
             <div className="text-center mb-6">
               <div className="w-12 h-12 mx-auto mb-4 bg-[#FFF9E6] rounded-full flex items-center justify-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 8V12M12 16H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 8V12M12 16H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
               <h3 className="text-[18px] font-bold text-[#252525] mb-2">

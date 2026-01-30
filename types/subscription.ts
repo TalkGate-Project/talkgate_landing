@@ -202,3 +202,53 @@ export interface SubscriptionReactivateResponse {
   result: true;
   data: Subscription;
 }
+
+/**
+ * 쿠폰 적용 요청
+ */
+export interface CouponApplyInput {
+  code: string;
+}
+
+/**
+ * 쿠폰 적용 응답
+ * 쿠폰 코드로 무료 구독 활성화 (Admin만 가능). 동일 프로젝트는 모든 쿠폰 통틀어 1회만 사용 가능.
+ */
+export interface CouponApplyResponse {
+  result: true;
+  data: {
+    subscription: Subscription;
+  };
+}
+
+/**
+ * 쿠폰 정보 조회 요청
+ */
+export interface CouponInfoInput {
+  code: string;
+}
+
+/**
+ * 쿠폰 정보 조회 응답
+ * 적용될 플랜 정보와 사용 가능 여부 (Admin만 가능)
+ */
+export interface CouponInfoResponse {
+  result: true;
+  data: {
+    name: string;
+    description: string;
+    plan: SubscriptionPlan;
+    billingCycle: SubscriptionBillingCycle;
+    durationMonths: number;
+    startDate: string;
+    endDate: string;
+    canUse: boolean;
+    unavailableReason?: string;
+  };
+}
+
+/** Checkout 단계로 전달하는 쿠폰 정보 (code + info API 응답) */
+export type CouponInfoForCheckout = {
+  code: string;
+  info: CouponInfoResponse["data"];
+};
