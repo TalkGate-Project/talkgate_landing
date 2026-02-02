@@ -3,6 +3,7 @@ import type {
   ProjectListResponse,
   ProjectCreateInput,
   ProjectCreateResponse,
+  CheckSubDomainDuplicateResponse,
 } from "@/types/project";
 
 export const ProjectsService = {
@@ -29,6 +30,16 @@ export const ProjectsService = {
   create(input: ProjectCreateInput) {
     return apiClient.post<ProjectCreateResponse>("/v1/projects", input);
   },
+
+  /**
+   * 서브도메인 중복 확인
+   */
+  checkSubDomainDuplicate(subDomain: string) {
+    return apiClient.post<CheckSubDomainDuplicateResponse>(
+      "/v1/projects/check-sub-domain-duplicate",
+      { subDomain }
+    );
+  },
 };
 
 // Re-export types for convenience
@@ -37,4 +48,5 @@ export type {
   ProjectCreateInput,
   ProjectCreateResponse,
   ProjectListResponse,
+  CheckSubDomainDuplicateResponse,
 } from "@/types/project";
