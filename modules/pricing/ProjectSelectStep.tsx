@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Project } from "@/types";
 import type { ProjectInfo } from "@/types/project";
 import { ProjectsService } from "@/lib/projects";
-import { AssetsService } from "@/lib/assets";
+import CreateProjectModal from "./CreateProjectModal";
 
 interface ProjectSelectStepProps {
   onSelectProject: (project: Project) => void;
@@ -31,15 +31,7 @@ export default function ProjectSelectStep({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [creatingProject, setCreatingProject] = useState(false);
-  
-  // 프로젝트 생성 폼 상태
-  const [newProjectName, setNewProjectName] = useState("");
-  const [iconFile, setIconFile] = useState<File | null>(null);
-  const [iconPreview, setIconPreview] = useState<string | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  
+
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
   const createCardRef = useRef<HTMLDivElement>(null);
@@ -137,106 +129,6 @@ export default function ProjectSelectStep({
     // 활성 구독이 없는 프로젝트도 선택 가능 (구독하기 위해)
     const converted = convertToProject(project);
     onSelectProject(converted);
-  };
-
-  // 파일 선택 핸들러
-  const onPickFile = useCallback(() => fileInputRef.current?.click(), []);
-  
-  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setIconFile(file);
-    if (file) {
-      setIconPreview(URL.createObjectURL(file));
-    } else {
-      setIconPreview(null);
-    }
-  }, []);
-
-  const clearIconFile = useCallback(() => {
-    setIconFile(null);
-    setIconPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  }, []);
-
-  // 파일 타입 감지 헬퍼
-  const getFileType = useCallback((file: File): string => {
-    if (file.type) return file.type;
-    
-    const extension = file.name.split(".").pop()?.toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      png: "image/png",
-      jpg: "image/jpeg",
-      jpeg: "image/jpeg",
-      svg: "image/svg+xml",
-      gif: "image/gif",
-      webp: "image/webp",
-    };
-    
-    return mimeTypes[extension || ""] || "image/jpeg";
-  }, []);
-
-  // 프로젝트 생성
-  const handleCreateProject = async () => {
-    if (!newProjectName.trim() || creatingProject) return;
-
-    setCreatingProject(true);
-    setCreateError(null);
-
-    try {
-      let logoUrl: string | undefined = undefined;
-
-      // 이미지가 있으면 업로드
-      if (iconFile) {
-        const fileType = getFileType(iconFile);
-
-        // 1. Presigned URL 발급
-        const presignedRes = await AssetsService.presignProjectLogo({
-          fileName: iconFile.name,
-          fileType,
-        });
-
-        const presignedData = presignedRes.data?.data;
-        if (!presignedData?.uploadUrl) {
-          throw new Error("업로드 URL을 받지 못했습니다.");
-        }
-
-        // 2. S3에 직접 업로드
-        await AssetsService.uploadToS3(presignedData.uploadUrl, iconFile, fileType);
-
-        // 3. fileUrl 저장
-        logoUrl = presignedData.fileUrl;
-      }
-
-      // 프로젝트 생성
-      await ProjectsService.create({
-        name: newProjectName.trim(),
-        logoUrl,
-      });
-
-      // 프로젝트 목록 새로고침
-      await fetchProjects();
-      
-      // 모달 닫기 및 상태 초기화
-      setShowCreateModal(false);
-      setNewProjectName("");
-      clearIconFile();
-    } catch (err) {
-      console.error("프로젝트 생성 실패:", err);
-      setCreateError("프로젝트 생성에 실패했습니다. 다시 시도해주세요.");
-    } finally {
-      setCreatingProject(false);
-    }
-  };
-
-  // 모달 닫기
-  const handleCloseModal = () => {
-    if (creatingProject) return;
-    setShowCreateModal(false);
-    setNewProjectName("");
-    clearIconFile();
-    setCreateError(null);
   };
 
   return (
@@ -432,153 +324,11 @@ export default function ProjectSelectStep({
         )}
       </div>
 
-      {/* Create Project Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={handleCloseModal} />
-          <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-full max-w-[500px] p-5 md:p-7">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-[18px] font-semibold text-[#000]">
-                새 프로젝트 생성
-              </h2>
-              <button
-                aria-label="close"
-                className="cursor-pointer w-6 h-6 grid place-items-center"
-                onClick={handleCloseModal}
-                disabled={creatingProject}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6 18L18 6M6 6L18 18"
-                    stroke="#B0B0B0"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* 브랜드 아이콘 영역 */}
-            <div className="rounded-[8px] bg-[#F8F8F8] px-4 py-4 mb-4">
-              <div className="text-[14px] font-medium text-[#252525] mb-3">브랜드 아이콘</div>
-              <div className="flex items-center gap-4">
-                {/* 아이콘 프리뷰 / 업로드 버튼 */}
-                <div
-                  className={`relative w-[80px] h-[80px] rounded-[12px] ${
-                    iconPreview ? "border border-dashed border-[#E2E2E2]" : "border-2 border-dashed border-[#E2E2E2]"
-                  } bg-white overflow-hidden cursor-pointer grid place-items-center hover:border-[#00E272] transition-colors`}
-                  onClick={onPickFile}
-                >
-                  {iconPreview ? (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={iconPreview} alt="preview" className="w-full h-full object-cover" />
-                      {/* 삭제 버튼 */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearIconFile();
-                        }}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
-                      >
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 3L9 9M9 3L3 9" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 5V19M19 12L5 12"
-                          stroke="#B0B0B0"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="text-[11px] text-[#B0B0B0]">업로드</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-[13px] text-[#808080] leading-[1.5]">
-                    PNG, JPG, SVG 파일<br />
-                    (최대 5MB) · 정사각형 이미지 권장
-                  </p>
-                </div>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml"
-                className="hidden"
-                onChange={onFileChange}
-              />
-            </div>
-
-            {/* 프로젝트 이름 영역 */}
-            <div className="rounded-[8px] bg-[#F8F8F8] px-4 py-4 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[14px] font-medium text-[#252525]">
-                  프로젝트 이름 <span className="text-[#F00]">*</span>
-                </label>
-                <span className="text-[12px] text-[#808080]">
-                  {newProjectName.length}/20
-                </span>
-              </div>
-              <input
-                type="text"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                placeholder="프로젝트 이름을 입력하세요"
-                maxLength={20}
-                className="w-full h-[40px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] text-[#000] bg-white focus:outline-none focus:border-[#00E272] transition-colors"
-                disabled={creatingProject}
-              />
-            </div>
-
-            {/* 에러 메시지 */}
-            {createError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-[14px]">
-                {createError}
-              </div>
-            )}
-
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3">
-              <button
-                className="cursor-pointer h-[40px] px-5 rounded-[8px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525] bg-white hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
-                onClick={handleCloseModal}
-                disabled={creatingProject}
-              >
-                취소
-              </button>
-              <button
-                className="cursor-pointer h-[40px] px-5 rounded-[8px] bg-[#252525] text-white text-[14px] font-semibold hover:bg-[#3a3a3a] transition-colors disabled:opacity-50"
-                onClick={handleCreateProject}
-                disabled={!newProjectName.trim() || creatingProject}
-              >
-                {creatingProject ? "생성 중..." : "생성"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateProjectModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={fetchProjects}
+      />
     </div>
   );
 }

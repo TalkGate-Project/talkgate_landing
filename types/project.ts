@@ -52,3 +52,14 @@ export interface ProjectListResponse {
   result: true;
   data: ProjectInfo[];
 }
+
+/**
+ * 서브도메인 중복 확인 응답
+ */
+export interface CheckSubDomainDuplicateResponse {
+  result: true;
+  data: {
+    isDuplicate: boolean;
+    message: string;
+  };
+}
