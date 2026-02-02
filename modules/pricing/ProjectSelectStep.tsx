@@ -328,6 +328,7 @@ export default function ProjectSelectStep({
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={fetchProjects}
+        persistent
       />
     </div>
   );
