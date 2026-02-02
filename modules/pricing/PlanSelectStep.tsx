@@ -500,7 +500,15 @@ export default function PlanSelectStep({
                 isSamePlanAndCycle ||
                 isUpgradeWithShorterCycle ||
                 isQuarterlyToMonthlyPlanChange;
-              const ctaText = hasActiveSubscription ? "플랜 변경" : plan.ctaText;
+              // QA #540: 비활성 항목 버튼 문구 - 현재 사용 중인 플랜은 "사용 중", 변경 불가 플랜은 "변경 불가"
+              const ctaText =
+                isSamePlanAndCycle
+                  ? "사용 중"
+                  : isUpgradeWithShorterCycle || isQuarterlyToMonthlyPlanChange
+                    ? "변경 불가"
+                    : hasActiveSubscription
+                      ? "플랜 변경"
+                      : plan.ctaText;
               const disabledReason = isUpgradeWithShorterCycle
                 ? "해당 구독 상품으로는 변경할 수 없어요."
                 : isQuarterlyToMonthlyPlanChange
