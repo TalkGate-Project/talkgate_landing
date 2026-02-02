@@ -533,14 +533,20 @@ export default function ProjectSelectStep({
 
             {/* 프로젝트 이름 영역 */}
             <div className="rounded-[8px] bg-[#F8F8F8] px-4 py-4 mb-4">
-              <label className="block text-[14px] font-medium text-[#252525] mb-2">
-                프로젝트 이름 <span className="text-[#F00]">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[14px] font-medium text-[#252525]">
+                  프로젝트 이름 <span className="text-[#F00]">*</span>
+                </label>
+                <span className="text-[12px] text-[#808080]">
+                  {newProjectName.length}/20
+                </span>
+              </div>
               <input
                 type="text"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
                 placeholder="프로젝트 이름을 입력하세요"
+                maxLength={20}
                 className="w-full h-[40px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] text-[#000] bg-white focus:outline-none focus:border-[#00E272] transition-colors"
                 disabled={creatingProject}
               />
