@@ -77,7 +77,7 @@ export function HeroSection() {
 
   return (
     <section className="lg:py-4">
-      <div className="relative container-hero h-[553px] md:h-[808px] md:min-h-[600px] md:max-h-[808px] flex flex-col items-center pt-[30px] pt-[72px] md:pt-[50px] pb-4 md:pb-0">
+      <div className="relative container-hero min-h-[640px] max-[450px]:min-h-[553px] md:h-[808px] md:min-h-[600px] md:max-h-[808px] flex flex-col items-center pt-[30px] pt-[72px] md:pt-[50px] pb-[220px] sm:pb-[260px] max-[379px]:pb-4 md:pb-0">
         <h1 className={`text-[28px] md:text-[38px] font-bold font-en leading-[1.3] text-[#ffffff] text-center z-20 tracking-[-0.03em] px-4 hero-title ${!isInitialLoad ? 'animate' : ''}`}>
           All your business
           <br />
@@ -99,18 +99,22 @@ export function HeroSection() {
 
         {/* Dashboard Preview with Fade Animation */}
         <div 
-          className="hero-dashboard-preview absolute bottom-0 left-0 right-0 mx-auto z-10 md:left-1/2 md:right-auto md:w-auto md:translate-x-[-50%]"
+          className="hero-dashboard-preview absolute bottom-0 left-0 right-0 mx-auto z-10 w-[calc(100%-40px)] translate-y-[12px] sm:translate-y-[16px] md:translate-y-0 md:left-1/2 md:right-auto md:w-auto md:translate-x-[-50%]"
           style={{ 
-            width: 'calc(100% - 40px)',
             boxShadow: "10px 10px 200px 20px #F4F4F4A3",
             opacity: animationPhase === 'fade-out' ? 0 : animationPhase === 'fade-in' ? 0 : 1,
-            transform: `scale(${
-              animationPhase === 'fade-out' ? 0.95 : animationPhase === 'fade-in' ? 0.95 : 1
-            })`,
-            transition: 'all 0.8s ease-in-out',
+            transition: 'opacity 0.8s ease-in-out',
           }}
         >
-          <div className="hero-image-wrapper flex justify-center w-full md:w-auto">
+          <div
+            className="hero-image-wrapper flex justify-center w-full md:w-auto"
+            style={{
+              transform: `scale(${
+                animationPhase === 'fade-out' ? 0.95 : animationPhase === 'fade-in' ? 0.95 : 1
+              })`,
+              transition: 'transform 0.8s ease-in-out',
+            }}
+          >
             <Image
               key={currentIndex}
               src={HERO_IMAGES[currentIndex]}
@@ -118,28 +122,9 @@ export function HeroSection() {
               width={776}
               height={490}
               priority={currentIndex === 0}
-              className="max-w-none h-auto md:w-auto md:h-auto"
-              style={{
-                width: '100%',
-                height: 'auto',
-                maxWidth: '100%',
-              }}
+              className="w-full h-auto max-w-full md:w-auto md:h-auto md:max-w-none"
             />
           </div>
-          <style jsx global>{`
-            @media (min-width: 768px) {
-              .hero-dashboard-preview {
-                width: auto !important;
-              }
-              .hero-image-wrapper {
-                width: auto !important;
-              }
-              .hero-image-wrapper img {
-                width: auto !important;
-                max-width: none !important;
-              }
-            }
-          `}</style>
         </div>
 
         {/* Dashboard Grid Preview with Parallax */}
