@@ -152,7 +152,7 @@ export function getAppDomain(): string {
  * returnUrl을 쿼리 파라미터로 전달합니다.
  * returnUrl은 현재 접속 도메인(dev.talkgate.im / talkgate.im 등) 기준으로 생성합니다.
  *
- * @param returnPath - 로그인 후 돌아올 경로 (기본: '/') 또는 전체 URL
+ * @param returnPath - 로그인 후 돌아올 경로 또는 전체 URL (선택)
  * @param baseUrlOverride - SSR 시 서버에서 넘긴 랜딩 기준 URL (요청 Host 기반). 있으면 이걸 사용.
  *
  * @example
@@ -161,8 +161,13 @@ export function getAppDomain(): string {
  * <Link href={getLoginUrl(pathname, landingBaseUrl)}>로그인</Link>
  * ```
  */
-export function getLoginUrl(): string {
+export function getLoginUrl(returnPath?: string, baseUrlOverride?: string): string {
   const loginUrl = new URL('/login', env.MAIN_SERVICE_URL);
+  if (typeof returnPath === "string") {
+    const base = baseUrlOverride ?? getLandingBaseUrl();
+    const returnUrl = toReturnUrl(base, returnPath);
+    loginUrl.searchParams.set("returnUrl", returnUrl);
+  }
   return loginUrl.toString();
 }
 
@@ -174,7 +179,7 @@ export function getLoginUrl(): string {
  * @param baseUrlOverride - SSR 시 서버에서 넘긴 랜딩 기준 URL. 있으면 이걸 사용.
  */
 export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string): string {
-  return getLoginUrl();
+  return getLoginUrl(returnPath, baseUrlOverride);
 }
 
 /**
