@@ -114,7 +114,7 @@ export function SideDrawer({
               </button>
             ) : (
               <Link
-                href={getLoginUrl(pathname, landingBaseUrl)}
+                href={getLoginUrl()}
                 onClick={onClose}
                 className="typo-body-sm font-medium text-[#252525] transition-colors"
               >

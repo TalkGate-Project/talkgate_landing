@@ -47,7 +47,7 @@ export function FinalCtaSection() {
           {/* Button Area */}
           <div className={`flex gap-2.5 md:gap-4 flex-shrink-0 final-cta-buttons ${isVisible ? 'animate' : ''}`}>
             <Link
-              href={getStartUrl(false, landingBaseUrl)}
+              href={getStartUrl()}
               className="w-[137px] md:w-auto px-3 md:px-6 py-1.5 md:py-2 h-[34px] md:h-auto bg-neutral-90 leading-[17px] md:leading-[1] text-[14px] text-neutral-0 rounded-[5px] font-semibold transition-colors flex items-center justify-center"
             >
               시작하기
