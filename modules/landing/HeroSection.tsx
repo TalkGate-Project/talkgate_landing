@@ -89,7 +89,7 @@ export function HeroSection() {
         </p>
 
         <div className={`mt-[58px] md:mt-4 md:mt-6 flex gap-4 justify-center z-20 px-4 hero-buttons ${!isInitialLoad ? 'animate' : ''}`}>
-          <Link href={getStartUrl(false, landingBaseUrl)} className="btn btn-dark w-[96px]">
+          <Link href={getStartUrl()} className="btn btn-dark w-[96px]">
             시작하기
           </Link>
           <Link href="https://talkgate.channel.io/home" className="btn btn-white w-[96px]">

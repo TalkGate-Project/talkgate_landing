@@ -191,13 +191,13 @@ export function Header({ isAuthenticated: initialAuth = false, landingBaseUrl }:
               <>
                 {/* 모바일에서는 로그인 버튼 숨김 (사이드 드로워로 이동) */}
                 <Link
-                  href={getLoginUrl(pathname, landingBaseUrl)}
+                  href={getLoginUrl()}
                   className="typo-body-sm font-medium text-[#252525] hover:text-[#808080] transition-colors hidden md:flex"
                 >
                   로그인
                 </Link>
                 {/* 모바일에서는 시작하기 버튼만 표시 */}
-                <Link href={getStartUrl(false, landingBaseUrl)} className="btn btn-dark">
+                <Link href={getStartUrl()} className="btn btn-dark">
                   시작하기
                 </Link>
               </>

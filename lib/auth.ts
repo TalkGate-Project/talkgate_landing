@@ -161,29 +161,20 @@ export function getAppDomain(): string {
  * <Link href={getLoginUrl(pathname, landingBaseUrl)}>로그인</Link>
  * ```
  */
-export function getLoginUrl(returnPath: string = '/', baseUrlOverride?: string): string {
-  const base = baseUrlOverride ?? getLandingBaseUrl();
-  const returnUrl = toReturnUrl(base, returnPath);
+export function getLoginUrl(): string {
   const loginUrl = new URL('/login', env.MAIN_SERVICE_URL);
-  loginUrl.searchParams.set('returnUrl', returnUrl);
-
   return loginUrl.toString();
 }
 
 /**
- * 회원가입 URL 생성
+ * 회원가입 CTA가 이동할 로그인 URL 생성
  * returnUrl은 현재 접속 도메인 기준으로 생성합니다.
  *
- * @param returnPath - 가입 후 돌아올 경로 (기본: '/') 또는 전체 URL
+ * @param returnPath - 로그인 후 돌아올 경로 (기본: '/') 또는 전체 URL
  * @param baseUrlOverride - SSR 시 서버에서 넘긴 랜딩 기준 URL. 있으면 이걸 사용.
  */
 export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string): string {
-  const base = baseUrlOverride ?? getLandingBaseUrl();
-  const returnUrl = toReturnUrl(base, returnPath);
-  const signupUrl = new URL('/signup', env.MAIN_SERVICE_URL);
-  signupUrl.searchParams.set('returnUrl', returnUrl);
-
-  return signupUrl.toString();
+  return getLoginUrl();
 }
 
 /**
@@ -196,11 +187,11 @@ export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string)
  * @param isAuthenticated - 인증 여부
  * @param baseUrlOverride - SSR 시 랜딩 기준 URL (미인증 회원가입 returnUrl용).
  */
-export function getStartUrl(isAuthenticated: boolean = false, baseUrlOverride?: string): string {
+export function getStartUrl(isAuthenticated: boolean = false): string {
   if (isAuthenticated) {
     return `${env.MAIN_SERVICE_URL}/dashboard`;
   }
-  return getSignupUrl('/', baseUrlOverride);
+  return getLoginUrl();
 }
 
 /**
