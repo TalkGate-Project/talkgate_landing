@@ -509,7 +509,7 @@ export default function BillingRegisterModal({
                     checked={allTermsAgreed}
                     onChange={toggleAllAgreed}
                     disabled={submitting}
-                    className="w-5 h-5 appearance-none rounded-[5px] border border-neutral-50 checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
+                    className="w-5 h-5 appearance-none rounded-[5px] border border-neutral-30 checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
                   />
                   {allTermsAgreed && (
                     <svg
@@ -547,7 +547,7 @@ export default function BillingRegisterModal({
                         checked={term.agreed}
                         onChange={() => toggleTermAgreed(term.type)}
                         disabled={submitting}
-                        className="w-4 h-4 appearance-none rounded-[4px] border border-neutral-50 checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
+                        className="w-4 h-4 appearance-none rounded-[4px] border border-neutral-30 checked:bg-[#00E272] checked:border-[#00E272] cursor-pointer transition-colors disabled:opacity-50"
                       />
                       {term.agreed && (
                         <svg
