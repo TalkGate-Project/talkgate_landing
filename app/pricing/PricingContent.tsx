@@ -162,8 +162,8 @@ export default function PricingContent() {
                 ? "yearly" 
                 : "monthly";
             setSelectedBillingCycle(billingCycle);
-            // planSelectionContext는 기본값으로 설정 (플랜 변경이 아닌 새 구독으로 가정)
-            setPlanSelectionContext({ isPlanChange: false, isUpgrade: false });
+            // 서비스 페이지에서 step=checkout&projectId&planType 링크로 오는 경우는 항상 업그레이드(플랜 변경) 진입
+            setPlanSelectionContext({ isPlanChange: true, isUpgrade: true });
           }
         }
       } catch (err) {
