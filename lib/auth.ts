@@ -66,6 +66,31 @@ function isProductionDomain(): boolean {
   return hostname.endsWith(".talkgate.im") || hostname === "talkgate.im";
 }
 
+/**
+ * 프로덕션 랜딩 도메인인지 (dev 서브도메인 제외)
+ * 예: talkgate.im, landing.talkgate.im → true / landing-dev.talkgate.im → false
+ */
+function isProductionLandingDomain(): boolean {
+  if (!isBrowser()) return false;
+  const hostname = window.location.hostname;
+  if (!hostname.endsWith(".talkgate.im") && hostname !== "talkgate.im") return false;
+  return !hostname.includes("-dev");
+}
+
+/**
+ * 클라이언트에서 사용할 메인 서비스 URL.
+ * NEXT_PUBLIC_MAIN_SERVICE_URL이 빌드 시 누락되면 기본값(app-dev)이 번들에 들어가
+ * 모바일 Safari 등에서 hydration 후 잘못된 링크가 사용될 수 있음.
+ * 브라우저에서 프로덕션 랜딩(talkgate.im, landing.talkgate.im)에 있으면
+ * env와 관계없이 https://app.talkgate.im 을 사용하도록 보정.
+ */
+function getEffectiveMainServiceUrl(): string {
+  if (isBrowser() && isProductionLandingDomain()) {
+    return "https://app.talkgate.im";
+  }
+  return env.MAIN_SERVICE_URL;
+}
+
 // ============================================
 // 간소화된 인증 쿠키 관리
 // ============================================
@@ -133,14 +158,12 @@ export function areBothTokensMissing(): boolean {
 
 /**
  * 앱 도메인 URL 반환
- * 
- * env.MAIN_SERVICE_URL에서 도메인을 추출하여 반환합니다.
+ *
  * 프로덕션: app.talkgate.im
  * 개발: app-dev.talkgate.im
  */
 export function getAppDomain(): string {
-  // env.MAIN_SERVICE_URL에서 도메인 추출
-  const url = env.MAIN_SERVICE_URL;
+  const url = getEffectiveMainServiceUrl();
   const domain = url.replace(/^https?:\/\//, '').split('/')[0];
   return domain;
 }
@@ -162,7 +185,7 @@ export function getAppDomain(): string {
  * ```
  */
 export function getLoginUrl(returnPath?: string, baseUrlOverride?: string): string {
-  const loginUrl = new URL('/login', env.MAIN_SERVICE_URL);
+  const loginUrl = new URL('/login', getEffectiveMainServiceUrl());
   if (typeof returnPath === "string") {
     const base = baseUrlOverride ?? getLandingBaseUrl();
     const returnUrl = toReturnUrl(base, returnPath);
@@ -194,7 +217,7 @@ export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string)
  */
 export function getStartUrl(isAuthenticated: boolean = false): string {
   if (isAuthenticated) {
-    return `${env.MAIN_SERVICE_URL}/dashboard`;
+    return `${getEffectiveMainServiceUrl()}/dashboard`;
   }
   return getLoginUrl();
 }
@@ -203,7 +226,7 @@ export function getStartUrl(isAuthenticated: boolean = false): string {
  * 메인 서비스 대시보드 URL
  */
 export function getDashboardUrl(): string {
-  return `${env.MAIN_SERVICE_URL}/dashboard`;
+  return `${getEffectiveMainServiceUrl()}/dashboard`;
 }
 
 /**
@@ -226,7 +249,7 @@ export function getLogoutUrl(returnPath: string = '/', baseUrlOverride?: string)
   const callbackUrl = `${base}/api/auth/logout-callback`;
   const returnUrl = toReturnUrl(base, returnPath);
 
-  const logoutUrl = new URL('/logout', env.MAIN_SERVICE_URL);
+  const logoutUrl = new URL('/logout', getEffectiveMainServiceUrl());
   logoutUrl.searchParams.set('callbackUrl', callbackUrl);
   logoutUrl.searchParams.set('returnUrl', returnUrl);
 
