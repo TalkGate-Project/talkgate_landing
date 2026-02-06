@@ -134,8 +134,7 @@ export default function PlanSelectStep({
         );
         setPlans(convertedPlans);
         setPlanMeta(sortedPlans);
-      } catch (err) {
-        console.error("플랜 조회 실패:", err);
+      } catch {
         setError("플랜 정보를 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
@@ -182,8 +181,7 @@ export default function PlanSelectStep({
           (project) => String(project.projectId) === String(selectedProject.id)
         );
         setCurrentSubscription(matched || null);
-      } catch (err) {
-        console.error("프로젝트 구독 정보 조회 실패:", err);
+      } catch {
         setCurrentSubscription(null);
       } finally {
         setLoadingSubscription(false);
@@ -268,8 +266,7 @@ export default function PlanSelectStep({
                   window.location.href = "/pricing?step=project";
                 },
               });
-            } catch (err) {
-              console.error("플랜 변경 실패:", err);
+            } catch {
               showErrorModal({
                 type: "error",
                 title: "플랜 변경 실패",

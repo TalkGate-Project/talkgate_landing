@@ -182,8 +182,7 @@ export default function CreateProjectModal({
         setStep(1);
         onSuccess?.();
         onClose();
-      } catch (err) {
-        console.error("프로젝트 생성 실패:", err);
+      } catch {
         setCreateError("프로젝트 생성에 실패했습니다. 다시 시도해주세요.");
       } finally {
         setSubmitting(false);

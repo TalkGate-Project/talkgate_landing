@@ -33,8 +33,7 @@ async function checkAuthFromClient(): Promise<boolean> {
 
     const data = await response.json();
     return data.authenticated === true;
-  } catch (error) {
-    console.warn('인증 상태 확인 실패:', error);
+  } catch {
     return false;
   }
 }

@@ -96,8 +96,7 @@ export default function BillingRegisterModal({
             : t
         )
       );
-    } catch (err) {
-      console.error("약관 조회 실패:", err);
+    } catch {
       setNicePayTerms((prev) =>
         prev.map((t) =>
           t.type === type
@@ -287,7 +286,6 @@ export default function BillingRegisterModal({
       await BillingService.register(input);
       onSuccess();
     } catch (err: unknown) {
-      console.error("결제 수단 등록 실패:", err);
       const error = err as { data?: { message?: string } };
       const errorMessage = error?.data?.message || "결제 수단 등록에 실패했습니다. 다시 시도해주세요.";
       setError(errorMessage);

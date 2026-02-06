@@ -160,8 +160,7 @@ export default function ErrorFeedbackModalProvider({
         await result;
       }
       hide();
-    } catch (err) {
-      console.error("ErrorModal onConfirm failed", err);
+    } catch {
       setConfirming(false);
     }
   }, [confirming, state, hide]);
@@ -170,8 +169,8 @@ export default function ErrorFeedbackModalProvider({
     if (state.onCancel) {
       try {
         await state.onCancel();
-      } catch (err) {
-        console.error("ErrorModal onCancel failed", err);
+      } catch {
+        // onCancel failed
       }
     }
     hide();
