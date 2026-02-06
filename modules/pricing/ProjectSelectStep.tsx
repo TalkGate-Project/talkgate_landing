@@ -116,8 +116,7 @@ export default function ProjectSelectStep({
       const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
       const projectList = response.data?.data || [];
       setProjects(Array.isArray(projectList) ? projectList : []);
-    } catch (err) {
-      console.error("프로젝트 목록 조회 실패:", err);
+    } catch {
       setError("프로젝트 목록을 불러오는데 실패했습니다.");
       setProjects([]);
     } finally {

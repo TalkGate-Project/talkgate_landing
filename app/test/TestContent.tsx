@@ -363,12 +363,8 @@ export default function TestContent() {
                     description: "삭제된 데이터는 복구할 수 없습니다.",
                     confirmText: "삭제",
                     cancelText: "취소",
-                    onConfirm: () => {
-                      console.log("삭제 확인됨");
-                    },
-                    onCancel: () => {
-                      console.log("삭제 취소됨");
-                    },
+                    onConfirm: () => {},
+                    onCancel: () => {},
                   })
                 }
                 className="h-[40px] px-6 rounded-[8px] border border-[#D83232] bg-white text-[#D83232] text-[14px] font-semibold hover:bg-[#D83232]/10 transition-colors"
@@ -386,9 +382,7 @@ export default function TestContent() {
                     description: "프로젝트에 Pro 플랜이 적용되었습니다.",
                     confirmText: "확인",
                     hideCancel: true,
-                    onConfirm: () => {
-                      console.log("구독 완료 확인됨 - 페이지 이동 가능");
-                    },
+                    onConfirm: () => {},
                   })
                 }
                 className="h-[40px] px-6 rounded-[8px] bg-[#252525] text-white text-[14px] font-semibold hover:bg-[#3a3a3a] transition-colors"
@@ -426,12 +420,8 @@ export default function TestContent() {
                     description: "현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.",
                     confirmText: "변경",
                     cancelText: "취소",
-                    onConfirm: () => {
-                      console.log("플랜 변경 확인됨");
-                    },
-                    onCancel: () => {
-                      console.log("플랜 변경 취소됨");
-                    },
+                    onConfirm: () => {},
+                    onCancel: () => {},
                   })
                 }
                 className="h-[40px] px-6 rounded-[8px] bg-[#3B82F6] text-white text-[14px] font-semibold hover:bg-[#2563eb] transition-colors"

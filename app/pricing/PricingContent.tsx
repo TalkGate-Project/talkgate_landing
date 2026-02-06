@@ -166,8 +166,8 @@ export default function PricingContent() {
             setPlanSelectionContext({ isPlanChange: true, isUpgrade: true });
           }
         }
-      } catch (err) {
-        console.error("플랜 자동 선택 실패:", err);
+      } catch {
+        // 플랜 자동 선택 실패
       } finally {
         setAutoSelectingPlan(false);
       }

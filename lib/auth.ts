@@ -124,8 +124,6 @@ export function clearAuthCookies(): void {
     // 2. 현재 도메인 쿠키도 삭제 (HostOnly 쿠키가 있을 수 있으므로)
     document.cookie = `${cookieName}=; ${baseAttrs.join("; ")}`;
   });
-
-  console.log("[Landing] 🍪 인증 쿠키 삭제 완료");
 }
 
 /**
@@ -286,19 +284,14 @@ export async function handleLogout(options?: {
   // 1. 서버 사이드 로그아웃 API 호출 (HttpOnly 쿠키 삭제)
   try {
     const apiUrl = '/api/auth/logout';
-    const response = await fetch(apiUrl, {
+    await fetch(apiUrl, {
       method: 'POST',
       credentials: 'include', // 쿠키 포함
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    
-    if (!response.ok) {
-      console.warn('로그아웃 API 응답 실패:', response.status);
-    }
-  } catch (error) {
-    console.warn('로그아웃 API 호출 실패:', error);
+  } catch {
     // API 호출 실패해도 클라이언트 사이드 쿠키 삭제는 진행
   }
 
@@ -409,8 +402,7 @@ export async function checkAuthStatus(
     });
 
     return response.ok;
-  } catch (error) {
-    console.warn('인증 상태 확인 실패:', error);
+  } catch {
     return false;
   }
 }

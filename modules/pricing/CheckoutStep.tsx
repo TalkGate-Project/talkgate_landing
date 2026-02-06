@@ -96,8 +96,7 @@ export default function CheckoutStep({
         const billingInfos = response.data?.data?.billingInfos || [];
         const activeBilling = billingInfos.find((b) => b.isActive) || billingInfos[0] || null;
         setBillingInfo(activeBilling);
-      } catch (err) {
-        console.error("결제 수단 조회 실패:", err);
+      } catch {
         setBillingInfo(null);
       } finally {
         setLoadingBilling(false);
@@ -129,8 +128,7 @@ export default function CheckoutStep({
         });
         const estimate = response.data?.data;
         setEstimateAmount(estimate?.additionalCost ?? 0);
-      } catch (err) {
-        console.error("플랜 변경 금액 조회 실패:", err);
+      } catch {
         setEstimateError("플랜 변경 금액을 불러오지 못했습니다.");
         setEstimateAmount(null);
       } finally {
@@ -217,7 +215,6 @@ export default function CheckoutStep({
         });
       }
     } catch (err: unknown) {
-      console.error(isPlanChange ? "플랜 변경 실패:" : "구독 실패:", err);
       const error = err as { data?: { message?: string } };
       const errorMessage =
         error?.data?.message ||
@@ -243,8 +240,8 @@ export default function CheckoutStep({
       const billingInfos = response.data?.data?.billingInfos || [];
       const activeBilling = billingInfos.find((b) => b.isActive) || billingInfos[0] || null;
       setBillingInfo(activeBilling);
-    } catch (err) {
-      console.error("결제 수단 조회 실패:", err);
+    } catch {
+      // 결제 수단 조회 실패
     }
   };
 
