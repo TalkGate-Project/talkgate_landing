@@ -126,10 +126,10 @@ export default function PrivacyPage() {
               <li className="pl-2">
                 문의처:{" "}
                 <a
-                  href="mailto:talkgate@support.im"
+                  href="mailto:support@talkgate.im"
                   className="text-primary-60 hover:text-primary-80 underline"
                 >
-                  talkgate@support.im
+                  support@talkgate.im
                 </a>
               </li>
             </ul>
