@@ -353,7 +353,7 @@ export default function CreateProjectModal({
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value.slice(0, PROJECT_NAME_MAX_LENGTH))}
-                  placeholder="거래소 텔레마케팅 관리"
+                  placeholder="프로젝트 이름을 입력해주세요"
                   maxLength={PROJECT_NAME_MAX_LENGTH}
                   className="w-full h-[40px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] text-[#000] bg-white focus:outline-none focus:border-[#00E272] transition-colors"
                   disabled={submitting}
