@@ -641,6 +641,11 @@ function PricingCard({
 
       {/* Price */}
       <div className="mb-4 md:mb-6">
+        {billingCycle === "yearly" && (
+          <div className="hidden md:block text-[24px] text-[#808080] line-through leading-[150%] tracking-[-0.03em] mb-1">
+            ₩ {((plan.priceMonthly ?? 0) * 3).toLocaleString()}
+          </div>
+        )}
         <div className="flex items-end md:items-baseline gap-0">
           <span className={`font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center text-[36px] md:text-[40px]`}>
             ₩ {price?.toLocaleString()}
@@ -746,7 +751,8 @@ function PricingCard({
       {/* 요금제 Summary */}
       <div className="flex items-center justify-between mb-8 md:mb-[42px]">
         <p className="text-[13px] md:text-[14px] font-bold leading-[17px] text-[#000000]">
-          {billingCycle === "monthly" ? "월 요금제" : "3개월 요금제"}
+          {/* {billingCycle === "monthly" ? "월 요금제" : "3개월 요금제"} */}
+          월 요금제
         </p>
         <p className="text-[14px] md:text-[16px] font-bold leading-[19px] text-right text-[#252525]">
           {price?.toLocaleString()}원
