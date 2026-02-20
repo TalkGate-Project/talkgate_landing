@@ -261,6 +261,14 @@ export default function CheckoutStep({
   const planDisplayName = selectedPlan.badge || selectedPlan.name;
   const titleText = isPlanChange ? "플랜 변경" : `${planDisplayName} 구독하기`;
 
+  // 삭선 원가: 쿠폰 할인 시 또는 3개월 할인 시 가격 위에 표시
+  const showStrikethrough = isCouponCheckout || billingCycle === "yearly";
+  const strikethroughAmount = showStrikethrough
+    ? isCouponCheckout
+      ? totalOriginal
+      : (selectedPlan.priceMonthly ?? 0) * 3 + Math.floor(((selectedPlan.priceMonthly ?? 0) * 3) * 0.1)
+    : 0;
+
   // 카드 정보 마스킹
   const getMaskedCardNumber = () => {
     if (!billingInfo) return "";
@@ -283,17 +291,17 @@ export default function CheckoutStep({
           </h1>
         </div>
 
-        {/* 가격 섹션 (쿠폰 시 원가 삭선 + 0원 표시) */}
+        {/* 가격 섹션 (쿠폰/3개월 할인 시 원가 삭선을 가격 위에 표시) */}
         <div className="mb-7 md:mb-12">
+          {showStrikethrough && (
+            <div className="text-[24px] md:text-[24px] text-[#808080] line-through leading-[150%] tracking-[-0.03em] mb-1">
+              ₩ {strikethroughAmount.toLocaleString()}
+            </div>
+          )}
           <div className="flex items-baseline flex-wrap gap-x-2">
             <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-center text-[#252525]">
               ₩ {total.toLocaleString()}
             </span>
-            {isCouponCheckout && (
-              <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-[#808080] line-through">
-                ₩ {totalOriginal.toLocaleString()}
-              </span>
-            )}
             <span className="font-normal text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
               {priceUnit}
             </span>
@@ -364,11 +372,11 @@ export default function CheckoutStep({
         </div>
 
         {/* 구분선 */}
-        <div className="w-full h-px bg-[#E2E2E2] my-8 md:my-10" />
+        <div className="w-full h-px bg-[#E2E2E2] my-8 md:mt-6 md:mb-12" />
 
         {/* 결제 수단 / 쿠폰 정보 */}
         <div className="mb-6">
-          <h3 className="font-semibold text-[16px] md:text-[18px] text-[#252525] mb-4">
+          <h3 className="font-semibold text-[16px] md:text-[18px] text-[#252525] !mb-4">
             결제수단
           </h3>
 
