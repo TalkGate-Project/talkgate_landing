@@ -152,6 +152,7 @@ export default async function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <meta name="naver-site-verification" content="9cfdf5115d5a63fa67d4dfb0b677d07a604152ea" />
         <link
           rel="stylesheet"
           as="style"
