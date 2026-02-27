@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Project, PricingPlan, BillingCycle } from "@/types";
-import { ProjectSelectStep, PlanSelectStep, CheckoutStep } from "@/modules/pricing";
+import { ProjectSelectStep, PlanSelectStep, CheckoutStep, CreateProjectModal } from "@/modules/pricing";
 import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
 import { getLoginUrl } from "@/lib/auth";
 import { SubscriptionService } from "@/lib/subscription";
+import { ProjectsService } from "@/lib/projects";
+import { showErrorModal } from "@/lib/errorModalEvents";
 import type { SubscriptionPlan, CouponInfoForCheckout } from "@/types/subscription";
 
 type PricingStep = "project" | "plan" | "checkout";
@@ -70,10 +72,21 @@ export default function PricingContent() {
   const [couponInfo, setCouponInfo] = useState<CouponInfoForCheckout | undefined>();
   const [autoSelectingPlan, setAutoSelectingPlan] = useState(false);
 
+  // 프로젝트 0개 사용자 처리
+  const [hasNoProjects, setHasNoProjects] = useState<boolean | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [pendingPlanSelection, setPendingPlanSelection] = useState<{
+    plan: PricingPlan;
+    billingCycle: BillingCycle;
+    context?: PlanSelectionContext;
+    coupon?: CouponInfoForCheckout;
+  } | null>(null);
+
   // 현재 스텝 결정 (URL 기반)
   // 비로그인 상태에서는 프로젝트 선택을 스킵하고 플랜 선택부터 시작
   const getDefaultStep = (): PricingStep => {
     if (!isAuthenticated) return "plan";
+    if (hasNoProjects) return "plan";
     return "project";
   };
   const currentStep: PricingStep = stepFromUrl || getDefaultStep();
@@ -111,6 +124,32 @@ export default function PricingContent() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // 인증 후 프로젝트 유무 확인 (프로젝트 0개 사용자는 플랜 선택부터 시작)
+  useEffect(() => {
+    if (isAuthenticated !== true) {
+      setHasNoProjects(null);
+      return;
+    }
+    // URL에 projectId가 이미 있으면 프로젝트가 있는 것으로 간주
+    if (projectIdFromUrl) {
+      setHasNoProjects(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
+        const projectList = response.data?.data || [];
+        if (!cancelled) {
+          setHasNoProjects(Array.isArray(projectList) ? projectList.length === 0 : true);
+        }
+      } catch {
+        if (!cancelled) setHasNoProjects(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, projectIdFromUrl]);
 
   // 비로그인인데 step=project면 URL을 step=plan으로 정리 (플랜 페이지가 맞음)
   useEffect(() => {
@@ -176,8 +215,8 @@ export default function PricingContent() {
     autoSelectPlan();
   }, [isAuthenticated, stepFromUrl, planTypeFromUrl, billingCycleFromUrl, selectedPlan, autoSelectingPlan]);
 
-  // 로딩 중일 때
-  if (isAuthenticated === null) {
+  // 로딩 중일 때 (인증 확인 또는 프로젝트 유무 확인 대기)
+  if (isAuthenticated === null || (isAuthenticated === true && hasNoProjects === null && !projectIdFromUrl)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-[16px] text-[#808080]">불러오는 중...</div>
@@ -198,6 +237,20 @@ export default function PricingContent() {
     context?: PlanSelectionContext,
     coupon?: CouponInfoForCheckout
   ) => {
+    // 프로젝트 0개 사용자: 안내 모달 → 프로젝트 생성 → checkout
+    if (hasNoProjects && !selectedProject) {
+      setPendingPlanSelection({ plan, billingCycle, context, coupon });
+      showErrorModal({
+        type: "info",
+        title: "프로젝트 등록",
+        headline: "플랜을 적용하기 위해 프로젝트 등록을 진행합니다.",
+        confirmText: "확인",
+        cancelText: "취소",
+        onConfirm: () => setShowCreateModal(true),
+      });
+      return;
+    }
+
     setSelectedPlan(plan);
     setSelectedBillingCycle(billingCycle);
     setPlanSelectionContext(context);
@@ -222,6 +275,55 @@ export default function PricingContent() {
     setCouponInfo(undefined);
   };
 
+  // 프로젝트 생성 완료 후: 생성된 프로젝트로 자동 선택 → checkout 진행
+  const handleProjectCreatedForNoProjects = async () => {
+    try {
+      const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
+      const projectList = response.data?.data || [];
+      const projects = Array.isArray(projectList) ? projectList : [];
+      if (projects.length > 0) {
+        const firstProject: Project = {
+          id: String(projects[0].id),
+          name: projects[0].name,
+        };
+        setSelectedProject(firstProject);
+        setHasNoProjects(false);
+
+        if (pendingPlanSelection) {
+          setSelectedPlan(pendingPlanSelection.plan);
+          setSelectedBillingCycle(pendingPlanSelection.billingCycle);
+          setPlanSelectionContext(pendingPlanSelection.context);
+          setCouponInfo(pendingPlanSelection.coupon);
+          setPendingPlanSelection(null);
+          updateUrl("checkout", firstProject);
+        }
+      }
+    } catch {
+      // 프로젝트 목록 재조회 실패 시 프로젝트 선택 화면으로 전환
+      setHasNoProjects(false);
+    }
+  };
+
+  // 프로젝트 0개 사용자용 플랜 선택 화면 렌더링 헬퍼
+  const renderPlanStepForNoProjects = () => (
+    <>
+      <PlanSelectStep
+        isAuthenticated={isAuthenticated}
+        selectedProject={undefined}
+        onSubscribe={handleSubscribe}
+        onLogin={handleLogin}
+      />
+      <CreateProjectModal
+        open={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+        }}
+        onSuccess={handleProjectCreatedForNoProjects}
+        persistent
+      />
+    </>
+  );
+
   // 현재 단계에 따라 컴포넌트 렌더링
   switch (currentStep) {
     case "project":
@@ -236,6 +338,10 @@ export default function PricingContent() {
           />
         );
       }
+      // 프로젝트 0개 사용자 → 플랜 선택 화면부터 시작
+      if (hasNoProjects) {
+        return renderPlanStepForNoProjects();
+      }
       return (
         <ProjectSelectStep
           onSelectProject={handleSelectProject}
@@ -243,6 +349,10 @@ export default function PricingContent() {
       );
 
     case "plan":
+      // 프로젝트 0개 사용자 → 플랜 선택 화면 (프로젝트 선택 스킵)
+      if (isAuthenticated && hasNoProjects) {
+        return renderPlanStepForNoProjects();
+      }
       // 로그인 상태에서 프로젝트가 선택되지 않았으면 프로젝트 선택 화면으로
       if (isAuthenticated && !selectedProject && !projectIdFromUrl) {
         return (
@@ -277,6 +387,10 @@ export default function PricingContent() {
 
       // 플랜이 선택되지 않았으면 플랜 선택 화면으로
       if (!selectedPlan) {
+        // 프로젝트 0개 사용자 → 플랜 선택 화면
+        if (isAuthenticated && hasNoProjects) {
+          return renderPlanStepForNoProjects();
+        }
         // 로그인 상태이고 프로젝트가 없으면 프로젝트 선택부터
         if (isAuthenticated && !selectedProject && !projectIdFromUrl) {
           return (
@@ -318,6 +432,10 @@ export default function PricingContent() {
             onLogin={handleLogin}
           />
         );
+      }
+      // 프로젝트 0개 사용자 → 플랜 선택 화면
+      if (hasNoProjects) {
+        return renderPlanStepForNoProjects();
       }
       return (
         <ProjectSelectStep
