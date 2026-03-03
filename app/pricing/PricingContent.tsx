@@ -242,7 +242,7 @@ export default function PricingContent() {
       setPendingPlanSelection({ plan, billingCycle, context, coupon });
       showErrorModal({
         type: "info",
-        title: "프로젝트 등록",
+        title: "",
         headline: "플랜을 적용하기 위해 프로젝트 등록을 진행합니다.",
         confirmText: "확인",
         cancelText: "취소",

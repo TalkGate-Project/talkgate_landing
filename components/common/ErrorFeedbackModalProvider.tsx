@@ -208,15 +208,19 @@ export default function ErrorFeedbackModalProvider({
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="!px-4 md:!px-8 !pt-7 !pb-6">
-              <div className="flex items-start justify-between">
-                <h2 className="text-[18px] font-semibold text-[#252525]">
-                  {state.title}
-                </h2>
+            <div className="!p-5">
+              <div
+                className={`flex items-start ${state.title ? "justify-between" : "justify-end"}`}
+              >
+                {state.title ? (
+                  <h2 className="text-[18px] font-semibold text-[#252525]">
+                    {state.title}
+                  </h2>
+                ) : null}
                 {!state.hideCloseButton && (
                   <button
                     type="button"
-                    className="cursor-pointer h-8 w-8"
+                    className="cursor-pointer h-6 w-6"
                     onClick={handleCloseButtonClick}
                     aria-label="close error modal"
                   >
@@ -309,7 +313,7 @@ export default function ErrorFeedbackModalProvider({
               </div>
               {state.headline && (
                 <p
-                  className={`!mt-3 text-center text-[18px] font-semibold leading-[21px] ${
+                  className={`!mt-5 text-center text-[18px] font-semibold leading-[21px] ${
                     state.type === "error"
                       ? "text-[#D83232]"
                       : state.type === "success"
@@ -327,7 +331,7 @@ export default function ErrorFeedbackModalProvider({
               )}
             </div>
             <div className="h-px w-full bg-[#E2E2E2]" />
-            <div className="flex justify-end gap-3 !px-4 md:!px-8 !py-4">
+            <div className="flex justify-end gap-3 !px-5 !py-3">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"
