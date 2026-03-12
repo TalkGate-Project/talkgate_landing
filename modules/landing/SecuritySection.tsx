@@ -28,11 +28,11 @@ export function SecuritySection() {
   return (
     <section className="py-5 md:py-20 px-4" ref={sectionRef}>
       <div className="w-full max-w-[1170px] mx-auto">
-        <div className="mb-8 md:mb-11">
-          <h5 className="text-primary-60 font-semibold text-[16px] md:text-[18px] leading-[1.5] tracking-[-0.02em] mb-3">
+        <div className="mb-5 md:mb-11 text-center md:text-left">
+          <h5 className="text-primary-60 font-semibold text-[14px] md:text-[18px] leading-[1.5] tracking-[-0.02em] !mb-[10px]">
             안전한 데이터 관리 체계
           </h5>
-          <h2 className="text-[24px] md:text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">
+          <h2 className="text-[20px] md:text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">
             사용자 데이터 보호를 최우선으로,<br className="md:hidden" /> 안정적인 시스템을 운영합니다.
           </h2>
         </div>
