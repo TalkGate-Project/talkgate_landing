@@ -84,7 +84,7 @@ export function CustomerFeatureSection() {
           <h5 className="text-center lg:text-left text-primary-60 font-semibold text-[14px] md:text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">
             효율적인 고객 목록 관리
           </h5>
-          <h2 className="font-bold text-[20px] md:typo-h1 text-center lg:text-left !mb-[20px] lg:!mb-12">
+          <h2 className="font-bold text-[20px] md:text-[32px] text-center lg:text-left !mb-[20px] lg:!mb-12">
             고객 데이터를 한눈에 파악하고,<br className="lg:hidden" /> 성장의 기회를 만드세요.
           </h2>
 
