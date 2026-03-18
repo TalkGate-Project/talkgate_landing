@@ -18,7 +18,7 @@ export type RequestOptions = {
   signal?: AbortSignal;
   responseType?: "auto" | "json" | "text" | "blob";
   credentials?: RequestCredentials; // per-request override
-  suppressAutoLogout?: boolean; // if true, do not auto-redirect on 401/403
+  suppressAutoLogout?: boolean; // if true, do not auto-redirect on auth failures
 };
 
 export type ApiResponse<T> = {
@@ -26,6 +26,24 @@ export type ApiResponse<T> = {
   status: number;
   data: T;
 };
+
+export type ApiErrorLike = {
+  status?: number;
+  data?: { code?: string; message?: string };
+};
+
+export function getApiErrorStatus(error: unknown): number | undefined {
+  const status = (error as ApiErrorLike | undefined)?.status;
+  return typeof status === "number" ? status : undefined;
+}
+
+export function isUnauthorizedError(error: unknown): boolean {
+  return getApiErrorStatus(error) === 401;
+}
+
+export function isForbiddenError(error: unknown): boolean {
+  return getApiErrorStatus(error) === 403;
+}
 
 function buildQueryString(query?: RequestOptions["query"]): string {
   if (!query) return "";
@@ -59,7 +77,6 @@ export class ApiClient {
   private readonly timeoutMs: number;
   private readonly getDefaultHeaders?: () => Record<string, string>;
   private readonly defaultCredentials: RequestCredentials;
-  private refreshInFlight: Promise<void> | null = null;
 
   constructor(options?: ApiClientOptions) {
     // 서버 API 프록시를 통해 요청하도록 변경 (httpOnly 쿠키 사용)
@@ -133,9 +150,9 @@ export class ApiClient {
     try {
       return await exec();
     } catch (err: unknown) {
-      // If unauthorized (401), try to refresh once, then retry original request.
-      // Do NOT refresh on 403 (forbidden) to avoid unnecessary logout on access control errors.
-      const error = err as { status?: number; data?: { code?: string; message?: string } };
+      // 현재 프록시 구현에는 refresh 토큰 재발급/Set-Cookie 반영이 없으므로
+      // 401은 즉시 세션 만료 또는 인증 실패로 처리합니다.
+      const error = err as ApiErrorLike;
       if (error && error.status === 401) {
         const code: string = (error?.data?.code as string) || String(error?.data?.message || "").toUpperCase();
         const message: string = String(error?.data?.message || "").toUpperCase();
@@ -155,14 +172,8 @@ export class ApiClient {
           if (!options.suppressAutoLogout) this.handleAutoLogout();
           throw err;
         }
-        try {
-          await this.refreshTokens();
-          return await exec();
-        } catch {
-          // On refresh failure, auto-logout and rethrow original error
-          if (!options.suppressAutoLogout) this.handleAutoLogout();
-          throw err;
-        }
+        if (!options.suppressAutoLogout) this.handleAutoLogout();
+        throw err;
       }
       throw err;
     }
@@ -186,12 +197,6 @@ export class ApiClient {
 
   getBlob(path: string, options?: Omit<RequestOptions, "method" | "body" | "responseType">) {
     return this.request<Blob>(path, { ...options, method: "GET", responseType: "blob" });
-  }
-
-  private async refreshTokens(): Promise<void> {
-    // 토큰 갱신은 프록시 서버에서 자동으로 처리됨 (401 응답 시)
-    // 클라이언트에서는 별도 처리 불필요
-    throw new Error("Token refresh is handled by the server proxy");
   }
 
   private handleAutoLogout(): void {

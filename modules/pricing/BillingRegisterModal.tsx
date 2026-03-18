@@ -285,10 +285,8 @@ export default function BillingRegisterModal({
 
       await BillingService.register(input);
       onSuccess();
-    } catch (err: unknown) {
-      const error = err as { data?: { message?: string } };
-      const errorMessage = error?.data?.message || "결제 수단 등록에 실패했습니다. 다시 시도해주세요.";
-      setError(errorMessage);
+    } catch {
+      setError("결제 수단 등록에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setSubmitting(false);
     }

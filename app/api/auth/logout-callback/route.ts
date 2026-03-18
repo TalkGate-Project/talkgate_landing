@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/auth';
+import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME, sanitizeReturnUrl } from '@/lib/auth';
 import { env } from '@/lib/env';
 
 /**
@@ -20,10 +20,10 @@ import { env } from '@/lib/env';
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const returnUrl = searchParams.get('returnUrl') || '/';
-  const success = searchParams.get('success') !== 'false';
+  const safeReturnUrl = sanitizeReturnUrl(request.nextUrl.origin, returnUrl, '/');
 
   // Response 생성 (리다이렉트 전에 쿠키를 삭제해야 함)
-  const response = NextResponse.redirect(new URL(returnUrl, env.LANDING_URL));
+  const response = NextResponse.redirect(safeReturnUrl);
 
   // 쿠키 삭제를 위한 옵션
   // 중요: 쿠키를 삭제하려면 설정할 때와 동일한 옵션을 사용해야 합니다

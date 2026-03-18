@@ -15,19 +15,30 @@ interface CreateProjectModalProps {
 // 서브도메인 형식 검증 (영문 소문자, 숫자, 하이픈만 허용)
 const SUBDOMAIN_PATTERN = /^[a-z0-9-]+$/;
 const PROJECT_NAME_MAX_LENGTH = 20;
+const MAX_ICON_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 function getFileType(file: File): string {
-  if (file.type) return file.type;
+  if (file.type && ALLOWED_IMAGE_TYPES.has(file.type)) return file.type;
   const extension = file.name.split(".").pop()?.toLowerCase();
   const mimeTypes: Record<string, string> = {
     png: "image/png",
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
-    svg: "image/svg+xml",
-    gif: "image/gif",
     webp: "image/webp",
   };
-  return mimeTypes[extension || ""] || "image/jpeg";
+  return mimeTypes[extension || ""] || "";
+}
+
+function validateIconFile(file: File): string | null {
+  const fileType = getFileType(file);
+  if (!fileType || !ALLOWED_IMAGE_TYPES.has(fileType)) {
+    return "PNG, JPG, WEBP 파일만 업로드할 수 있습니다.";
+  }
+  if (file.size > MAX_ICON_FILE_SIZE_BYTES) {
+    return "파일 크기는 최대 5MB까지 업로드할 수 있습니다.";
+  }
+  return null;
 }
 
 export default function CreateProjectModal({
@@ -43,6 +54,7 @@ export default function CreateProjectModal({
   const [projectName, setProjectName] = useState("");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [iconError, setIconError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -57,16 +69,37 @@ export default function CreateProjectModal({
 
   const onPickFile = useCallback(() => fileInputRef.current?.click(), []);
 
+  const applyIconFile = useCallback((file: File | null) => {
+    if (!file) {
+      setIconFile(null);
+      setIconPreview(null);
+      setIconError(null);
+      return;
+    }
+
+    const validationError = validateIconFile(file);
+    if (validationError) {
+      setIconFile(null);
+      setIconPreview(null);
+      setIconError(validationError);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setIconFile(file);
+    setIconPreview(URL.createObjectURL(file));
+    setIconError(null);
+  }, []);
+
   const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setIconFile(file);
-    if (file) setIconPreview(URL.createObjectURL(file));
-    else setIconPreview(null);
-  }, []);
+    applyIconFile(file);
+  }, [applyIconFile]);
 
   const clearIconFile = useCallback(() => {
     setIconFile(null);
     setIconPreview(null);
+    setIconError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
 
@@ -89,11 +122,8 @@ export default function CreateProjectModal({
     e.stopPropagation();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0] || null;
-    if (file && file.type.startsWith("image/")) {
-      setIconFile(file);
-      setIconPreview(URL.createObjectURL(file));
-    }
-  }, []);
+    applyIconFile(file);
+  }, [applyIconFile]);
 
   const validateSubdomain = useCallback(async () => {
     setDomainError(null);
@@ -133,8 +163,6 @@ export default function CreateProjectModal({
       const message = errObj?.data?.message || errObj?.message || "";
       if (message.includes("regular expression") || message.includes("match")) {
         setDomainError("영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.");
-      } else if (message) {
-        setDomainError(message);
       } else {
         setDomainError("도메인 확인 중 오류가 발생했습니다.");
       }
@@ -153,10 +181,21 @@ export default function CreateProjectModal({
       if (submitting) return;
       setSubmitting(true);
       setCreateError(null);
+      if (iconFile) {
+        const validationError = validateIconFile(iconFile);
+        if (validationError) {
+          setIconError(validationError);
+          setSubmitting(false);
+          return;
+        }
+      }
       try {
         let logoUrl: string | undefined;
         if (iconFile) {
           const fileType = getFileType(iconFile);
+          if (!fileType) {
+            throw new Error("허용되지 않는 파일 형식입니다.");
+          }
           const presignedRes = await AssetsService.presignProjectLogo({
             fileName: iconFile.name,
             fileType,
@@ -206,6 +245,7 @@ export default function CreateProjectModal({
     setSubdomain("");
     setDomainAvailable(null);
     setDomainError(null);
+    setIconError(null);
     setCreateError(null);
     onClose();
   }, [submitting, clearIconFile, onClose]);
@@ -323,10 +363,15 @@ export default function CreateProjectModal({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  accept="image/png,image/jpeg,image/webp"
                   className="hidden"
                   onChange={onFileChange}
                 />
+                {iconError && (
+                  <p className="mt-3 text-[13px] text-[#D83232] leading-[1.5] text-center">
+                    {iconError}
+                  </p>
+                )}
                 {isDragging && (
                   <div className="absolute inset-0 rounded-[8px] bg-[#00E272]/10 flex items-center justify-center pointer-events-none z-10">
                     <div className="flex flex-col items-center gap-2">

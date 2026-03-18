@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { PricingPlan, Project, BillingCycle } from "@/types";
 import type { BillingInfo } from "@/types/billing";
 import { ChevronUpIcon } from "@/components/icons";
+import { isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { BillingService } from "@/lib/billing";
 import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
@@ -128,8 +129,14 @@ export default function CheckoutStep({
         });
         const estimate = response.data?.data;
         setEstimateAmount(estimate?.additionalCost ?? 0);
-      } catch {
-        setEstimateError("플랜 변경 금액을 불러오지 못했습니다.");
+      } catch (err: unknown) {
+        if (isUnauthorizedError(err)) {
+          setEstimateError("로그인이 만료되었습니다. 다시 로그인해주세요.");
+        } else if (isForbiddenError(err)) {
+          setEstimateError("이 프로젝트의 플랜 변경 금액을 조회할 권한이 없습니다.");
+        } else {
+          setEstimateError("플랜 변경 금액을 불러오지 못했습니다.");
+        }
         setEstimateAmount(null);
       } finally {
         setLoadingEstimate(false);
@@ -215,10 +222,13 @@ export default function CheckoutStep({
         });
       }
     } catch (err: unknown) {
-      const error = err as { data?: { message?: string } };
-      const errorMessage =
-        error?.data?.message ||
-        (isPlanChange ? "플랜 변경에 실패했습니다. 다시 시도해주세요." : "구독에 실패했습니다. 다시 시도해주세요.");
+      const errorMessage = isUnauthorizedError(err)
+        ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+        : isForbiddenError(err)
+          ? "이 작업을 수행할 권한이 없습니다. 프로젝트 관리자 권한을 확인해주세요."
+          : isPlanChange
+            ? "플랜 변경에 실패했습니다. 다시 시도해주세요."
+            : "구독에 실패했습니다. 다시 시도해주세요.";
       setError(errorMessage);
     } finally {
       setSubmitting(false);
