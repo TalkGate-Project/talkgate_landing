@@ -243,7 +243,7 @@ export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string)
  * 시작하기 URL 생성
  *
  * 인증 여부에 따라 다른 페이지로 이동합니다.
- * - 인증됨: 메인 서비스 대시보드
+ * - 인증됨: 메인 서비스 프로젝트 목록(/projects)
  * - 미인증: 메인 서비스 회원가입
  *
  * @param isAuthenticated - 인증 여부
@@ -251,16 +251,16 @@ export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string)
  */
 export function getStartUrl(isAuthenticated: boolean = false): string {
   if (isAuthenticated) {
-    return `${getEffectiveMainServiceUrl()}/dashboard`;
+    return `${getEffectiveMainServiceUrl()}/projects`;
   }
   return getLoginUrl();
 }
 
 /**
- * 메인 서비스 대시보드 URL
+ * 메인 서비스 프로젝트 목록 URL (/projects)
  */
 export function getDashboardUrl(): string {
-  return `${getEffectiveMainServiceUrl()}/dashboard`;
+  return `${getEffectiveMainServiceUrl()}/projects`;
 }
 
 /**

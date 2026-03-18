@@ -20,7 +20,7 @@
 - 시작하기 버튼
 
 **로그인 상태:**
-- 대시보드 버튼 (메인 서비스로 이동)
+- 대시보드 버튼 (메인 서비스 `/projects` 로 이동)
 - Logout 버튼 (현재 페이지에서 쿠키 삭제하여 로그아웃 처리)
 
 ### 3. Pricing 페이지 인증 플로우
@@ -121,7 +121,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
 2. "Login" 및 "시작하기" 버튼 확인
 3. Login 클릭 → 메인 서비스 로그인
 4. 로그인 후 랜딩 페이지로 복귀
-5. "대시보드" 및 "Logout" 버튼 확인
+5. "대시보드"(→ 메인 서비스 `/projects`) 및 "Logout" 버튼 확인
 
 ### 2. Pricing 플로우 테스트 (로그아웃 상태)
 1. `/pricing` 페이지 접속
@@ -141,7 +141,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
 ### 4. 개발 환경 테스트
 1. `/pricing` 페이지에서 우하단 "DEV 로그인" 버튼 클릭
 2. 페이지 새로고침
-3. 헤더에 "대시보드" 및 "Logout" 버튼 표시 확인
+3. 헤더에 "대시보드"(→ 메인 서비스 `/projects`) 및 "Logout" 버튼 표시 확인
 4. "DEV 로그아웃" 버튼으로 변경 확인
 
 ## 📝 메인 서비스에서 확인할 사항
@@ -163,11 +163,11 @@ cookieStore.set('tg_access_token', accessToken, {
   maxAge: 60 * 60 * 24 * 7, // 7일
 });
 
-// 3. returnUrl로 리다이렉트
+// 3. returnUrl로 리다이렉트 (없으면 메인 서비스 /projects 로 이동)
 if (returnUrl) {
   window.location.href = returnUrl;
 } else {
-  router.push('/dashboard');
+  router.push('/projects');
 }
 ```
 
