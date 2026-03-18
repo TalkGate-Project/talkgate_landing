@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Project, PricingPlan, BillingCycle } from "@/types";
 import { ProjectSelectStep, PlanSelectStep, CheckoutStep, CreateProjectModal } from "@/modules/pricing";
 import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
+import { isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { getLoginUrl } from "@/lib/auth";
 import { SubscriptionService } from "@/lib/subscription";
 import { ProjectsService } from "@/lib/projects";
@@ -144,8 +145,18 @@ export default function PricingContent() {
         if (!cancelled) {
           setHasNoProjects(Array.isArray(projectList) ? projectList.length === 0 : true);
         }
-      } catch {
-        if (!cancelled) setHasNoProjects(null);
+      } catch (err: unknown) {
+        if (cancelled) return;
+        if (isUnauthorizedError(err)) {
+          setIsAuthenticated(false);
+          setHasNoProjects(null);
+          return;
+        }
+        if (isForbiddenError(err)) {
+          setHasNoProjects(false);
+          return;
+        }
+        setHasNoProjects(false);
       }
     })();
     return () => { cancelled = true; };
@@ -345,6 +356,7 @@ export default function PricingContent() {
       return (
         <ProjectSelectStep
           onSelectProject={handleSelectProject}
+          onLogin={handleLogin}
         />
       );
 
@@ -358,6 +370,7 @@ export default function PricingContent() {
         return (
           <ProjectSelectStep
             onSelectProject={handleSelectProject}
+            onLogin={handleLogin}
           />
         );
       }
@@ -396,6 +409,7 @@ export default function PricingContent() {
           return (
             <ProjectSelectStep
               onSelectProject={handleSelectProject}
+              onLogin={handleLogin}
             />
           );
         }
@@ -440,6 +454,7 @@ export default function PricingContent() {
       return (
         <ProjectSelectStep
           onSelectProject={handleSelectProject}
+          onLogin={handleLogin}
         />
       );
   }

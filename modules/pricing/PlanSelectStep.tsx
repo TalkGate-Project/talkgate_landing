@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
 import type { SubscriptionPlan, AdminProjectSubscription, CouponInfoForCheckout } from "@/types/subscription";
+import { getApiErrorStatus, isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
@@ -59,6 +60,7 @@ export default function PlanSelectStep({
   const [error, setError] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [subscriptionAccessStatus, setSubscriptionAccessStatus] = useState<number | null>(null);
   const [changingPlan, setChangingPlan] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -174,6 +176,7 @@ export default function PlanSelectStep({
       }
 
       setLoadingSubscription(true);
+      setSubscriptionAccessStatus(null);
       try {
         const response = await SubscriptionService.getAdminProjects({ suppressAutoLogout: true });
         const projects = response.data?.data?.projects || [];
@@ -181,7 +184,8 @@ export default function PlanSelectStep({
           (project) => String(project.projectId) === String(selectedProject.id)
         );
         setCurrentSubscription(matched || null);
-      } catch {
+      } catch (err: unknown) {
+        setSubscriptionAccessStatus(getApiErrorStatus(err) ?? null);
         setCurrentSubscription(null);
       } finally {
         setLoadingSubscription(false);
@@ -203,6 +207,26 @@ export default function PlanSelectStep({
         // 로그인 페이지로 이동 (현재 페이지를 returnUrl로 전달)
         onLogin();
       }
+      return;
+    }
+
+    if (subscriptionAccessStatus === 401) {
+      const confirmed = window.confirm(
+        "로그인이 만료되었습니다.\n\n로그인 페이지로 이동하시겠습니까?"
+      );
+      if (confirmed) onLogin();
+      return;
+    }
+
+    if (subscriptionAccessStatus === 403) {
+      showErrorModal({
+        type: "info",
+        title: "권한 확인",
+        headline: "이 프로젝트를 관리할 권한이 없습니다.",
+        description: "프로젝트 관리자 권한이 있는 계정으로 다시 시도해주세요.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
       return;
     }
 
@@ -309,7 +333,7 @@ export default function PlanSelectStep({
         return;
       }
       if (!data.canUse) {
-        setCouponError(data.unavailableReason || "이 쿠폰을 사용할 수 없습니다.");
+        setCouponError("이 쿠폰은 현재 사용할 수 없습니다.");
         return;
       }
       const billingCycleFromCoupon: BillingCycle =
@@ -325,13 +349,20 @@ export default function PlanSelectStep({
       });
     } catch (err: unknown) {
       const apiError = err as { data?: { code?: string; message?: string } };
+      if (isUnauthorizedError(err)) {
+        setCouponError("로그인이 만료되었습니다. 다시 로그인해주세요.");
+        return;
+      }
+      if (isForbiddenError(err)) {
+        setCouponError("이 프로젝트의 쿠폰을 확인할 권한이 없습니다.");
+        return;
+      }
       const message =
-        apiError?.data?.message ||
-        (apiError?.data?.code === "INVALID_COUPON"
+        apiError?.data?.code === "INVALID_COUPON"
           ? "유효하지 않은 쿠폰입니다."
           : apiError?.data?.code === "COUPON_EXPIRED"
             ? "만료된 쿠폰입니다."
-            : "쿠폰 확인에 실패했습니다.");
+            : "쿠폰 확인에 실패했습니다.";
       setCouponError(message);
     } finally {
       setCouponLoading(false);
@@ -390,6 +421,16 @@ export default function PlanSelectStep({
         {/* coupon registration */}
         {selectedProject && (
           <div className="max-w-[334px] mx-auto mb-9.5 md:mb-12">
+            {subscriptionAccessStatus === 401 && (
+              <p className="mb-3 text-[13px] text-red-500 text-center">
+                로그인 상태를 다시 확인해주세요. 세션이 만료되었을 수 있습니다.
+              </p>
+            )}
+            {subscriptionAccessStatus === 403 && (
+              <p className="mb-3 text-[13px] text-red-500 text-center">
+                이 프로젝트를 관리할 권한이 없어 구독 변경과 쿠폰 등록을 진행할 수 없습니다.
+              </p>
+            )}
             <div className="h-[34px] gap-2 md:gap-3 flex">
               <input
                 type="text"
@@ -406,11 +447,12 @@ export default function PlanSelectStep({
                   }
                 }}
                 className="w-full border border-[#E2E2E266] h-full px-2 md:px-3 text-[14px] rounded-[10px] tracking-[-0.02em] text-[#595959] focus:outline-none focus:border-[#00E272]"
+                disabled={subscriptionAccessStatus === 401 || subscriptionAccessStatus === 403}
               />
               <button
                 type="button"
                 onClick={handleCouponRegister}
-                disabled={couponLoading || !couponCode.trim()}
+                disabled={couponLoading || !couponCode.trim() || subscriptionAccessStatus === 401 || subscriptionAccessStatus === 403}
                 className="w-full max-w-[62px] md:max-w-[72px] border border-[#E2E2E266] rounded-[10px] text-[14px] tracking-[-0.02em] hover:bg-[#E2E2E266] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {couponLoading ? "확인 중..." : "쿠폰등록"}

@@ -4,23 +4,26 @@ import { env } from "@/lib/env";
 
 const API_BASE_URL = env.API_BASE_URL;
 
-// 민감한 정보를 마스킹하는 함수
-function maskSensitiveData(data: Record<string, unknown>): Record<string, unknown> {
-  const sensitiveFields = ["cardNo", "cardPw", "idNo", "cvc", "password", "token"];
-  const masked: Record<string, unknown> = {};
-  
-  for (const [key, value] of Object.entries(data)) {
-    if (sensitiveFields.includes(key) && typeof value === "string") {
-      // 앞 4자리만 보여주고 나머지는 마스킹
-      masked[key] = value.length > 4 ? `${value.slice(0, 4)}****` : "****";
-    } else if (typeof value === "object" && value !== null) {
-      masked[key] = maskSensitiveData(value as Record<string, unknown>);
-    } else {
-      masked[key] = value;
-    }
-  }
-  
-  return masked;
+function getAllowedLogDetails(params: {
+  path: string;
+  method: string;
+  projectId: string | null;
+  hasAuth: boolean;
+  queryKeys?: string[];
+  status?: number;
+  ok?: boolean;
+  error?: string;
+}): Record<string, unknown> {
+  return {
+    path: params.path,
+    method: params.method,
+    hasAuth: params.hasAuth,
+    hasProjectId: Boolean(params.projectId),
+    ...(params.queryKeys ? { queryKeys: params.queryKeys } : {}),
+    ...(typeof params.status === "number" ? { status: params.status } : {}),
+    ...(typeof params.ok === "boolean" ? { ok: params.ok } : {}),
+    ...(params.error ? { error: params.error } : {}),
+  };
 }
 
 // 서버 사이드 로깅 함수
@@ -39,6 +42,7 @@ async function handleProxy(req: NextRequest, pathSegments: string[]) {
   const path = "/" + pathSegments.join("/");
   // 쿼리 파라미터 전달
   const searchParams = req.nextUrl.searchParams.toString();
+  const queryKeys = Array.from(req.nextUrl.searchParams.keys());
   const queryString = searchParams ? `?${searchParams}` : "";
   const url = `${API_BASE_URL}${path}${queryString}`;
   const method = req.method;
@@ -65,17 +69,14 @@ async function handleProxy(req: NextRequest, pathSegments: string[]) {
   
   // 요청 바디 처리
   let body: string | undefined;
-  let bodyData: Record<string, unknown> | undefined;
-  
   if (method !== "GET" && method !== "HEAD") {
     try {
       const text = await req.text();
       if (text) {
         body = text;
-        bodyData = JSON.parse(text);
       }
     } catch {
-      // 바디가 없거나 파싱 실패
+      // 바디가 없거나 읽기 실패
     }
   }
   
@@ -84,14 +85,17 @@ async function handleProxy(req: NextRequest, pathSegments: string[]) {
   const isSubscriptionRequest = path.includes("/subscriptions");
   
   if (isBillingRequest || isSubscriptionRequest) {
-    serverLog("info", `API Request: ${method} ${path}${queryString}`, {
-      url,
-      method,
-      hasAuth: !!accessToken,
-      projectId: projectId || null,
-      query: searchParams || null,
-      body: bodyData ? maskSensitiveData(bodyData) : null,
-    });
+    serverLog(
+      "info",
+      `API Request: ${method} ${path}${queryString}`,
+      getAllowedLogDetails({
+        path,
+        method,
+        projectId,
+        hasAuth: !!accessToken,
+        queryKeys,
+      })
+    );
   }
   
   try {
@@ -102,24 +106,20 @@ async function handleProxy(req: NextRequest, pathSegments: string[]) {
     });
     
     const responseText = await response.text();
-    let responseData: unknown;
-    
-    try {
-      responseData = JSON.parse(responseText);
-    } catch {
-      responseData = responseText;
-    }
     
     // 빌링/구독 관련 응답 로깅
     if (isBillingRequest || isSubscriptionRequest) {
       serverLog(
         response.ok ? "info" : "error",
         `API Response: ${method} ${path} - ${response.status}`,
-        {
+        getAllowedLogDetails({
+          path,
+          method,
+          projectId,
+          hasAuth: !!accessToken,
           status: response.status,
           ok: response.ok,
-          data: responseData,
-        }
+        })
       );
     }
     
@@ -132,9 +132,17 @@ async function handleProxy(req: NextRequest, pathSegments: string[]) {
       headers: responseHeaders,
     });
   } catch (error) {
-    serverLog("error", `API Request Failed: ${method} ${path}`, {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    serverLog(
+      "error",
+      `API Request Failed: ${method} ${path}`,
+      getAllowedLogDetails({
+        path,
+        method,
+        projectId,
+        hasAuth: !!accessToken,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    );
     
     return NextResponse.json(
       {

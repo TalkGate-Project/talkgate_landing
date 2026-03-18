@@ -46,21 +46,16 @@ export async function GET() {
     const accessToken = cookieStore.get('tg_access_token')?.value;
 
     if (DEBUG) {
-      console.log('[auth/check] 쿠키 tg_access_token 존재:', !!accessToken);
-      if (accessToken) {
-        console.log('[auth/check] 토큰 길이:', accessToken.length, '| 앞 20자:', accessToken.slice(0, 20) + '...');
-      } else {
-        console.log('[auth/check] 받은 쿠키 이름들:', cookieStore.getAll().map((c) => c.name));
-      }
+      console.log('[auth/check] hasAccessToken:', Boolean(accessToken));
     }
 
     if (!accessToken || accessToken === 'undefined' || accessToken === 'null') {
-      if (DEBUG) console.log('[auth/check] 토큰 없음/무효 → authenticated: false');
+      if (DEBUG) console.log('[auth/check] authenticated: false (missing token)');
       return NextResponse.json({ authenticated: false });
     }
 
     const url = `${env.API_BASE_URL}/v1/auth/user`;
-    if (DEBUG) console.log('[auth/check] API 호출:', url);
+    if (DEBUG) console.log('[auth/check] validating token against auth user endpoint');
 
     const response = await fetch(url, {
       method: 'GET',
@@ -74,17 +69,6 @@ export async function GET() {
 
     if (DEBUG) {
       console.log('[auth/check] API 응답 status:', response.status, 'ok:', response.ok);
-      if (!response.ok) {
-        const text = await response.text();
-        let bodyStr: string;
-        try {
-          const parsed = JSON.parse(text) as unknown;
-          bodyStr = typeof parsed === 'string' ? parsed : JSON.stringify(parsed);
-        } catch {
-          bodyStr = text.slice(0, 200);
-        }
-        console.log('[auth/check] API 에러 body:', bodyStr);
-      }
     }
 
     const authenticated = response.ok;
@@ -92,10 +76,9 @@ export async function GET() {
 
     return NextResponse.json({ authenticated });
   } catch (error) {
-    console.warn('[auth/check] 인증 상태 확인 실패:', error);
+    console.warn('[auth/check] 인증 상태 확인 실패');
     if (DEBUG && error instanceof Error) {
       console.log('[auth/check] error.message:', error.message);
-      console.log('[auth/check] error.stack:', error.stack);
     }
     return NextResponse.json({
       authenticated: false,

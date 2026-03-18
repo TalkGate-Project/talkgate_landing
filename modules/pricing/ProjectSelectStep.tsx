@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import type { Project } from "@/types";
 import type { ProjectInfo } from "@/types/project";
+import { getApiErrorStatus, isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { ProjectsService } from "@/lib/projects";
 import CreateProjectModal from "./CreateProjectModal";
 
 interface ProjectSelectStepProps {
   onSelectProject: (project: Project) => void;
   onCreateProject?: () => void;
+  onLogin?: () => void;
 }
 
 // API 프로젝트를 UI 프로젝트로 변환
@@ -26,10 +28,12 @@ function convertToProject(project: ProjectInfo): Project {
 
 export default function ProjectSelectStep({
   onSelectProject,
+  onLogin,
 }: ProjectSelectStepProps) {
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Animation refs
@@ -111,13 +115,22 @@ export default function ProjectSelectStep({
   const fetchProjects = async () => {
     setLoading(true);
     setError(null);
+    setErrorStatus(null);
     try {
       // Admin 역할인 프로젝트만 조회 (401 시 자동 로그아웃 비활성화 → pricing 페이지 유지)
       const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
       const projectList = response.data?.data || [];
       setProjects(Array.isArray(projectList) ? projectList : []);
-    } catch {
-      setError("프로젝트 목록을 불러오는데 실패했습니다.");
+    } catch (err: unknown) {
+      const status = getApiErrorStatus(err) ?? null;
+      setErrorStatus(status);
+      if (isUnauthorizedError(err)) {
+        setError("로그인이 만료되었습니다. 다시 로그인해주세요.");
+      } else if (isForbiddenError(err)) {
+        setError("관리자 권한이 있는 프로젝트만 조회할 수 있습니다.");
+      } else {
+        setError("프로젝트 목록을 불러오는데 실패했습니다.");
+      }
       setProjects([]);
     } finally {
       setLoading(false);
@@ -155,12 +168,21 @@ export default function ProjectSelectStep({
         {error && !loading && (
           <div className="flex flex-col items-center justify-center py-4 mb-6">
             <div className="text-[14px] text-red-500 mb-2">{error}</div>
-            <button
-              onClick={fetchProjects}
-              className="px-4 py-2 bg-[#252525] text-white rounded-full text-[12px] font-medium hover:bg-[#3a3a3a] transition-colors"
-            >
-              다시 시도
-            </button>
+            {errorStatus === 401 && onLogin ? (
+              <button
+                onClick={onLogin}
+                className="px-4 py-2 bg-[#252525] text-white rounded-full text-[12px] font-medium hover:bg-[#3a3a3a] transition-colors"
+              >
+                로그인하기
+              </button>
+            ) : (
+              <button
+                onClick={fetchProjects}
+                className="px-4 py-2 bg-[#252525] text-white rounded-full text-[12px] font-medium hover:bg-[#3a3a3a] transition-colors"
+              >
+                다시 시도
+              </button>
+            )}
           </div>
         )}
 

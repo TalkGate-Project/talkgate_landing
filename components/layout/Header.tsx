@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/constants";
-import { getLoginUrl, getStartUrl, clearAuthCookies } from "@/lib/auth";
+import { getLoginUrl, getStartUrl, handleLogout as performLogout } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { SideDrawer } from "./SideDrawer";
 
@@ -22,12 +22,14 @@ export function Header({ isAuthenticated: initialAuth = false, landingBaseUrl }:
 
   /**
    * 로그아웃 처리
-   * 1. 쿠키 삭제
-   * 2. 새로고침으로 새로운 데이터 로드
+   * 메인 서비스 로그아웃 플로우로 이동하여
+   * 서버 세션/쿠키 정리를 함께 수행합니다.
    */
   const handleLogout = () => {
-    clearAuthCookies();
-    window.location.reload();
+    void performLogout({
+      redirect: pathname ?? "/",
+      baseUrlOverride: landingBaseUrl,
+    });
   };
 
   // 탭 복귀 시 인증 재검사 (다른 탭에서 로그인 후 돌아오면 로그인 유지 반영)

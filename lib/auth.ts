@@ -6,6 +6,8 @@
  */
 
 import { env } from './env';
+import { clearSelectedProjectId } from './project';
+import { clearTokens } from './token';
 
 // ============================================
 // 쿠키 관련 상수
@@ -49,12 +51,46 @@ export function getLandingBaseUrlFromRequest(headers: Headers): string {
   return base;
 }
 
-/** 경로 또는 전체 URL → returnUrl로 사용할 전체 URL */
-function toReturnUrl(base: string, pathOrUrl: string): string {
-  const s = pathOrUrl.trim();
-  if (s.startsWith("http://") || s.startsWith("https://")) return s;
-  const path = s.startsWith("/") ? s : `/${s}`;
-  return `${base.replace(/\/$/, "")}${path}`;
+function normalizeBaseUrl(base: string): string {
+  return base.replace(/\/$/, "");
+}
+
+function toRelativeOrAbsoluteInput(pathOrUrl: string): string {
+  const trimmed = pathOrUrl.trim();
+  if (!trimmed) return "/";
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  if (trimmed.startsWith("/") || trimmed.startsWith("?")) return trimmed;
+  return `/${trimmed}`;
+}
+
+function getAllowedOrigin(base: string): string {
+  return new URL(`${normalizeBaseUrl(base)}/`).origin;
+}
+
+/**
+ * returnUrl allowlist:
+ * - 상대 경로는 허용
+ * - 절대 URL은 현재 랜딩 origin과 동일한 경우만 허용
+ * - 그 외는 fallbackPath로 강등
+ */
+export function sanitizeReturnUrl(base: string, pathOrUrl: string, fallbackPath: string = "/"): string {
+  const normalizedBase = normalizeBaseUrl(base);
+  const allowedOrigin = getAllowedOrigin(normalizedBase);
+  const fallbackUrl = new URL(toRelativeOrAbsoluteInput(fallbackPath), `${normalizedBase}/`);
+
+  try {
+    const candidate = new URL(toRelativeOrAbsoluteInput(pathOrUrl), `${normalizedBase}/`);
+    return candidate.origin === allowedOrigin ? candidate.toString() : fallbackUrl.toString();
+  } catch {
+    return fallbackUrl.toString();
+  }
+}
+
+/**
+ * 로그아웃 콜백은 랜딩 서비스의 고정 엔드포인트만 허용합니다.
+ */
+export function getLogoutCallbackUrl(base: string): string {
+  return sanitizeReturnUrl(base, "/api/auth/logout-callback", "/api/auth/logout-callback");
 }
 
 /**
@@ -186,7 +222,7 @@ export function getLoginUrl(returnPath?: string, baseUrlOverride?: string): stri
   const loginUrl = new URL('/login', getEffectiveMainServiceUrl());
   if (typeof returnPath === "string") {
     const base = baseUrlOverride ?? getLandingBaseUrl();
-    const returnUrl = toReturnUrl(base, returnPath);
+    const returnUrl = sanitizeReturnUrl(base, returnPath, "/");
     loginUrl.searchParams.set("returnUrl", returnUrl);
   }
   return loginUrl.toString();
@@ -207,7 +243,7 @@ export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string)
  * 시작하기 URL 생성
  *
  * 인증 여부에 따라 다른 페이지로 이동합니다.
- * - 인증됨: 메인 서비스 대시보드
+ * - 인증됨: 메인 서비스 프로젝트 목록(/projects)
  * - 미인증: 메인 서비스 회원가입
  *
  * @param isAuthenticated - 인증 여부
@@ -215,16 +251,16 @@ export function getSignupUrl(returnPath: string = '/', baseUrlOverride?: string)
  */
 export function getStartUrl(isAuthenticated: boolean = false): string {
   if (isAuthenticated) {
-    return `${getEffectiveMainServiceUrl()}/dashboard`;
+    return `${getEffectiveMainServiceUrl()}/projects`;
   }
   return getLoginUrl();
 }
 
 /**
- * 메인 서비스 대시보드 URL
+ * 메인 서비스 프로젝트 목록 URL (/projects)
  */
 export function getDashboardUrl(): string {
-  return `${getEffectiveMainServiceUrl()}/dashboard`;
+  return `${getEffectiveMainServiceUrl()}/projects`;
 }
 
 /**
@@ -244,8 +280,8 @@ export function getDashboardUrl(): string {
  */
 export function getLogoutUrl(returnPath: string = '/', baseUrlOverride?: string): string {
   const base = baseUrlOverride ?? getLandingBaseUrl();
-  const callbackUrl = `${base}/api/auth/logout-callback`;
-  const returnUrl = toReturnUrl(base, returnPath);
+  const callbackUrl = getLogoutCallbackUrl(base);
+  const returnUrl = sanitizeReturnUrl(base, returnPath, "/");
 
   const logoutUrl = new URL('/logout', getEffectiveMainServiceUrl());
   logoutUrl.searchParams.set('callbackUrl', callbackUrl);
@@ -276,62 +312,21 @@ export function getLogoutUrl(returnPath: string = '/', baseUrlOverride?: string)
  */
 export async function handleLogout(options?: {
   redirect?: string;
+  baseUrlOverride?: string;
 }): Promise<void> {
-  const { redirect = '/' } = options || {};
+  const { redirect = '/', baseUrlOverride } = options || {};
 
   if (typeof window === 'undefined') return;
 
-  // 1. 서버 사이드 로그아웃 API 호출 (HttpOnly 쿠키 삭제)
+  // 브라우저 저장소/클라이언트 접근 가능 쿠키는 즉시 정리하고,
+  // 최종 정리는 메인 서비스의 로그아웃 플로우로 위임합니다.
   try {
-    const apiUrl = '/api/auth/logout';
-    await fetch(apiUrl, {
-      method: 'POST',
-      credentials: 'include', // 쿠키 포함
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  } catch {
-    // API 호출 실패해도 클라이언트 사이드 쿠키 삭제는 진행
-  }
+    clearTokens();
+    clearSelectedProjectId();
+  } catch {}
 
-  // 2. 클라이언트에서도 쿠키 삭제 시도 (HttpOnly가 아닌 쿠키용)
-  // HttpOnly 쿠키는 서버 API에서만 삭제 가능하지만, 
-  // 클라이언트에서도 시도하여 가능한 모든 쿠키를 삭제
-  if (typeof document !== 'undefined') {
-    const cookiePath = '; Path=/';
-    const cookieExpires = '; Expires=Thu, 01 Jan 1970 00:00:00 UTC';
-    const cookieMaxAge = '; Max-Age=0';
-    const cookieSecure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-    const cookieSameSite = process.env.NODE_ENV === 'production' ? '; SameSite=None' : '; SameSite=Lax';
-    
-    // 프로덕션 환경에서는 Domain 속성도 포함하여 삭제
-    // 개발 환경(localhost)에서는 Domain 속성 없이 삭제
-    const cookieDomain = env.COOKIE_DOMAIN 
-      ? `; Domain=${env.COOKIE_DOMAIN}` 
-      : '';
-
-    // 삭제할 쿠키 목록
-    const cookiesToDelete = [
-      AUTH_COOKIE_NAME,
-      REFRESH_COOKIE_NAME,
-      'tg_selected_project_id', // 프로젝트 선택 쿠키도 삭제
-    ];
-
-    // 각 쿠키 삭제 시도
-    for (const cookieName of cookiesToDelete) {
-      // Domain이 있는 경우와 없는 경우 모두 삭제 시도
-      const domains = cookieDomain ? [cookieDomain, ''] : [''];
-      
-      for (const domain of domains) {
-        const cookieString = `${cookieName}=${cookieExpires}${cookieMaxAge}${cookiePath}${domain}${cookieSecure}${cookieSameSite}`;
-        document.cookie = cookieString;
-      }
-    }
-  }
-
-  // 3. 리다이렉트
-  window.location.href = redirect;
+  clearAuthCookies();
+  window.location.assign(getLogoutUrl(redirect, baseUrlOverride));
 }
 
 // ============================================
