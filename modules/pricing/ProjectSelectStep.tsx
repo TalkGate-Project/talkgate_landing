@@ -5,7 +5,9 @@ import type { Project } from "@/types";
 import type { ProjectInfo } from "@/types/project";
 import { getApiErrorStatus, isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { ProjectsService } from "@/lib/projects";
+import { ProjectPrivacyConsentService } from "@/lib/projectPrivacyConsent";
 import CreateProjectModal from "./CreateProjectModal";
+import ProjectPrivacyConsentModal from "./ProjectPrivacyConsentModal";
 
 interface ProjectSelectStepProps {
   onSelectProject: (project: Project) => void;
@@ -35,6 +37,12 @@ export default function ProjectSelectStep({
   const [error, setError] = useState<string | null>(null);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // 개인정보 처리 위탁 계약 동의 모달 상태
+  const [consentProject, setConsentProject] = useState<ProjectInfo | null>(null);
+  const [consentAfterAgreed, setConsentAfterAgreed] = useState<
+    "selectProject" | "none"
+  >("none");
 
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
@@ -137,10 +145,81 @@ export default function ProjectSelectStep({
     }
   };
 
-  const handleSelectProject = (project: ProjectInfo) => {
-    // 활성 구독이 없는 프로젝트도 선택 가능 (구독하기 위해)
+  const proceedWithProject = (project: ProjectInfo) => {
     const converted = convertToProject(project);
     onSelectProject(converted);
+  };
+
+  const handleSelectProject = async (project: ProjectInfo) => {
+    // 미구독 상태의 프로젝트를 선택한 경우, 결제 진행 전에 개인정보 처리 위탁 계약 동의 여부 확인
+    // listAdmin으로 조회된 프로젝트이므로 admin 권한은 보장됨
+    if (!project.hasActiveSubscription) {
+      try {
+        const res = await ProjectPrivacyConsentService.check(project.id);
+        const isConsented = res.data?.data?.isConsented === true;
+        if (!isConsented) {
+          setConsentAfterAgreed("selectProject");
+          setConsentProject(project);
+          return;
+        }
+      } catch {
+        // 동의 여부 확인에 실패하더라도 선택은 진행 (차단은 POST 시 발생)
+      }
+    }
+    proceedWithProject(project);
+  };
+
+  const handleConsentAgreed = () => {
+    const target = consentProject;
+    const after = consentAfterAgreed;
+    setConsentProject(null);
+    setConsentAfterAgreed("none");
+    if (!target) return;
+    if (after === "selectProject") {
+      proceedWithProject(target);
+    } else {
+      // 생성 직후 동의 완료: 목록만 갱신
+      fetchProjects();
+    }
+  };
+
+  const handleProjectCreated = async (created?: {
+    id: number;
+    name: string;
+    subDomain?: string;
+    logoUrl?: string;
+    useAttendanceMenu: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }) => {
+    // 생성 직후, 신규 프로젝트에 대해 동의 여부 확인 후 모달 노출
+    if (created) {
+      try {
+        const res = await ProjectPrivacyConsentService.check(created.id);
+        const isConsented = res.data?.data?.isConsented === true;
+        if (!isConsented) {
+          const projectForConsent: ProjectInfo = {
+            id: created.id,
+            name: created.name,
+            subDomain: created.subDomain,
+            logoUrl: created.logoUrl,
+            useAttendanceMenu: created.useAttendanceMenu,
+            createdAt: created.createdAt,
+            updatedAt: created.updatedAt,
+            memberCount: 0,
+            assignedCustomerCount: 0,
+            todayScheduleCount: 0,
+            hasActiveSubscription: false,
+          };
+          setConsentAfterAgreed("none");
+          setConsentProject(projectForConsent);
+          return;
+        }
+      } catch {
+        // 확인 실패는 그대로 목록 갱신 후 진행
+      }
+    }
+    fetchProjects();
   };
 
   return (
@@ -348,9 +427,17 @@ export default function ProjectSelectStep({
       <CreateProjectModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={fetchProjects}
+        onSuccess={handleProjectCreated}
         persistent
       />
+
+      {consentProject && (
+        <ProjectPrivacyConsentModal
+          open={true}
+          projectId={consentProject.id}
+          onAgreed={handleConsentAgreed}
+        />
+      )}
     </div>
   );
 }

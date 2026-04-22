@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Project, PricingPlan, BillingCycle } from "@/types";
-import { ProjectSelectStep, PlanSelectStep, CheckoutStep, CreateProjectModal } from "@/modules/pricing";
+import { ProjectSelectStep, PlanSelectStep, CheckoutStep, CreateProjectModal, ProjectPrivacyConsentModal } from "@/modules/pricing";
 import type { PlanSelectionContext } from "@/modules/pricing/PlanSelectStep";
 import { isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { getLoginUrl } from "@/lib/auth";
 import { SubscriptionService } from "@/lib/subscription";
 import { ProjectsService } from "@/lib/projects";
+import { ProjectPrivacyConsentService } from "@/lib/projectPrivacyConsent";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import type { SubscriptionPlan, CouponInfoForCheckout } from "@/types/subscription";
 
@@ -82,6 +83,9 @@ export default function PricingContent() {
     context?: PlanSelectionContext;
     coupon?: CouponInfoForCheckout;
   } | null>(null);
+
+  // 개인정보 처리 위탁 계약 동의 모달 (생성 직후 체크아웃 진행 전)
+  const [consentProjectForCheckout, setConsentProjectForCheckout] = useState<Project | null>(null);
 
   // 현재 스텝 결정 (URL 기반)
   // 비로그인 상태에서는 프로젝트 선택을 스킵하고 플랜 선택부터 시작
@@ -286,33 +290,62 @@ export default function PricingContent() {
     setCouponInfo(undefined);
   };
 
-  // 프로젝트 생성 완료 후: 생성된 프로젝트로 자동 선택 → checkout 진행
-  const handleProjectCreatedForNoProjects = async () => {
-    try {
-      const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
-      const projectList = response.data?.data || [];
-      const projects = Array.isArray(projectList) ? projectList : [];
-      if (projects.length > 0) {
-        const firstProject: Project = {
-          id: String(projects[0].id),
-          name: projects[0].name,
-        };
-        setSelectedProject(firstProject);
-        setHasNoProjects(false);
+  // 프로젝트 생성 완료 후: 생성된 프로젝트로 자동 선택 → (동의 필요 시 모달) → checkout 진행
+  const proceedToCheckoutWithProject = (project: Project) => {
+    setSelectedProject(project);
+    setHasNoProjects(false);
+    if (pendingPlanSelection) {
+      setSelectedPlan(pendingPlanSelection.plan);
+      setSelectedBillingCycle(pendingPlanSelection.billingCycle);
+      setPlanSelectionContext(pendingPlanSelection.context);
+      setCouponInfo(pendingPlanSelection.coupon);
+      setPendingPlanSelection(null);
+      updateUrl("checkout", project);
+    }
+  };
 
-        if (pendingPlanSelection) {
-          setSelectedPlan(pendingPlanSelection.plan);
-          setSelectedBillingCycle(pendingPlanSelection.billingCycle);
-          setPlanSelectionContext(pendingPlanSelection.context);
-          setCouponInfo(pendingPlanSelection.coupon);
-          setPendingPlanSelection(null);
-          updateUrl("checkout", firstProject);
+  const handleProjectCreatedForNoProjects = async (created?: { id: number; name: string }) => {
+    try {
+      let targetProject: Project | null = null;
+      if (created) {
+        targetProject = { id: String(created.id), name: created.name };
+      } else {
+        const response = await ProjectsService.listAdmin({ suppressAutoLogout: true });
+        const projectList = response.data?.data || [];
+        const projects = Array.isArray(projectList) ? projectList : [];
+        if (projects.length > 0) {
+          targetProject = { id: String(projects[0].id), name: projects[0].name };
         }
       }
+
+      if (!targetProject) {
+        setHasNoProjects(false);
+        return;
+      }
+
+      // 생성 직후 개인정보 처리 위탁 계약 동의 여부 확인
+      try {
+        const consentRes = await ProjectPrivacyConsentService.check(targetProject.id);
+        const isConsented = consentRes.data?.data?.isConsented === true;
+        if (!isConsented) {
+          setConsentProjectForCheckout(targetProject);
+          return;
+        }
+      } catch {
+        // 동의 여부 확인 실패 시 그대로 진행
+      }
+
+      proceedToCheckoutWithProject(targetProject);
     } catch {
       // 프로젝트 목록 재조회 실패 시 프로젝트 선택 화면으로 전환
       setHasNoProjects(false);
     }
+  };
+
+  const handleCheckoutConsentAgreed = () => {
+    const target = consentProjectForCheckout;
+    setConsentProjectForCheckout(null);
+    if (target) proceedToCheckoutWithProject(target);
   };
 
   // 프로젝트 0개 사용자용 플랜 선택 화면 렌더링 헬퍼
@@ -332,6 +365,13 @@ export default function PricingContent() {
         onSuccess={handleProjectCreatedForNoProjects}
         persistent
       />
+      {consentProjectForCheckout && (
+        <ProjectPrivacyConsentModal
+          open={true}
+          projectId={consentProjectForCheckout.id}
+          onAgreed={handleCheckoutConsentAgreed}
+        />
+      )}
     </>
   );
 
