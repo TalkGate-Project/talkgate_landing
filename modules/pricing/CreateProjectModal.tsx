@@ -3,11 +3,14 @@
 import { useState, useRef, useCallback } from "react";
 import { ProjectsService } from "@/lib/projects";
 import { AssetsService } from "@/lib/assets";
+import type { ProjectCreateResponse } from "@/types/project";
+
+type CreatedProject = ProjectCreateResponse["data"];
 
 interface CreateProjectModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (created?: CreatedProject) => void;
   /** true면 바깥(백드롭) 클릭 시 모달이 닫히지 않음 */
   persistent?: boolean;
 }
@@ -208,18 +211,19 @@ export default function CreateProjectModal({
           logoUrl = presignedData.fileUrl;
         }
         const subDomainValue = options?.skipSubdomain ? undefined : (subdomain || undefined);
-        await ProjectsService.create({
+        const createResponse = await ProjectsService.create({
           name: projectName.trim(),
           subDomain: subDomainValue,
           logoUrl,
         });
+        const createdProject = createResponse.data?.data;
         setProjectName("");
         clearIconFile();
         setSubdomain("");
         setDomainAvailable(null);
         setDomainError(null);
         setStep(1);
-        onSuccess?.();
+        onSuccess?.(createdProject);
         onClose();
       } catch {
         setCreateError("프로젝트 생성에 실패했습니다. 다시 시도해주세요.");
