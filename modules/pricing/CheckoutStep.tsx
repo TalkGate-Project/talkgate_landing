@@ -7,8 +7,10 @@ import { ChevronUpIcon } from "@/components/icons";
 import { isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { BillingService } from "@/lib/billing";
 import { SubscriptionService } from "@/lib/subscription";
+import { ProjectPrivacyConsentService } from "@/lib/projectPrivacyConsent";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import BillingRegisterModal from "./BillingRegisterModal";
+import ProjectPrivacyConsentModal from "./ProjectPrivacyConsentModal";
 import type { PlanSelectionContext } from "./PlanSelectStep";
 import type { CouponInfoForCheckout } from "@/types/subscription";
 
@@ -84,6 +86,9 @@ export default function CheckoutStep({
   const [showRecurringTerms, setShowRecurringTerms] = useState(false);
   const [showCancelTerms, setShowCancelTerms] = useState(false);
 
+  // 개인정보 처리 위탁 계약 동의 모달 (최종 결제 직전 게이트)
+  const [showConsentGate, setShowConsentGate] = useState(false);
+
   // 결제 수단 조회 (쿠폰 결제 시에는 스킵)
   useEffect(() => {
     if (couponInfo) {
@@ -158,6 +163,34 @@ export default function CheckoutStep({
       return;
     }
 
+    if (!selectedProject) {
+      setError("프로젝트를 먼저 선택해주세요.");
+      return;
+    }
+
+    // 미구독 프로젝트의 신규 구독인 경우 개인정보 처리 위탁 계약 동의 여부 확인
+    if (!isPlanChange) {
+      try {
+        const res = await ProjectPrivacyConsentService.check(selectedProject.id);
+        const isConsented = res.data?.data?.isConsented === true;
+        if (!isConsented) {
+          setShowConsentGate(true);
+          return;
+        }
+      } catch {
+        // 동의 여부 확인 실패 시 그대로 진행 (차단은 POST 시 발생)
+      }
+    }
+
+    await performSubscribe();
+  };
+
+  const handleConsentGateAgreed = async () => {
+    setShowConsentGate(false);
+    await performSubscribe();
+  };
+
+  const performSubscribe = async () => {
     if (!selectedProject) {
       setError("프로젝트를 먼저 선택해주세요.");
       return;
@@ -616,6 +649,15 @@ export default function CheckoutStep({
         <BillingRegisterModal
           onClose={() => setShowRegisterModal(false)}
           onSuccess={handleRegisterSuccess}
+        />
+      )}
+
+      {/* 개인정보 처리 위탁 계약 동의 모달 (최종 결제 직전 게이트) */}
+      {showConsentGate && selectedProject && (
+        <ProjectPrivacyConsentModal
+          open={true}
+          projectId={selectedProject.id}
+          onAgreed={handleConsentGateAgreed}
         />
       )}
     </div>

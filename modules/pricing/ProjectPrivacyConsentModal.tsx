@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProjectPrivacyConsentService } from "@/lib/projectPrivacyConsent";
 import { isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
+import { showErrorModal } from "@/lib/errorModalEvents";
+import {
+  PROJECT_PRIVACY_TERMS_BODY,
+  PROJECT_PRIVACY_TERMS_TITLE,
+} from "@/lib/projectPrivacyTerms";
 
 interface ProjectPrivacyConsentModalProps {
   open: boolean;
   projectId: string | number;
   onAgreed: () => void;
+  /** `/test` 등에서 API 없이 레이아웃·동작만 확인할 때 사용 */
+  skipApi?: boolean;
 }
 
 /**
@@ -22,151 +29,174 @@ export default function ProjectPrivacyConsentModal({
   open,
   projectId,
   onAgreed,
+  skipApi = false,
 }: ProjectPrivacyConsentModalProps) {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const blockEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("keydown", blockEsc, true);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", blockEsc, true);
+    };
+  }, [open]);
 
   if (!open) return null;
 
   const handleConfirm = async () => {
     if (!agreed || submitting) return;
+
+    if (skipApi) {
+      onAgreed();
+      return;
+    }
+
     setSubmitting(true);
-    setErrorMessage(null);
     try {
       await ProjectPrivacyConsentService.agree(projectId);
       onAgreed();
     } catch (err: unknown) {
       if (isUnauthorizedError(err)) {
-        setErrorMessage("로그인이 만료되었습니다. 다시 로그인해주세요.");
-      } else if (isForbiddenError(err)) {
-        setErrorMessage("프로젝트 관리자 권한이 필요합니다.");
-      } else {
-        const errObj = err as { status?: number; data?: { code?: string } };
-        if (errObj?.status === 409 || errObj?.data?.code === "ALREADY_EXISTS") {
-          // 이미 동의된 상태라면 그대로 진행
-          onAgreed();
-          return;
-        }
-        setErrorMessage("동의 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+        showErrorModal({
+          type: "error",
+          headline: "로그인이 만료되었습니다. 다시 로그인해주세요.",
+          hideCancel: true,
+        });
+        return;
       }
+      if (isForbiddenError(err)) {
+        showErrorModal({
+          type: "error",
+          headline: "프로젝트 관리자 권한이 필요합니다.",
+          hideCancel: true,
+        });
+        return;
+      }
+
+      const errObj = err as { status?: number; data?: { code?: string } };
+      if (errObj?.status === 409 || errObj?.data?.code === "ALREADY_EXISTS") {
+        onAgreed();
+        return;
+      }
+
+      console.error("Project privacy consent failed:", err);
+      showErrorModal({
+        type: "error",
+        headline: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" aria-hidden />
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      {/* 배경 오버레이: 클릭해도 닫히지 않음 (다크모드에서는 blur 미사용) */}
       <div
-        className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-full max-w-[640px] max-h-[90vh] flex flex-col"
+        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
+        aria-hidden
+      />
+
+      <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="privacy-consent-title"
+        aria-labelledby="project-privacy-consent-title"
+        className="relative w-full max-w-[848px] max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
       >
-        {/* Header */}
-        <div className="px-5 md:px-7 pt-5 md:pt-6">
+        {/* 헤더 */}
+        <div className="px-4 md:px-7 pt-5 md:pt-6">
           <h2
-            id="privacy-consent-title"
-            className="text-[18px] font-semibold text-[#000]"
+            id="project-privacy-consent-title"
+            className="text-[18px] font-semibold leading-[21px] text-foreground"
           >
             개인정보 처리 위탁 계약 동의
           </h2>
         </div>
 
-        <p className="mt-6 md:mt-8 mb-4 md:mb-6 text-[14px] md:text-[16px] text-center font-medium text-[#252525] px-5 md:px-7">
-          약관에 대한 동의를 완료해주세요.
-        </p>
+        {/* 서브카피 */}
+        <div className="px-4 md:px-7 mt-5 md:mt-[30px]">
+          <p className="text-center text-[14px] font-medium leading-[17px] text-foreground">
+            약관에 대한 동의를 완료해주세요.
+          </p>
+        </div>
 
-        {/* Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 md:px-7 pb-4 space-y-4">
-          <div className="rounded-[8px] bg-[#F8F8F8] px-4 md:px-6 py-4 max-h-[260px] overflow-y-auto">
-            <div className="text-[14px] font-semibold text-[#252525] mb-3">
-              개인정보 처리위탁 계약서
-            </div>
-            <div className="text-[13px] leading-[1.7] text-[#595959] whitespace-pre-line">
-              {`본 개인정보 처리위탁 계약(이하 "본 계약")은 talkgate 서비스 운영사 주식회사 핑크코브라(이하 "수탁자")와 서비스를 이용하는 고객사 또는 이용자(이하 "위탁자") 간 개인정보 처리위탁에 관한 사항을 정함을 목적으로 한다.
-
-제1조 (목적)
-본 계약은 위탁자가 제공하거나 연동한 개인정보를 수탁자가 처리함에 있어 관련 법령을 준수하고, 개인정보의 안전한 처리를 확보하기 위하여 필요한 사항을 규정함을 목적으로 한다.
-
-제2조 (위탁 업무의 내용 및 처리 목적)
-수탁자는 위탁자가 제공하는 개인정보를 다음 각 호의 목적으로만 처리한다.
-1. 고객 정보 저장 및 관리
-2. CRM 시스템 운영 및 유지보수
-3. 보안 관리 및 장애 대응
-
-제3조 (위탁 기간)
-본 계약의 위탁 기간은 서비스 이용 계약 종료 시까지로 한다.
-
-제4조 (재위탁 제한)
-수탁자는 위탁자의 사전 서면 동의 없이 위탁받은 개인정보를 제3자에게 재위탁할 수 없다.
-
-제5조 (개인정보의 안전성 확보 조치)
-수탁자는 개인정보 보호법 등 관련 법령에서 정하는 바에 따라 개인정보의 안전한 처리를 위하여 필요한 기술적·관리적 보호조치를 취한다.
-
-제6조 (수탁자의 의무)
-① 수탁자는 위탁 목적 범위 내에서만 개인정보를 처리하며, 목적 외 이용 또는 제3자 제공을 하지 않는다.
-② 수탁자는 본 계약 종료 시 위탁받은 개인정보를 지체 없이 파기하거나 위탁자에게 반환한다.
-
-제7조 (손해배상)
-수탁자는 본 계약을 위반하여 위탁자 또는 정보주체에게 손해를 발생시킨 경우 관련 법령에 따라 손해를 배상한다.`}
+        {/* 본문 영역 (모바일에서는 가변 높이, 데스크톱에서는 고정 높이) */}
+        <div className="flex-1 min-h-0 flex flex-col px-4 md:px-7 mt-4 md:mt-[30px]">
+          {/* 약관 본문 박스: container padding 12/8 (상하 12px, 좌우 8px) - 스크롤바 여유 공간용 */}
+          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-20 py-3 px-2 md:h-[193px] flex-1 md:flex-none min-h-0 overflow-hidden">
+            <div
+              className="h-full overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--neutral-40)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-40 [&::-webkit-scrollbar-thumb]:rounded-full"
+            >
+              <div className="px-4 text-[14px] font-medium leading-[24px] text-foreground">
+                {PROJECT_PRIVACY_TERMS_TITLE}
+              </div>
+              <div className="mt-2 px-4 text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-pre-line">
+                {PROJECT_PRIVACY_TERMS_BODY}
+              </div>
             </div>
           </div>
 
-          <label className="flex items-start gap-3 rounded-[8px] bg-[#F8F8F8] px-4 md:px-6 py-4 cursor-pointer">
+          {/* 동의 체크 박스 */}
+          <label className="mt-4 md:mt-5 flex items-center gap-4 cursor-pointer select-none rounded-[5px] bg-neutral-10 dark:bg-neutral-20 px-4 md:px-6 py-3 md:h-[48px]">
             <input
               type="checkbox"
               checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
+              onChange={(event) => setAgreed(event.target.checked)}
               className="sr-only peer"
             />
             <span
-              className={`flex-shrink-0 w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors ${
-                agreed
-                  ? "bg-[#00E272] border-[#00E272]"
-                  : "bg-white border-[#E2E2E2]"
-              }`}
               aria-hidden
+              className="w-6 h-6 rounded-[5px] grid place-items-center flex-shrink-0"
             >
-              {agreed && (
+              {agreed ? (
                 <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <rect width="24" height="24" rx="5" fill="#00E272" />
                   <path
-                    d="M2.5 6L5 8.5L9.5 3.5"
+                    d="M5 13L9 17L19 7"
                     stroke="white"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
+              ) : (
+                <span className="w-6 h-6 rounded-[5px] bg-neutral-30 border border-neutral-30" />
               )}
             </span>
-            <span className="text-[14px] font-medium text-[#252525] leading-[1.5]">
+            <span className="text-[14px] font-medium leading-[24px] text-foreground">
               개인정보 처리 위탁 계약에 동의합니다.{" "}
-              <span className="text-[#00E272]">(필수)</span>
+              <span className="text-primary-80">(필수)</span>
             </span>
           </label>
-
-          {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-[8px] text-red-600 text-[14px]">
-              {errorMessage}
-            </div>
-          )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-[#E2E2E2] px-5 md:px-7 py-4 flex items-center justify-end">
+        {/* 하단 버튼 영역 */}
+        <div className="mt-4 md:mt-[30px] border-t border-neutral-30 px-4 md:px-7 pt-3 pb-3 md:pb-3 flex justify-end">
           <button
             type="button"
-            className="cursor-pointer h-[40px] px-5 rounded-[8px] bg-[#252525] text-white text-[14px] font-semibold hover:bg-[#3a3a3a] disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleConfirm}
             disabled={!agreed || submitting}
+            className="cursor-pointer h-[34px] min-w-[66px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "처리 중..." : "확인"}
           </button>

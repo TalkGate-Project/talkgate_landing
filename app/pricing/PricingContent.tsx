@@ -87,6 +87,15 @@ export default function PricingContent() {
   // 개인정보 처리 위탁 계약 동의 모달 (생성 직후 체크아웃 진행 전)
   const [consentProjectForCheckout, setConsentProjectForCheckout] = useState<Project | null>(null);
 
+  // 개인정보 처리 위탁 계약 동의 모달 (구독하기 클릭 시점 - 미구독 프로젝트 결제 페이지 전환 전)
+  const [consentProjectForSubscribeGate, setConsentProjectForSubscribeGate] = useState<Project | null>(null);
+  const [pendingCheckoutAfterConsent, setPendingCheckoutAfterConsent] = useState<{
+    plan: PricingPlan;
+    billingCycle: BillingCycle;
+    context?: PlanSelectionContext;
+    coupon?: CouponInfoForCheckout;
+  } | null>(null);
+
   // 현재 스텝 결정 (URL 기반)
   // 비로그인 상태에서는 프로젝트 선택을 스킵하고 플랜 선택부터 시작
   const getDefaultStep = (): PricingStep => {
@@ -246,7 +255,7 @@ export default function PricingContent() {
   };
 
   // 플랜 구독 핸들러 (쿠폰 적용 시 couponInfo 전달)
-  const handleSubscribe = (
+  const handleSubscribe = async (
     plan: PricingPlan,
     billingCycle: BillingCycle,
     context?: PlanSelectionContext,
@@ -266,10 +275,37 @@ export default function PricingContent() {
       return;
     }
 
+    // 미구독 프로젝트(신규 구독 시작) → 결제 페이지 진입 전 동의 여부 확인
+    if (selectedProject && !context?.isPlanChange) {
+      try {
+        const res = await ProjectPrivacyConsentService.check(selectedProject.id);
+        const isConsented = res.data?.data?.isConsented === true;
+        if (!isConsented) {
+          setPendingCheckoutAfterConsent({ plan, billingCycle, context, coupon });
+          setConsentProjectForSubscribeGate(selectedProject);
+          return;
+        }
+      } catch {
+        // 동의 여부 확인 실패 시 그대로 진행 (차단은 POST 시 발생)
+      }
+    }
+
     setSelectedPlan(plan);
     setSelectedBillingCycle(billingCycle);
     setPlanSelectionContext(context);
     setCouponInfo(coupon);
+    updateUrl("checkout");
+  };
+
+  const handleSubscribeGateConsentAgreed = () => {
+    const pending = pendingCheckoutAfterConsent;
+    setConsentProjectForSubscribeGate(null);
+    setPendingCheckoutAfterConsent(null);
+    if (!pending) return;
+    setSelectedPlan(pending.plan);
+    setSelectedBillingCycle(pending.billingCycle);
+    setPlanSelectionContext(pending.context);
+    setCouponInfo(pending.coupon);
     updateUrl("checkout");
   };
 
@@ -376,7 +412,8 @@ export default function PricingContent() {
   );
 
   // 현재 단계에 따라 컴포넌트 렌더링
-  switch (currentStep) {
+  const renderContent = () => {
+    switch (currentStep) {
     case "project":
       // 비로그인(액세스·리프레시 둘 다 없음) → 프로젝트 미선택 더미 플랜 선택으로
       if (!isAuthenticated) {
@@ -497,5 +534,19 @@ export default function PricingContent() {
           onLogin={handleLogin}
         />
       );
-  }
+    }
+  };
+
+  return (
+    <>
+      {renderContent()}
+      {consentProjectForSubscribeGate && (
+        <ProjectPrivacyConsentModal
+          open={true}
+          projectId={consentProjectForSubscribeGate.id}
+          onAgreed={handleSubscribeGateConsentAgreed}
+        />
+      )}
+    </>
+  );
 }

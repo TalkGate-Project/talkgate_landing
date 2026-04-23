@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import ProjectPrivacyConsentModal from "@/modules/pricing/ProjectPrivacyConsentModal";
 
 export default function TestContent() {
   const [inputValue, setInputValue] = useState("");
+  const [showPrivacyConsentModal, setShowPrivacyConsentModal] = useState(false);
+  const [privacyConsentDemoProjectId, setPrivacyConsentDemoProjectId] =
+    useState("demo-project-id");
 
   return (
     <div className="min-h-screen bg-white py-12 px-4">
@@ -301,6 +305,40 @@ export default function TestContent() {
             <p className="text-[14px] text-[#808080] mb-6">
               아래 버튼을 클릭하여 다양한 타입의 모달을 테스트해보세요.
             </p>
+
+            <div className="mb-8 pb-8 border-b border-[#E2E2E2]">
+              <p className="text-[14px] font-medium text-[#252525] mb-2">
+                개인정보 처리 위탁 계약 동의 모달
+              </p>
+              <p className="text-[13px] text-[#808080] mb-4">
+                결제 플로우와 동일한 UI입니다.{" "}
+                <code className="text-[12px] bg-white px-1 py-0.5 rounded border border-[#E2E2E2]">
+                  skipApi
+                </code>
+                로 API 호출 없이 동의 완료 플로우만 확인할 수 있습니다.
+              </p>
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 max-w-xl">
+                <div className="flex-1">
+                  <label className="block text-[12px] font-medium text-[#595959] mb-1">
+                    projectId (표시·스킵 시 식별용)
+                  </label>
+                  <input
+                    type="text"
+                    value={privacyConsentDemoProjectId}
+                    onChange={(e) => setPrivacyConsentDemoProjectId(e.target.value)}
+                    className="w-full h-[40px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] text-[#252525] bg-white focus:outline-none focus:border-[#00E272]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacyConsentModal(true)}
+                  className="h-[40px] px-6 rounded-[8px] bg-[#252525] text-white text-[14px] font-semibold hover:bg-[#3a3a3a] transition-colors shrink-0"
+                >
+                  위탁 동의 모달 열기
+                </button>
+              </div>
+            </div>
+
             <div className="flex flex-wrap gap-4">
               {/* Error Modal */}
               <button
@@ -431,6 +469,24 @@ export default function TestContent() {
             </div>
           </div>
         </section>
+
+        {showPrivacyConsentModal && (
+          <ProjectPrivacyConsentModal
+            open
+            projectId={privacyConsentDemoProjectId || "demo"}
+            skipApi
+            onAgreed={() => {
+              setShowPrivacyConsentModal(false);
+              showErrorModal({
+                type: "success",
+                headline: "동의 완료 (테스트)",
+                description:
+                  "skipApi 모드라 서버에는 기록되지 않았습니다. 실제 동의는 가격 페이지 플로우에서 확인하세요.",
+                hideCancel: true,
+              });
+            }}
+          />
+        )}
 
         {/* 상태 인디케이터 */}
         <section className="mb-12">
