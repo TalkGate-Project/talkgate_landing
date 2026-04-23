@@ -104,7 +104,7 @@ export default function ProjectPrivacyConsentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-4">
       {/* 배경 오버레이: 클릭해도 닫히지 않음 (다크모드에서는 blur 미사용) */}
       <div
         className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
@@ -115,7 +115,7 @@ export default function ProjectPrivacyConsentModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="project-privacy-consent-title"
-        className="relative w-full max-w-[848px] max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
+        className="relative w-full max-w-[848px] h-[70dvh] md:h-auto md:max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
       >
         {/* 헤더 */}
         <div className="px-4 md:px-7 pt-5 md:pt-6">
@@ -135,9 +135,9 @@ export default function ProjectPrivacyConsentModal({
         </div>
 
         {/* 본문 영역 (모바일에서는 가변 높이, 데스크톱에서는 고정 높이) */}
-        <div className="flex-1 min-h-0 flex flex-col px-4 md:px-7 mt-4 md:mt-[30px]">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden px-4 md:px-7 mt-4 md:mt-[30px]">
           {/* 약관 본문 박스: container padding 12/8 (상하 12px, 좌우 8px) - 스크롤바 여유 공간용 */}
-          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-20 py-3 px-2 md:h-[193px] flex-1 md:flex-none min-h-0 overflow-hidden">
+          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-20 py-3 px-2 md:h-[193px] md:min-h-[193px] flex-1 md:flex-none min-h-0 overflow-hidden">
             <div
               className="h-full overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--neutral-40)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-40 [&::-webkit-scrollbar-thumb]:rounded-full"
             >
@@ -151,7 +151,7 @@ export default function ProjectPrivacyConsentModal({
           </div>
 
           {/* 동의 체크 박스 */}
-          <label className="mt-4 md:mt-5 flex items-center gap-4 cursor-pointer select-none rounded-[5px] bg-neutral-10 dark:bg-neutral-20 px-4 md:px-6 py-3 md:h-[48px]">
+          <label className="mt-4 md:mt-5 shrink-0 flex items-center gap-4 cursor-pointer select-none rounded-[5px] bg-neutral-10 dark:bg-neutral-20 px-4 md:px-6 py-3 md:h-[48px]">
             <input
               type="checkbox"
               checked={agreed}
@@ -191,7 +191,7 @@ export default function ProjectPrivacyConsentModal({
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="mt-4 md:mt-[30px] border-t border-neutral-30 px-4 md:px-7 pt-3 pb-3 md:pb-3 flex justify-end">
+        <div className="mt-4 md:mt-[30px] shrink-0 border-t border-neutral-30 px-4 md:px-7 pt-3 pb-3 md:pb-3 flex justify-end">
           <button
             type="button"
             onClick={handleConfirm}
