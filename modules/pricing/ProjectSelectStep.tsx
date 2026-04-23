@@ -151,20 +151,18 @@ export default function ProjectSelectStep({
   };
 
   const handleSelectProject = async (project: ProjectInfo) => {
-    // 미구독 상태의 프로젝트를 선택한 경우, 결제 진행 전에 개인정보 처리 위탁 계약 동의 여부 확인
+    // 구독 상태와 무관하게, 프로젝트 선택 시 개인정보 처리 위탁 계약 동의 여부 확인
     // listAdmin으로 조회된 프로젝트이므로 admin 권한은 보장됨
-    if (!project.hasActiveSubscription) {
-      try {
-        const res = await ProjectPrivacyConsentService.check(project.id);
-        const isConsented = res.data?.data?.isConsented === true;
-        if (!isConsented) {
-          setConsentAfterAgreed("selectProject");
-          setConsentProject(project);
-          return;
-        }
-      } catch {
-        // 동의 여부 확인에 실패하더라도 선택은 진행 (차단은 POST 시 발생)
+    try {
+      const res = await ProjectPrivacyConsentService.check(project.id);
+      const isConsented = res.data?.data?.isConsented === true;
+      if (!isConsented) {
+        setConsentAfterAgreed("selectProject");
+        setConsentProject(project);
+        return;
       }
+    } catch {
+      // 동의 여부 확인에 실패하더라도 선택은 진행 (차단은 POST 시 발생)
     }
     proceedWithProject(project);
   };
