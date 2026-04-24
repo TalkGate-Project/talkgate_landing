@@ -146,11 +146,13 @@ export default function PlanSelectStep({
     fetchPlans();
   }, []);
 
-  const normalizePlanName = (value: string) => value.trim().toLowerCase();
+  const normalizePlanName = (value?: string | null) =>
+    (value ?? "").trim().toLowerCase();
 
   const currentPlanMeta = useMemo(() => {
-    if (!currentSubscription) return null;
+    if (!currentSubscription?.subscriptionName) return null;
     const target = normalizePlanName(currentSubscription.subscriptionName);
+    if (!target) return null;
     return planMeta.find((plan) => normalizePlanName(plan.name) === target) || null;
   }, [currentSubscription, planMeta]);
 
@@ -158,6 +160,7 @@ export default function PlanSelectStep({
 
   const getPlanRank = (plan: PricingPlan) => {
     const target = normalizePlanName(plan.badge ?? plan.name);
+    if (!target) return undefined;
     return planMeta.find((meta) => normalizePlanName(meta.name) === target)?.sortOrder;
   };
 
@@ -183,7 +186,9 @@ export default function PlanSelectStep({
         const matched = projects.find(
           (project) => String(project.projectId) === String(selectedProject.id)
         );
-        setCurrentSubscription(matched || null);
+        setCurrentSubscription(
+          matched && matched.subscriptionState === "active" ? matched : null
+        );
       } catch (err: unknown) {
         setSubscriptionAccessStatus(getApiErrorStatus(err) ?? null);
         setCurrentSubscription(null);

@@ -104,21 +104,32 @@ export interface SubscriptionGetResponse {
 }
 
 /**
+ * 프로젝트 구독 상태
+ * - active: 구독 사용 중
+ * - expired: 이전 구독 이력은 있으나 만료됨
+ * - none: 구독 이력 없음
+ */
+export type ProjectSubscriptionState = "active" | "expired" | "none";
+
+/**
  * Admin 프로젝트 구독 정보
+ * subscriptionState !== "active" 인 경우 구독 관련 필드는 응답에서 생략됨
  */
 export interface AdminProjectSubscription {
   projectId: number;
   projectName: string;
+  projectLogoUrl?: string;
   currentMemberCount: number;
   currentAiUsage: number;
   currentSmsUsage: number;
-  subscriptionName: string;
-  subscriptionStartDate: string;
-  subscriptionEndDate: string;
-  billingCycle: SubscriptionBillingCycle;
-  maxMembers: number;
-  maxAiUsage: number;
-  maxSmsUsage: number;
+  subscriptionState: ProjectSubscriptionState;
+  subscriptionName?: string;
+  subscriptionStartDate?: string;
+  subscriptionEndDate?: string;
+  billingCycle?: SubscriptionBillingCycle;
+  maxMembers?: number;
+  maxAiUsage?: number;
+  maxSmsUsage?: number;
 }
 
 /**
