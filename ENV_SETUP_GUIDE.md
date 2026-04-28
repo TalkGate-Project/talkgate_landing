@@ -47,6 +47,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=
 # 선택적 설정
 NEXT_PUBLIC_API_TIMEOUT_MS=10000
 NEXT_PUBLIC_ENABLE_TRIAL=false
+NEXT_PUBLIC_GA_ID=
 ```
 
 ### 2. 확인
@@ -81,6 +82,7 @@ npm run dev
 | `NEXT_PUBLIC_MAIN_SERVICE_URL` | `https://app.talkgate.im` | Production |
 | `NEXT_PUBLIC_LANDING_URL` | `https://landing.talkgate.im` | Production |
 | `NEXT_PUBLIC_COOKIE_DOMAIN` | `.talkgate.im` | Production |
+| `NEXT_PUBLIC_GA_ID` | `G-XXXXXXXXXX` | Production |
 
 #### Preview 환경 (선택)
 
@@ -89,10 +91,13 @@ npm run dev
 | `NEXT_PUBLIC_MAIN_SERVICE_URL` | `https://app-dev.talkgate.im` | Preview |
 | `NEXT_PUBLIC_LANDING_URL` | `https://landing-dev.talkgate.im` | Preview |
 | `NEXT_PUBLIC_COOKIE_DOMAIN` | `.talkgate.im` | Preview |
+| `NEXT_PUBLIC_GA_ID` | `G-XXXXXXXXXX` 또는 비워둠 | Preview |
 
 ### 3. 재배포
 
 환경 변수 추가 후 자동으로 재배포되거나, 수동으로 재배포를 트리거하세요.
+
+> Google Analytics는 `NEXT_PUBLIC_GA_ID`가 설정된 환경에서만 로드됩니다. 운영 트래픽만 수집하려면 Production 환경에만 값을 설정하세요.
 
 ---
 
@@ -110,6 +115,10 @@ console.log('Main Service URL:', 'https://app-dev.talkgate.im');
 # 3. Login 버튼의 href 확인
 document.querySelector('a[href*="login"]')?.getAttribute('href');
 // 예상: https://app-dev.talkgate.im/login?returnUrl=http://localhost:3000
+
+# 4. GA 로드 여부 확인 (NEXT_PUBLIC_GA_ID 설정 시)
+typeof window.gtag;
+// 예상: 'function'
 ```
 
 ### 프로덕션 환경 확인
@@ -123,6 +132,10 @@ console.log('Main Service URL:', 'https://app.talkgate.im');
 # Login 버튼의 href 확인
 document.querySelector('a[href*="login"]')?.getAttribute('href');
 // 예상: https://app.talkgate.im/login?returnUrl=https://landing.talkgate.im
+
+# GA 로드 여부 확인
+typeof window.gtag;
+// 예상: 'function'
 ```
 
 ---

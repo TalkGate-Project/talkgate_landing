@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Montserrat } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { Header, Footer } from '@/components';
-import { ErrorFeedbackModalProvider, LandingBaseUrlProvider } from '@/components/common';
+import { ErrorFeedbackModalProvider, GoogleAnalytics, LandingBaseUrlProvider } from '@/components/common';
 import { BRAND, PAGE_METADATA, COMPANY_INFO } from '@/lib/constants';
 import { checkAuthStatus, getLandingBaseUrlFromRequest } from '@/lib/auth';
+import { env } from '@/lib/env';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -175,6 +176,7 @@ export default async function RootLayout({
       <body
         className={`${plusJakartaSans.variable} ${montserrat.variable} antialiased min-h-screen flex flex-col`}
       >
+        <GoogleAnalytics measurementId={env.GA_ID} />
         <LandingBaseUrlProvider landingBaseUrl={landingBaseUrl}>
           <ErrorFeedbackModalProvider>
             <Header isAuthenticated={isAuthenticated} landingBaseUrl={landingBaseUrl} />

@@ -39,6 +39,7 @@
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
 NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 ```
 
 **Preview/Dev 환경 (선택):**
@@ -46,6 +47,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app-dev.talkgate.im
 NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 NEXT_PUBLIC_COOKIE_DOMAIN=
+NEXT_PUBLIC_GA_ID=
 ```
 
 ### 2.2 메인 서비스 환경 변수 확인
@@ -95,6 +97,7 @@ npm run start
 - [ ] 빌드 경고 최소화
 - [ ] 페이지 라우팅 정상
 - [ ] 이미지 최적화 정상
+- [ ] `NEXT_PUBLIC_GA_ID` 미설정 환경에서도 빌드 정상
 
 ---
 
@@ -118,9 +121,20 @@ console.log('Current URL:', window.location.href);
 // Header에서 Login 버튼 클릭 시 이동하는 URL 확인
 document.querySelector('a[href*="login"]')?.getAttribute('href');
 // 예상: https://app.talkgate.im/login?returnUrl=https://landing.talkgate.im
+
+// Google Analytics 로드 확인 (NEXT_PUBLIC_GA_ID 설정 환경)
+typeof window.gtag;
+// 예상: 'function'
 ```
 
-### 5.3 쿠키 도메인 확인
+### 5.3 Google Analytics 확인
+- [ ] GA4 Measurement ID가 `NEXT_PUBLIC_GA_ID`에 설정되어 있는지 확인
+- [ ] Network 탭에서 `https://www.googletagmanager.com/gtag/js` 로드 확인
+- [ ] Network 탭에서 `collect` 요청이 발생하는지 확인
+- [ ] GA Realtime 또는 DebugView에서 페이지뷰 수신 확인
+- [ ] `/`, `/pricing`, `/case`, `/introduce` 이동 시 페이지뷰 누락 또는 중복 여부 확인
+
+### 5.4 쿠키 도메인 확인
 1. 메인 서비스(`talkgate.im`)에서 로그인
 2. 개발자 도구 → Application → Cookies → `https://talkgate.im`
 3. `tg_access_token` 쿠키의 Domain 속성 확인
