@@ -60,6 +60,9 @@ NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 
 # 쿠키 도메인 (개발 환경에서는 비워둠)
 NEXT_PUBLIC_COOKIE_DOMAIN=
+
+# Google Analytics 4 Measurement ID (선택)
+NEXT_PUBLIC_GA_ID=
 ```
 
 #### 프로덕션 환경 (Vercel 환경 변수)
@@ -68,6 +71,7 @@ NEXT_PUBLIC_COOKIE_DOMAIN=
 NEXT_PUBLIC_MAIN_SERVICE_URL=https://app.talkgate.im
 NEXT_PUBLIC_LANDING_URL=https://talkgate.im
 NEXT_PUBLIC_COOKIE_DOMAIN=.talkgate.im
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 ```
 
 > 📖 자세한 설정 방법은 [SETUP.md](./SETUP.md)를 참고하세요.

@@ -2,3 +2,4 @@ export { default as ErrorFeedbackModalProvider } from "./ErrorFeedbackModalProvi
 export { useErrorModal } from "./ErrorFeedbackModalProvider";
 export { showErrorModal, hideErrorModal } from "@/lib/errorModalEvents";
 export { LandingBaseUrlProvider, useLandingBaseUrl } from "./LandingBaseUrlProvider";
+export { default as GoogleAnalytics } from "./GoogleAnalytics";
