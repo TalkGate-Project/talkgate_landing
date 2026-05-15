@@ -72,6 +72,7 @@ export default function PricingContent() {
   });
   const [planSelectionContext, setPlanSelectionContext] = useState<PlanSelectionContext | undefined>();
   const [couponInfo, setCouponInfo] = useState<CouponInfoForCheckout | undefined>();
+  const [pendingDiscountCouponCode, setPendingDiscountCouponCode] = useState<string | undefined>();
   const [autoSelectingPlan, setAutoSelectingPlan] = useState(false);
 
   // 프로젝트 0개 사용자 처리
@@ -82,6 +83,7 @@ export default function PricingContent() {
     billingCycle: BillingCycle;
     context?: PlanSelectionContext;
     coupon?: CouponInfoForCheckout;
+    discountCouponCode?: string;
   } | null>(null);
 
   // 개인정보 처리 위탁 계약 동의 모달 (생성 직후 체크아웃 진행 전)
@@ -94,6 +96,7 @@ export default function PricingContent() {
     billingCycle: BillingCycle;
     context?: PlanSelectionContext;
     coupon?: CouponInfoForCheckout;
+    discountCouponCode?: string;
   } | null>(null);
 
   // 현재 스텝 결정 (URL 기반)
@@ -259,11 +262,12 @@ export default function PricingContent() {
     plan: PricingPlan,
     billingCycle: BillingCycle,
     context?: PlanSelectionContext,
-    coupon?: CouponInfoForCheckout
+    coupon?: CouponInfoForCheckout,
+    discountCouponCode?: string
   ) => {
     // 프로젝트 0개 사용자: 안내 모달 → 프로젝트 생성 → checkout
     if (hasNoProjects && !selectedProject) {
-      setPendingPlanSelection({ plan, billingCycle, context, coupon });
+      setPendingPlanSelection({ plan, billingCycle, context, coupon, discountCouponCode });
       showErrorModal({
         type: "info",
         title: "",
@@ -281,7 +285,7 @@ export default function PricingContent() {
         const res = await ProjectPrivacyConsentService.check(selectedProject.id);
         const isConsented = res.data?.data?.isConsented === true;
         if (!isConsented) {
-          setPendingCheckoutAfterConsent({ plan, billingCycle, context, coupon });
+          setPendingCheckoutAfterConsent({ plan, billingCycle, context, coupon, discountCouponCode });
           setConsentProjectForSubscribeGate(selectedProject);
           return;
         }
@@ -294,6 +298,7 @@ export default function PricingContent() {
     setSelectedBillingCycle(billingCycle);
     setPlanSelectionContext(context);
     setCouponInfo(coupon);
+    setPendingDiscountCouponCode(discountCouponCode);
     updateUrl("checkout");
   };
 
@@ -306,6 +311,7 @@ export default function PricingContent() {
     setSelectedBillingCycle(pending.billingCycle);
     setPlanSelectionContext(pending.context);
     setCouponInfo(pending.coupon);
+    setPendingDiscountCouponCode(pending.discountCouponCode);
     updateUrl("checkout");
   };
 
@@ -324,6 +330,7 @@ export default function PricingContent() {
     updateUrl("plan");
     setPlanSelectionContext(undefined);
     setCouponInfo(undefined);
+    setPendingDiscountCouponCode(undefined);
   };
 
   // 프로젝트 생성 완료 후: 생성된 프로젝트로 자동 선택 → (동의 필요 시 모달) → checkout 진행
@@ -335,6 +342,7 @@ export default function PricingContent() {
       setSelectedBillingCycle(pendingPlanSelection.billingCycle);
       setPlanSelectionContext(pendingPlanSelection.context);
       setCouponInfo(pendingPlanSelection.coupon);
+      setPendingDiscountCouponCode(pendingPlanSelection.discountCouponCode);
       setPendingPlanSelection(null);
       updateUrl("checkout", project);
     }
@@ -509,6 +517,7 @@ export default function PricingContent() {
           onBack={handleBackFromCheckout}
           planSelectionContext={planSelectionContext}
           couponInfo={couponInfo}
+          initialDiscountCouponCode={pendingDiscountCouponCode}
         />
       );
 
