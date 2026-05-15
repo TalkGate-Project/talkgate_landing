@@ -12,7 +12,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import BillingRegisterModal from "./BillingRegisterModal";
 import ProjectPrivacyConsentModal from "./ProjectPrivacyConsentModal";
 import type { PlanSelectionContext } from "./PlanSelectStep";
-import type { CouponInfoForCheckout } from "@/types/subscription";
+import type { CouponInfoForCheckout, DiscountCouponInfo } from "@/types/subscription";
 
 // 정기과금(자동승인) 이용약관 내용
 const RECURRING_BILLING_TERMS = `1. 이용자는 본 신청서에 서명하거나 공인인증 및 그에 준하는 전자 인증절차를 통함으로써 본 서비스를 이용할 수 있습니다.
@@ -54,8 +54,10 @@ interface CheckoutStepProps {
   billingCycle: BillingCycle;
   onBack: () => void;
   planSelectionContext?: PlanSelectionContext;
-  /** 쿠폰으로 진입한 경우 (info API로 검증 완료된 상태) */
+  /** 무료 쿠폰으로 진입한 경우 (info API로 검증 완료된 상태) */
   couponInfo?: CouponInfoForCheckout;
+  /** 플랜 선택 단계에서 넘어온 할인 쿠폰 코드 */
+  initialDiscountCouponCode?: string;
 }
 
 export default function CheckoutStep({
@@ -65,8 +67,8 @@ export default function CheckoutStep({
   onBack,
   planSelectionContext,
   couponInfo,
+  initialDiscountCouponCode,
 }: CheckoutStepProps) {
-  // 컴포넌트 마운트 시 스크롤을 맨 위로 올리기
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -82,14 +84,20 @@ export default function CheckoutStep({
   const [loadingEstimate, setLoadingEstimate] = useState(false);
   const [estimateError, setEstimateError] = useState<string | null>(null);
 
-  // 약관 펼침 상태
   const [showRecurringTerms, setShowRecurringTerms] = useState(false);
   const [showCancelTerms, setShowCancelTerms] = useState(false);
 
-  // 개인정보 처리 위탁 계약 동의 모달 (최종 결제 직전 게이트)
   const [showConsentGate, setShowConsentGate] = useState(false);
 
-  // 결제 수단 조회 (쿠폰 결제 시에는 스킵)
+  // 할인 쿠폰 모달 state
+  const [discountCouponModalOpen, setDiscountCouponModalOpen] = useState(false);
+  const [discountCouponInput, setDiscountCouponInput] = useState("");
+  const [discountCouponLoading, setDiscountCouponLoading] = useState(false);
+  const [discountCouponValidationResult, setDiscountCouponValidationResult] = useState<DiscountCouponInfo | null>(null);
+  const [discountCouponValidationError, setDiscountCouponValidationError] = useState<string | null>(null);
+  const [appliedDiscountCoupon, setAppliedDiscountCoupon] = useState<DiscountCouponInfo | null>(null);
+
+  // 결제 수단 조회 (무료 쿠폰 결제 시에는 스킵)
   useEffect(() => {
     if (couponInfo) {
       setLoadingBilling(false);
@@ -116,6 +124,28 @@ export default function CheckoutStep({
   const isPlanChange = planSelectionContext?.isPlanChange ?? false;
   const isUpgrade = planSelectionContext?.isUpgrade ?? false;
   const isCouponCheckout = Boolean(couponInfo);
+
+  // 플랜 선택 단계에서 넘어온 할인 쿠폰 코드 자동 검증
+  useEffect(() => {
+    if (!initialDiscountCouponCode || isCouponCheckout || isPlanChange) return;
+    const validate = async () => {
+      try {
+        const res = await SubscriptionService.discountCouponInfo({
+          code: initialDiscountCouponCode,
+          planId: Number(selectedPlan.id),
+          billingCycle: subscriptionBillingCycle,
+        });
+        const data = res.data?.data;
+        if (data?.canUse) {
+          setAppliedDiscountCoupon(data);
+        }
+      } catch {
+        // 검증 실패 시 무시 — 사용자가 직접 입력 가능
+      }
+    };
+    validate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDiscountCouponCode]);
 
   useEffect(() => {
     const fetchEstimate = async () => {
@@ -151,13 +181,73 @@ export default function CheckoutStep({
     fetchEstimate();
   }, [isPlanChange, isUpgrade, selectedProject, selectedPlan.id, subscriptionBillingCycle]);
 
+  // 할인 쿠폰 모달 열기 (이미 적용된 쿠폰이 있으면 해당 정보로 초기화)
+  const handleOpenDiscountCouponModal = () => {
+    if (appliedDiscountCoupon) {
+      setDiscountCouponInput(appliedDiscountCoupon.code);
+      setDiscountCouponValidationResult(appliedDiscountCoupon);
+    } else {
+      setDiscountCouponInput("");
+      setDiscountCouponValidationResult(null);
+    }
+    setDiscountCouponValidationError(null);
+    setDiscountCouponModalOpen(true);
+  };
+
+  const handleCloseDiscountCouponModal = () => {
+    setDiscountCouponModalOpen(false);
+    setDiscountCouponInput("");
+    setDiscountCouponValidationResult(null);
+    setDiscountCouponValidationError(null);
+  };
+
+  const handleDiscountCouponRegister = async () => {
+    const code = discountCouponInput.trim();
+    if (!code) return;
+
+    setDiscountCouponLoading(true);
+    setDiscountCouponValidationResult(null);
+    setDiscountCouponValidationError(null);
+
+    try {
+      const res = await SubscriptionService.discountCouponInfo({
+        code,
+        planId: Number(selectedPlan.id),
+        billingCycle: subscriptionBillingCycle,
+      });
+      const data = res.data?.data;
+      if (!data) {
+        setDiscountCouponValidationError("쿠폰 정보를 불러올 수 없습니다.");
+        return;
+      }
+      if (!data.canUse) {
+        setDiscountCouponValidationError(data.unavailableReason || "유효하지 않은 쿠폰입니다.");
+        return;
+      }
+      setDiscountCouponValidationResult(data);
+    } catch {
+      setDiscountCouponValidationError("유효하지 않은 쿠폰입니다.");
+    } finally {
+      setDiscountCouponLoading(false);
+    }
+  };
+
+  const handleApplyDiscountCoupon = () => {
+    if (!discountCouponValidationResult) return;
+    setAppliedDiscountCoupon(discountCouponValidationResult);
+    handleCloseDiscountCouponModal();
+  };
+
+  const handleRemoveDiscountCoupon = () => {
+    setAppliedDiscountCoupon(null);
+  };
+
   const handleSubscribe = async () => {
     if (!agreedToTerms) {
       setError("이용약관 및 개인정보처리방침에 동의해주세요.");
       return;
     }
 
-    // 쿠폰이 아닌 경우에만 결제 수단 필요
     if (!isCouponCheckout && !billingInfo) {
       setShowConfirmModal(true);
       return;
@@ -168,7 +258,6 @@ export default function CheckoutStep({
       return;
     }
 
-    // 미구독 프로젝트의 신규 구독인 경우 개인정보 처리 위탁 계약 동의 여부 확인
     if (!isPlanChange) {
       try {
         const res = await ProjectPrivacyConsentService.check(selectedProject.id);
@@ -240,6 +329,7 @@ export default function CheckoutStep({
           projectId: Number(selectedProject.id),
           planId,
           billingCycle: subscriptionBillingCycle,
+          discountCouponCode: appliedDiscountCoupon?.code,
         });
 
         showErrorModal({
@@ -268,16 +358,13 @@ export default function CheckoutStep({
     }
   };
 
-  // 결제 수단 등록 확인 모달에서 확인 클릭
   const handleConfirmRegister = () => {
     setShowConfirmModal(false);
     setShowRegisterModal(true);
   };
 
-  // 결제 수단 등록 성공
   const handleRegisterSuccess = async () => {
     setShowRegisterModal(false);
-    // 결제 수단 다시 조회
     try {
       const response = await BillingService.list();
       const billingInfos = response.data?.data?.billingInfos || [];
@@ -288,27 +375,30 @@ export default function CheckoutStep({
     }
   };
 
-  // 가격 계산 (VAT 별도). 쿠폰 시 실제 결제액은 0원
+  // 가격 계산
   const basePlanAmount =
     billingCycle === "monthly"
       ? selectedPlan.priceMonthly
       : selectedPlan.priceYearly || selectedPlan.priceMonthly;
   const planAmount = isPlanChange && isUpgrade ? estimateAmount ?? 0 : basePlanAmount;
-  const subtotal = planAmount;
-  const vat = Math.floor(planAmount * 0.1);
-  const totalOriginal = planAmount + vat;
-  const total = isCouponCheckout ? 0 : totalOriginal;
+
+  // 할인 쿠폰 pricing 데이터 (적용 시 API 응답값 사용)
+  const discountPricing = appliedDiscountCoupon?.pricing ?? null;
+  const subtotal = discountPricing?.originalPrice ?? planAmount;
+  const vat = discountPricing?.taxAmount ?? Math.floor(planAmount * 0.1);
+  const discountAmount = discountPricing?.discountAmount ?? 0;
+  const totalOriginal = subtotal + vat;
+  const total = isCouponCheckout ? 0 : (discountPricing?.finalPrice ?? totalOriginal);
+
   const priceUnit = billingCycle === "monthly" ? "/ 매월" : "/ 3개월";
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
   const billingLabel = isPlanChange ? "추가 청구 금액" : billingCycle === "monthly" ? "월간 청구" : "3개월 청구";
   const planDisplayName = selectedPlan.badge || selectedPlan.name;
   const titleText = isPlanChange ? "플랜 변경" : `${planDisplayName} 구독하기`;
 
-  // 삭선 원가: 쿠폰 사용 시에만 가격 위에 표시
-  const showStrikethrough = isCouponCheckout;
-  const strikethroughAmount = isCouponCheckout ? totalOriginal : 0;
+  // 삭선 원가: 무료 쿠폰 또는 할인 쿠폰 적용 시 표시
+  const showStrikethrough = isCouponCheckout || Boolean(appliedDiscountCoupon);
 
-  // 카드 정보 마스킹
   const getMaskedCardNumber = () => {
     if (!billingInfo) return "";
     return `•••• •••• •••• ${billingInfo.lastFourDigits}`;
@@ -317,7 +407,7 @@ export default function CheckoutStep({
   return (
     <div className="min-h-screen bg-white py-6 md:py-20">
       <div className="max-w-[640px] mx-auto px-6 md:px-4">
-        {/* 뒤로 가기 버튼 with 구독하기 제목 */}
+        {/* 뒤로 가기 버튼 */}
         <div className="flex items-center gap-2 mb-5 md:mb-12 -translate-x-2 md:translate-x-0">
           <button
             onClick={onBack}
@@ -330,21 +420,47 @@ export default function CheckoutStep({
           </h1>
         </div>
 
-        {/* 가격 섹션 (쿠폰 사용 시에만 원가 삭선을 가격 위에 표시) */}
+        {/* 가격 섹션 */}
         <div className="mb-7 md:mb-12">
+          {/* 삭선 원가 (무료 쿠폰 또는 할인 쿠폰 적용 시) */}
           {showStrikethrough && (
             <div className="text-[24px] md:text-[24px] text-[#808080] line-through leading-[150%] tracking-[-0.03em] mb-1">
-              ₩ {strikethroughAmount.toLocaleString()}
+              ₩ {totalOriginal.toLocaleString()}
             </div>
           )}
-          <div className="flex items-baseline flex-wrap gap-x-2">
-            <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-center text-[#252525]">
+
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
+            <span className="font-bold text-[40px] md:text-[60px] leading-[150%] tracking-[-0.03em] text-[#252525]">
               ₩ {total.toLocaleString()}
             </span>
-            <span className="font-normal text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
-              {priceUnit}
+            <span className="font-normal text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959]">
+              {appliedDiscountCoupon ? "/ 쿠폰할인 적용" : priceUnit}
             </span>
+
+            {/* 할인 쿠폰 적용 버튼 (무료 쿠폰 결제 및 플랜 변경 시에는 미표시) */}
+            {!isCouponCheckout && !isPlanChange && (
+              <div className="flex items-center gap-1">
+                {appliedDiscountCoupon && (
+                  <button
+                    onClick={handleRemoveDiscountCoupon}
+                    className="flex items-center justify-center"
+                    title="쿠폰 제거"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 18L18 6M6 6L18 18" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                )}
+                <button
+                  onClick={handleOpenDiscountCouponModal}
+                  className="border border-[#E2E2E2] rounded-full px-3 py-1 text-[12px] md:text-[13px] text-[#595959] hover:bg-[#F8F8F8] transition-colors whitespace-nowrap"
+                >
+                  쿠폰적용
+                </button>
+              </div>
+            )}
           </div>
+
           <p className="font-semibold text-[16px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#595959] mt-3 md:mt-4">
             {isPlanChange ? "플랜 변경 결제" : `${billingPeriod} 구독하기`}
           </p>
@@ -359,7 +475,7 @@ export default function CheckoutStep({
                 {billingLabel}
               </h3>
               <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
-                {planAmount.toLocaleString()}원
+                {subtotal.toLocaleString()}원
               </p>
             </div>
             <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
@@ -390,13 +506,28 @@ export default function CheckoutStep({
             <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
           </div>
 
-          {/* 당일 지불 총액 (쿠폰 시 원가 삭선 + 0원) */}
+          {/* 쿠폰적용 금액 (할인 쿠폰 적용 시) */}
+          {appliedDiscountCoupon && (
+            <div>
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
+                  쿠폰적용 금액
+                </h3>
+                <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#4D82F3]">
+                  {discountAmount.toLocaleString()}원
+                </p>
+              </div>
+              <div className="w-full h-px bg-[#E2E2E2] mt-4 md:mt-6" />
+            </div>
+          )}
+
+          {/* 당일 지불 총액 */}
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-[#000000]">
               당일 지불 총액
             </h3>
             <p className="font-semibold text-[14px] md:text-[16px] leading-[150%] tracking-[-0.02em] text-right text-[#000000]">
-              {isCouponCheckout ? (
+              {(isCouponCheckout || appliedDiscountCoupon) ? (
                 <span className="inline-flex items-center gap-2">
                   <span>{total.toLocaleString()}원</span>
                   <span className="line-through text-[#808080] font-normal">
@@ -501,7 +632,6 @@ export default function CheckoutStep({
 
         {/* Terms Agreement */}
         <div className="mt-6 space-y-4">
-          {/* 정기과금(자동승인) 이용약관 */}
           <div className="border border-[#E2E2E2] rounded-[8px] overflow-hidden">
             <button
               type="button"
@@ -522,7 +652,6 @@ export default function CheckoutStep({
             )}
           </div>
 
-          {/* 구독 및 취소 약관 */}
           <div className="border border-[#E2E2E2] rounded-[8px] overflow-hidden">
             <button
               type="button"
@@ -543,7 +672,6 @@ export default function CheckoutStep({
             )}
           </div>
 
-          {/* 동의 체크박스 */}
           <label className="flex items-start gap-2 cursor-pointer mt-4">
             <div className="relative flex-shrink-0">
               <input
@@ -590,7 +718,6 @@ export default function CheckoutStep({
           </label>
         </div>
 
-        {/* Submit Button (쿠폰 시에도 구독하기 라벨 유지) */}
         <button
           onClick={handleSubscribe}
           disabled={
@@ -652,13 +779,125 @@ export default function CheckoutStep({
         />
       )}
 
-      {/* 개인정보 처리 위탁 계약 동의 모달 (최종 결제 직전 게이트) */}
+      {/* 개인정보 처리 위탁 계약 동의 모달 */}
       {showConsentGate && selectedProject && (
         <ProjectPrivacyConsentModal
           open={true}
           projectId={selectedProject.id}
           onAgreed={handleConsentGateAgreed}
         />
+      )}
+
+      {/* 할인 쿠폰 적용 모달 */}
+      {discountCouponModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={handleCloseDiscountCouponModal} />
+          <div
+            className="relative bg-white rounded-[14px] w-full max-w-[440px] overflow-hidden"
+            style={{ boxShadow: "0px 8px 12px rgba(9,30,66,0.1), 0px 13px 61px rgba(169,169,169,0.37)" }}
+          >
+            {/* 헤더 */}
+            <div className="flex items-center justify-between px-7 pt-6 pb-4">
+              <h3 className="font-semibold text-[18px] leading-[21px] text-[#000000]">쿠폰 적용하기</h3>
+              <button
+                onClick={handleCloseDiscountCouponModal}
+                className="flex items-center justify-center w-6 h-6"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 6L18 18M18 6L6 18" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* 회색 콘텐츠 박스 */}
+            <div className="px-7 pb-5">
+              <div className="bg-[#F8F8F8] rounded-[12px] flex flex-col gap-2 py-[18px] px-6">
+                {/* 입력 행 */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    placeholder="쿠폰코드를 입력해주세요"
+                    value={discountCouponInput}
+                    onChange={(e) => {
+                      setDiscountCouponInput(e.target.value);
+                      setDiscountCouponValidationResult(null);
+                      setDiscountCouponValidationError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleDiscountCouponRegister();
+                      }
+                    }}
+                    style={{ width: "252px", height: "34px" }}
+                    className="bg-white border border-[#E2E2E2] rounded-[5px] px-3 font-medium text-[14px] tracking-[0.2px] text-[#000000] focus:outline-none focus:border-[#00E272]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleDiscountCouponRegister}
+                    disabled={discountCouponLoading || !discountCouponInput.trim()}
+                    style={{ width: "72px", height: "34px" }}
+                    className="bg-white border border-[#E2E2E2] rounded-[5px] font-semibold text-[14px] tracking-[-0.02em] text-[#000000] hover:bg-[#F0F0F0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {discountCouponLoading ? "확인 중" : "쿠폰등록"}
+                  </button>
+                </div>
+
+                {/* 유효한 쿠폰 결과 */}
+                {discountCouponValidationResult && (
+                  <>
+                    <p className="font-medium text-[14px] leading-[150%] tracking-[-0.02em] text-[#00B55B]" style={{ height: "21px" }}>
+                      유효한 쿠폰입니다.
+                    </p>
+                    {discountCouponValidationResult.discountType === "percentage" && (
+                      <div className="flex items-center" style={{ height: "24px" }}>
+                        <span className="font-medium text-[14px] leading-[24px] text-[#808080]" style={{ width: "120px" }}>할인율</span>
+                        <span className="font-medium text-[14px] leading-[24px] text-[#4D82F3]">{discountCouponValidationResult.discountValue}%</span>
+                      </div>
+                    )}
+                    <div className="flex items-center" style={{ height: "24px" }}>
+                      <span className="font-medium text-[14px] leading-[24px] text-[#808080]" style={{ width: "120px" }}>할인금액</span>
+                      <span className="font-medium text-[14px] leading-[24px] text-[#4D82F3]">{discountCouponValidationResult.pricing.discountAmount.toLocaleString()}원</span>
+                    </div>
+                    <div className="flex items-center" style={{ height: "24px" }}>
+                      <span className="font-medium text-[14px] leading-[24px] text-[#808080]" style={{ width: "120px" }}>할인 적용 기간</span>
+                      <span className="font-medium text-[14px] leading-[24px] text-[#4D82F3]">앞으로 {discountCouponValidationResult.durationMonths}개월간 할인 적용</span>
+                    </div>
+                  </>
+                )}
+
+                {/* 유효하지 않은 쿠폰 */}
+                {discountCouponValidationError && (
+                  <p className="font-medium text-[14px] leading-[150%] tracking-[-0.02em] text-red-500" style={{ height: "21px" }}>
+                    {discountCouponValidationError}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 구분선 */}
+            <div className="border-t border-[#E2E2E2]" />
+
+            {/* 푸터 */}
+            <div className="flex items-center justify-end gap-3 px-7 py-3">
+              <button
+                onClick={handleCloseDiscountCouponModal}
+                style={{ width: "48px", height: "34px" }}
+                className="flex items-center justify-center border border-[#E2E2E2] rounded-[5px] font-semibold text-[14px] tracking-[-0.02em] text-[#000000] hover:bg-[#F8F8F8] transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleApplyDiscountCoupon}
+                disabled={!discountCouponValidationResult}
+                style={{ width: "48px", height: "34px" }}
+                className="flex items-center justify-center bg-[#252525] rounded-[5px] font-semibold text-[14px] tracking-[-0.02em] text-[#EDEDED] hover:bg-[#3a3a3a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                적용
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
