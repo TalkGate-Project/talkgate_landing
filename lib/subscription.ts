@@ -11,6 +11,8 @@ import type {
   PlanEstimateResponse,
   SubscriptionPlansResponse,
   SubscriptionReactivateResponse,
+  DiscountCouponInfoInput,
+  DiscountCouponInfoResponse,
   CouponApplyInput,
   CouponApplyResponse,
   CouponInfoInput,
@@ -109,6 +111,14 @@ export const SubscriptionService = {
   },
 
   /**
+   * 할인 쿠폰 정보 조회 (구독 시작 전 미리보기)
+   * 할인 쿠폰 코드와 플랜 ID, 결제 주기로 최종 결제 금액을 확인합니다.
+   */
+  discountCouponInfo(input: DiscountCouponInfoInput) {
+    return apiClient.post<DiscountCouponInfoResponse>("/v1/subscriptions/discount-coupon/info", input);
+  },
+
+  /**
    * 쿠폰 정보 조회 (Admin만 가능)
    * 쿠폰 코드를 입력하여 적용될 플랜 정보와 사용 가능 여부를 미리 확인합니다.
    */
@@ -150,6 +160,12 @@ export type {
   PlanEstimateResponse,
   SubscriptionPlansResponse,
   SubscriptionReactivateResponse,
+  DiscountType,
+  SubscriptionDiscountCoupon,
+  DiscountCouponInfoInput,
+  DiscountCouponPricing,
+  DiscountCouponInfo,
+  DiscountCouponInfoResponse,
   CouponApplyInput,
   CouponApplyResponse,
   CouponInfoInput,

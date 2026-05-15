@@ -23,6 +23,11 @@ export type PaymentType = "initial" | "renewal" | "upgrade" | "downgrade";
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
 
 /**
+ * 할인 타입
+ */
+export type DiscountType = "percentage" | "fixed_amount";
+
+/**
  * 구독 플랜 정보
  */
 export interface SubscriptionPlan {
@@ -37,6 +42,17 @@ export interface SubscriptionPlan {
   maxMembers: number;
   maxCustomers: number;
   sortOrder: number;
+}
+
+/**
+ * 구독에 적용된 할인 쿠폰 정보
+ */
+export interface SubscriptionDiscountCoupon {
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  durationMonths: number;
+  remainingCount: number;
 }
 
 /**
@@ -57,6 +73,7 @@ export interface Subscription {
   cancelledAt?: string;
   terminatedAt?: string;
   isActive: boolean;
+  discountCoupon?: SubscriptionDiscountCoupon | null;
 }
 
 /**
@@ -65,6 +82,9 @@ export interface Subscription {
 export interface Payment {
   id: number;
   subscriptionId: number;
+  baseAmount: number;
+  discountAmount: number;
+  taxAmount: number;
   amount: number;
   planName: string;
   paymentType: PaymentType;
@@ -82,6 +102,7 @@ export interface SubscriptionStartInput {
   projectId: number;
   planId: number;
   billingCycle: SubscriptionBillingCycle;
+  discountCouponCode?: string;
 }
 
 /**
@@ -212,6 +233,51 @@ export interface SubscriptionPlansResponse {
 export interface SubscriptionReactivateResponse {
   result: true;
   data: Subscription;
+}
+
+/**
+ * 할인 쿠폰 정보 조회 요청 (구독 시작 전 미리보기)
+ */
+export interface DiscountCouponInfoInput {
+  code: string;
+  planId: number;
+  billingCycle: SubscriptionBillingCycle;
+}
+
+/**
+ * 할인 쿠폰 가격 계산 정보
+ */
+export interface DiscountCouponPricing {
+  originalPrice: number;
+  discountAmount: number;
+  discountedPrice: number;
+  taxAmount: number;
+  finalPrice: number;
+}
+
+/**
+ * 할인 쿠폰 정보
+ */
+export interface DiscountCouponInfo {
+  code: string;
+  name: string;
+  description: string;
+  discountType: DiscountType;
+  discountValue: number;
+  durationMonths: number;
+  startDate: string;
+  endDate: string;
+  pricing: DiscountCouponPricing;
+  canUse: boolean;
+  unavailableReason?: string;
+}
+
+/**
+ * 할인 쿠폰 정보 조회 응답 (구독 시작 전 미리보기)
+ */
+export interface DiscountCouponInfoResponse {
+  result: true;
+  data: DiscountCouponInfo;
 }
 
 /**
