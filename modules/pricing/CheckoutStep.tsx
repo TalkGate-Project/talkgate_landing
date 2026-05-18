@@ -324,12 +324,13 @@ export default function CheckoutStep({
   // 할인 쿠폰 pricing 데이터 (적용 시 API 응답값 사용)
   const discountPricing = appliedDiscountCoupon?.pricing ?? null;
   const subtotal = discountPricing?.originalPrice ?? planAmount;
-  const vat = discountPricing?.taxAmount ?? Math.floor(planAmount * 0.1);
+  const originalVat = Math.floor(subtotal * 0.1);
+  const vat = discountPricing?.taxAmount ?? originalVat;
   const discountAmount = discountPricing?.discountAmount ?? 0;
   const amountAfterDiscount = appliedDiscountCoupon
     ? subtotal - discountAmount
     : null;
-  const totalOriginal = subtotal + vat;
+  const totalOriginal = subtotal + originalVat;
   const total = isCouponCheckout ? 0 : (discountPricing?.finalPrice ?? totalOriginal);
 
   const billingPeriod = billingCycle === "monthly" ? "매월" : "3개월";
