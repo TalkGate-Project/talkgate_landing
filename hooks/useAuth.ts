@@ -69,8 +69,16 @@ export function useAuth({
   }, []);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    let cancelled = false;
+
+    void checkAuthFromClient().then((auth) => {
+      if (!cancelled) setIsAuthenticated(auth);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (pollingInterval <= 0) return;

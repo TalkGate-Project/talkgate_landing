@@ -19,7 +19,8 @@ interface PlanSelectStepProps {
     plan: PricingPlan,
     billingCycle: BillingCycle,
     context?: PlanSelectionContext,
-    couponInfo?: CouponInfoForCheckout
+    couponInfo?: CouponInfoForCheckout,
+    discountCouponCode?: string
   ) => void;
   onLogin: () => void;
   onBack?: () => void;
@@ -65,6 +66,8 @@ export default function PlanSelectStep({
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [pendingDiscountCode, setPendingDiscountCode] = useState<string | null>(null);
+  const [discountCouponMessage, setDiscountCouponMessage] = useState<string | null>(null);
 
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
@@ -200,7 +203,7 @@ export default function PlanSelectStep({
     fetchSubscriptionInfo();
   }, [isAuthenticated, selectedProject]);
 
-  const handleSubscribe = (plan: PricingPlan) => {
+  const handleSubscribe = async (plan: PricingPlan) => {
     // 로그인 상태 확인
     if (!isAuthenticated) {
       // 사용자에게 로그인이 필요하다고 안내
@@ -317,7 +320,28 @@ export default function PlanSelectStep({
     }
 
     // 로그인된 경우 다음 단계로 진행 (billingCycle 정보도 함께 전달)
-    onSubscribe(plan, billingCycle, { isPlanChange: false, isUpgrade: false });
+    let discountCode: string | undefined;
+    if (pendingDiscountCode) {
+      try {
+        const res = await SubscriptionService.discountCouponInfo({
+          code: pendingDiscountCode,
+          planId: Number(plan.id),
+          billingCycle: selectedSubscriptionBillingCycle,
+        });
+        const data = res.data?.data;
+        if (data?.canUse) {
+          discountCode = pendingDiscountCode;
+        } else {
+          setPendingDiscountCode(null);
+          setDiscountCouponMessage(null);
+          setCouponError("입력하신 할인 쿠폰을 사용할 수 없습니다.");
+        }
+      } catch {
+        setPendingDiscountCode(null);
+        setDiscountCouponMessage(null);
+      }
+    }
+    onSubscribe(plan, billingCycle, { isPlanChange: false, isUpgrade: false }, undefined, discountCode);
   };
 
   const handleCouponRegister = async () => {
@@ -353,7 +377,6 @@ export default function PlanSelectStep({
         info: data,
       });
     } catch (err: unknown) {
-      const apiError = err as { data?: { code?: string; message?: string } };
       if (isUnauthorizedError(err)) {
         setCouponError("로그인이 만료되었습니다. 다시 로그인해주세요.");
         return;
@@ -362,13 +385,9 @@ export default function PlanSelectStep({
         setCouponError("이 프로젝트의 쿠폰을 확인할 권한이 없습니다.");
         return;
       }
-      const message =
-        apiError?.data?.code === "INVALID_COUPON"
-          ? "유효하지 않은 쿠폰입니다."
-          : apiError?.data?.code === "COUPON_EXPIRED"
-            ? "만료된 쿠폰입니다."
-            : "쿠폰 확인에 실패했습니다.";
-      setCouponError(message);
+      // 무료 쿠폰이 아닐 수 있으므로 할인 쿠폰 코드로 보관
+      setPendingDiscountCode(code);
+      setDiscountCouponMessage("할인 쿠폰을 입력하셨나요? 플랜을 선택하면 결제 단계에서 할인이 적용됩니다.");
     } finally {
       setCouponLoading(false);
     }
@@ -444,6 +463,8 @@ export default function PlanSelectStep({
                 onChange={(e) => {
                   setCouponCode(e.target.value);
                   setCouponError(null);
+                  setPendingDiscountCode(null);
+                  setDiscountCouponMessage(null);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -465,6 +486,9 @@ export default function PlanSelectStep({
             </div>
             {couponError && (
               <p className="mt-2 text-[13px] text-red-500 text-center">{couponError}</p>
+            )}
+            {discountCouponMessage && !couponError && (
+              <p className="mt-2 text-[13px] text-[#00B55B] text-center">{discountCouponMessage}</p>
             )}
           </div>
         )}
