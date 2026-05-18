@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npx tsc *)",
       "Bash(echo \"exit: $?\")",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(dir -Recurse -Filter \"*.tsx\" -Path \"C:\\\\2025\\\\talkgate_landing\")",
+      "Bash(Select-Object -First 30)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
