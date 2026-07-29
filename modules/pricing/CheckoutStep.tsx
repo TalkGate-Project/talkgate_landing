@@ -408,7 +408,7 @@ export default function CheckoutStep({
                     onClick={() => setDiscountCouponModalOpen(true)}
                     className="border border-[#E2E2E2] rounded-full px-3 py-1 text-[12px] md:text-[13px] text-[#595959] hover:bg-[#F8F8F8] transition-colors whitespace-nowrap"
                   >
-                    쿠폰적용
+                    할인쿠폰적용
                   </button>
                 </div>
               )}
