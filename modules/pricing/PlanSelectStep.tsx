@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { BillingCycle, PricingPlan, Project } from "@/types";
 import type { SubscriptionPlan, AdminProjectSubscription, CouponInfoForCheckout } from "@/types/subscription";
-import { getApiErrorStatus, isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
+import { getApiErrorCode, getApiErrorStatus, isForbiddenError, isUnauthorizedError } from "@/lib/apiClient";
 import { SubscriptionService } from "@/lib/subscription";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
@@ -383,6 +383,17 @@ export default function PlanSelectStep({
       }
       if (isForbiddenError(err)) {
         setCouponError("이 프로젝트의 쿠폰을 확인할 권한이 없습니다.");
+        return;
+      }
+      if (getApiErrorCode(err) === "DISCOUNT_COUPON_ENTERED_AS_FREE_COUPON") {
+        showErrorModal({
+          type: "info",
+          title: "쿠폰 확인",
+          headline: "할인쿠폰을 사용하려고 하시나요?",
+          description: "할인쿠폰은 결제화면에서 [할인쿠폰적용] 버튼을 눌러 사용할 수 있어요.",
+          confirmText: "확인",
+          hideCancel: true,
+        });
         return;
       }
       // 무료 쿠폰이 아닐 수 있으므로 할인 쿠폰 코드로 보관

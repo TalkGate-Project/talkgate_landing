@@ -7,7 +7,10 @@
       "Bash(dir -Recurse -Filter \"*.tsx\" -Path \"C:\\\\2025\\\\talkgate_landing\")",
       "Bash(Select-Object -First 30)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }
