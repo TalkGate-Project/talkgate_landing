@@ -45,6 +45,10 @@ export function isForbiddenError(error: unknown): boolean {
   return getApiErrorStatus(error) === 403;
 }
 
+export function getApiErrorCode(error: unknown): string | undefined {
+  return (error as ApiErrorLike | undefined)?.data?.code;
+}
+
 function buildQueryString(query?: RequestOptions["query"]): string {
   if (!query) return "";
   const params = new URLSearchParams();
