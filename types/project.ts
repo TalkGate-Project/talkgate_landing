@@ -2,6 +2,9 @@
  * Project API 타입 정의
  */
 
+/** 프로젝트 타입. general: 일반, analysis: 회생·파산 분석 영업 */
+export type ProjectType = "general" | "analysis";
+
 /**
  * 프로젝트 정보
  */
@@ -29,6 +32,8 @@ export interface ProjectCreateInput {
   subDomain?: string;
   logoUrl?: string;
   useAttendanceMenu?: boolean;
+  /** 프로젝트 타입. 기본값 general */
+  type?: ProjectType;
 }
 
 /**
@@ -42,6 +47,7 @@ export interface ProjectCreateResponse {
     subDomain?: string;
     logoUrl?: string;
     useAttendanceMenu: boolean;
+    type: ProjectType;
     createdAt: string;
     updatedAt: string;
   };

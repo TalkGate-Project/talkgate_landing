@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { ProjectsService } from "@/lib/projects";
 import { AssetsService } from "@/lib/assets";
-import type { ProjectCreateResponse } from "@/types/project";
+import type { ProjectCreateResponse, ProjectType } from "@/types/project";
 
 type CreatedProject = ProjectCreateResponse["data"];
 
@@ -44,6 +44,58 @@ function validateIconFile(file: File): string | null {
   return null;
 }
 
+// 선택(active) 카드의 아이콘은 초록, 미선택 카드는 회색 — 두 타입 아이콘 공통 색상 규칙
+const TYPE_ICON_ACTIVE_COLOR = "#00E272";
+const TYPE_ICON_INACTIVE_COLOR = "#B0B0B0";
+
+function GeneralTypeIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M9.75 17L9 20L8 21H16L15 20L14.25 17M3 13H21M5 17H19C20.1046 17 21 16.1046 21 15V5C21 3.89543 20.1046 3 19 3H5C3.89543 3 3 3.89543 3 5V15C3 16.1046 3.89543 17 5 17Z"
+        stroke={active ? TYPE_ICON_ACTIVE_COLOR : TYPE_ICON_INACTIVE_COLOR}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AnalysisTypeIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M3 6L6 7M6 7L3 16C4.77253 17.3334 7.22866 17.3334 9.00119 16M6 7L9.00006 16M6 7L12 5M18 7L21 6M18 7L15 16C16.7725 17.3334 19.2287 17.3334 21.0012 16M18 7L21.0001 16M18 7L12 5M12 3V5M12 21V5M12 21H9M12 21H15"
+        stroke={active ? TYPE_ICON_ACTIVE_COLOR : TYPE_ICON_INACTIVE_COLOR}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const PROJECT_TYPE_OPTIONS: {
+  value: ProjectType;
+  label: string;
+  description: string;
+  icon: (props: { active: boolean }) => React.JSX.Element;
+}[] = [
+  {
+    value: "general",
+    label: "일반",
+    description: "범용적인 고객 정보 관리 기능을 제공해요",
+    icon: GeneralTypeIcon,
+  },
+  {
+    value: "analysis",
+    label: "회생파산",
+    description: "AI 진단을 기반으로 회생·파산 상담을 지원해요",
+    icon: AnalysisTypeIcon,
+  },
+];
+
 export default function CreateProjectModal({
   open,
   onClose,
@@ -53,8 +105,9 @@ export default function CreateProjectModal({
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
 
-  // Step 1: 브랜드 아이콘 + 프로젝트 이름
+  // Step 1: 브랜드 아이콘 + 프로젝트 이름 + 유형
   const [projectName, setProjectName] = useState("");
+  const [projectType, setProjectType] = useState<ProjectType>("general");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [iconError, setIconError] = useState<string | null>(null);
@@ -215,9 +268,11 @@ export default function CreateProjectModal({
           name: projectName.trim(),
           subDomain: subDomainValue,
           logoUrl,
+          type: projectType,
         });
         const createdProject = createResponse.data?.data;
         setProjectName("");
+        setProjectType("general");
         clearIconFile();
         setSubdomain("");
         setDomainAvailable(null);
@@ -231,7 +286,7 @@ export default function CreateProjectModal({
         setSubmitting(false);
       }
     },
-    [submitting, iconFile, projectName, subdomain, clearIconFile, onSuccess, onClose]
+    [submitting, iconFile, projectName, projectType, subdomain, clearIconFile, onSuccess, onClose]
   );
 
   const handleSkip = useCallback(() => {
@@ -245,6 +300,7 @@ export default function CreateProjectModal({
     if (submitting) return;
     setStep(1);
     setProjectName("");
+    setProjectType("general");
     clearIconFile();
     setSubdomain("");
     setDomainAvailable(null);
@@ -407,6 +463,48 @@ export default function CreateProjectModal({
                   className="w-full h-[40px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] text-[#000] bg-white focus:outline-none focus:border-[#00E272] transition-colors"
                   disabled={submitting}
                 />
+              </div>
+
+              {/* 프로젝트 유형 */}
+              <div className="rounded-[8px] bg-[#F8F8F8] px-4 md:px-6 py-4">
+                <div className="text-[14px] font-medium text-[#252525] mb-3">
+                  프로젝트 유형 <span className="text-[#F00]">*</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {PROJECT_TYPE_OPTIONS.map((option) => {
+                    const isSelected = projectType === option.value;
+                    const Icon = option.icon;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setProjectType(option.value)}
+                        disabled={submitting}
+                        className={`cursor-pointer flex items-start gap-3 rounded-[10px] border px-4 py-3 text-left transition-colors disabled:opacity-50 ${
+                          isSelected
+                            ? "border-[#00E272] bg-[#00E272]/5"
+                            : "border-[#E2E2E2] bg-white hover:border-[#B0B0B0]"
+                        }`}
+                      >
+                        <span
+                          className={`shrink-0 w-9 h-9 rounded-[8px] grid place-items-center ${
+                            isSelected ? "bg-[#00E272]/10" : "bg-[#EDEDED]"
+                          }`}
+                        >
+                          <Icon active={isSelected} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[14px] font-semibold text-[#252525]">
+                            {option.label}
+                          </span>
+                          <span className="block text-[13px] text-[#808080] mt-0.5">
+                            {option.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : (
