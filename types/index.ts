@@ -56,41 +56,6 @@ export interface PricingPlan {
 export type BillingCycle = 'monthly' | 'yearly';
 
 // ============================================
-// Case Studies (고객 성공 사례)
-// ============================================
-
-export interface CaseStudy {
-  id: string;
-  /** 회사/고객 유형 태그 (예: "[스타트업]", "[중견 기업]") */
-  tag: string;
-  /** 제목 */
-  title: string;
-  /** 요약 설명 */
-  summary: string;
-  /** 썸네일 이미지 경로 */
-  thumbnailUrl: string;
-  /** 상세 페이지 경로 (있을 경우) */
-  detailHref?: string;
-  /** 게시일 */
-  publishedAt: string;
-  /** 조회수 */
-  viewCount?: number;
-  /** 상세 페이지 메인 이미지 */
-  detailImageUrl?: string;
-  /** 상세 페이지 섹션들 */
-  sections?: CaseStudySection[];
-}
-
-export interface CaseStudySection {
-  /** 섹션 제목 */
-  title: string;
-  /** 섹션 내용 */
-  content: string;
-}
-
-export type CaseSortOption = 'all' | 'date' | 'views';
-
-// ============================================
 // Company / About
 // ============================================
 

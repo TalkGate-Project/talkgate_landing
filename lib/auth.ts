@@ -110,6 +110,7 @@ function isProductionLandingDomain(): boolean {
   if (!isBrowser()) return false;
   const hostname = window.location.hostname;
   if (!hostname.endsWith(".talkgate.im") && hostname !== "talkgate.im") return false;
+  if (hostname === "dev.talkgate.im") return false;
   return !hostname.includes("-dev");
 }
 

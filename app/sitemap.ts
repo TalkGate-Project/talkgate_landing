@@ -1,10 +1,9 @@
 import { MetadataRoute } from 'next';
-import { CASE_STUDIES } from '@/lib/caseStudies';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://talkgate.im';
 
-  const pages: MetadataRoute.Sitemap = [
+  return [
     {
       url: baseUrl,
       changeFrequency: 'daily',
@@ -14,11 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/pricing`,
       changeFrequency: 'weekly',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/case`,
-      changeFrequency: 'weekly',
-      priority: 0.8,
     },
     {
       url: `${baseUrl}/introduce`,
@@ -31,13 +25,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
   ];
-
-  const casePages: MetadataRoute.Sitemap = CASE_STUDIES.map((caseStudy) => ({
-    url: `${baseUrl}/case/${caseStudy.id}`,
-    lastModified: new Date(caseStudy.publishedAt.replaceAll('.', '-')),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
-
-  return [...pages, ...casePages];
 }
