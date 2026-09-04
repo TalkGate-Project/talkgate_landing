@@ -20,22 +20,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: '요금제', href: '/pricing' },
 ];
 
-/**
- * 푸터 네비게이션
- */
-export const FOOTER_NAV = {
-  product: [
-    { label: '요금제', href: '/pricing' },
-    { label: '고객 성공 사례', href: '/case' },
-  ],
-  company: [
-    { label: '회사소개', href: '/introduce' },
-  ],
-  support: [
-    { label: '문의하기', href: 'mailto:support@talkgate.com', external: true },
-  ],
-} as const;
-
 // ============================================
 // External Links
 // ============================================
@@ -126,10 +110,6 @@ export const PAGE_METADATA = {
   pricing: {
     title: '톡게이트(Talkgate) 요금제',
     description: '복잡한 고민 없이, 모든 기능을 지금 바로 시작하세요.',
-  },
-  case: {
-    title: '고객 성공 사례',
-    description: '실제 기업들의 성과를 확인하고, 가치를 확인하세요.',
   },
   introduce: {
     title: '회사소개',
