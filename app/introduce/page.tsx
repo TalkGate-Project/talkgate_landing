@@ -6,6 +6,7 @@ import { IntroduceView } from "@/modules/introduce";
 export const metadata: Metadata = {
   title: PAGE_METADATA.introduce.title,
   description: PAGE_METADATA.introduce.description,
+  alternates: { canonical: "/introduce" },
 };
 
 /**

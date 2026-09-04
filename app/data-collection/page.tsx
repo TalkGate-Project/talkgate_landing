@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "고객정보 적법 수집 및 제3자 제공 책임 확인 | Talkgate",
+  title: "고객정보 적법 수집 및 제3자 제공 책임 확인",
   description: "Talkgate 고객정보 적법 수집 및 제3자 제공 책임 확인",
+  robots: { index: false, follow: true },
+  alternates: { canonical: "/data-collection" },
 };
 
 /**

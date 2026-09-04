@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "개인정보처리방침 | Talkgate",
+  title: "개인정보처리방침",
   description: "Talkgate 개인정보처리방침",
+  robots: { index: false, follow: true },
+  alternates: { canonical: "/privacy" },
 };
 
 /**

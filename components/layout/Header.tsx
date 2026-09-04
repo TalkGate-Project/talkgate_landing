@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_ITEMS } from "@/lib/constants";
+import { BRAND, NAV_ITEMS } from "@/lib/constants";
 import { getLoginUrl, getStartUrl, handleLogout as performLogout } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { SideDrawer } from "./SideDrawer";
@@ -90,8 +90,10 @@ export function Header({ isAuthenticated: initialAuth = false, landingBaseUrl }:
                 viewBox="0 0 102 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                role="img"
                 className="w-[102px] h-6"
               >
+                <title>{`${BRAND.nameKo} ${BRAND.name}`}</title>
                 <path
                   d="M61.1357 4.21609V17.8914C61.1357 20.532 58.3954 24 55.6036 24H50.8394V20.811L51.0032 20.6715C51.0482 20.6683 51.0867 20.7571 51.1124 20.7571H57.5762L57.74 20.5954V7.62066L57.5762 7.45899H49.6346V14.918H56.4807L56.6445 15.0796V18.107L56.4807 18.2687H52.5356C45.5161 18.2687 43.656 7.42729 50.184 4.70427C50.502 4.57113 51.4851 4.21292 51.7678 4.21292H61.1357V4.21609Z"
                   fill="#474747"

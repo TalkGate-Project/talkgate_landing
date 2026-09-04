@@ -100,6 +100,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     viewBox="0 0 208 49"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
                     className="w-[140px] h-[33px] md:w-[208px] md:h-[49px] introduce-hero-logo"
                   >
                     <path
@@ -128,7 +129,9 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     />
                   </svg>
                 </div>
-                <p className={`!pb-5 mb:!pb-0 !mt-7 md:!mt-8 text-[14px] md:text-[20px] text-white md:text-[#474747] leading-[1.5] tracking-[-0.0em] font-bold introduce-hero-text ${heroVisible ? 'animate' : ''}`}>
+                <h1 className={`!pb-5 mb:!pb-0 !mt-7 md:!mt-8 text-[14px] md:text-[20px] text-white md:text-[#474747] leading-[1.5] tracking-[-0.0em] font-bold introduce-hero-text ${heroVisible ? 'animate' : ''}`}>
+                  {/* 로고 이미지가 시각적 제목 역할을 하므로, H1의 실제 텍스트는 스크린리더/검색엔진용으로 제공 */}
+                  <span className="sr-only">{BRAND.nameKo} 회사소개 - </span>
                   {/* 모바일 줄바꿈 */}
                   <span className="md:hidden">
                     미래의 고객 변화에 미리 대응하고
@@ -137,7 +140,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     <br />
                     고객 관계 혁신의 여정을
                     <br />
-                    {BRAND.name}이 함께 만들어갑니다.
+                    {BRAND.name}가 함께 만들어갑니다.
                   </span>
                   {/* 웹 줄바꿈 */}
                   <span className="hidden md:inline">
@@ -145,9 +148,9 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     <br />
                     고객 관계 혁신의 여정을
                     <br />
-                    {BRAND.name}이 함께 만들어갑니다.
+                    {BRAND.name}가 함께 만들어갑니다.
                   </span>
-                </p>
+                </h1>
               </div>
             </div>
           </div>
@@ -195,16 +198,18 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
             </p>
 
             <p className={`text-[14px] md:text-[18px] text-[#252525] leading-[1.5] tracking-[-0.03em] introduce-mission-content ${missionVisible ? 'animate' : ''}`}>
-              {BRAND.name}은 중소기업과 스타트업이 더 빠르게 핵심 고객을 파악할
-              수 있도록, 데이터 기반의 의사결정을 돕는 통합 관리 도구와 혁신적인
-              고객 관리 시스템을 제공합니다. {BRAND.name}
+              {BRAND.name}는 기업과 스타트업이 핵심 고객을 더 빠르게 파악하고,
+              데이터에 기반한 의사결정을 내릴 수 있도록 통합 관리 도구와 고객
+              관리 시스템을 제공합니다.
               <br />
-              는 중소기업과 스타트업의 고객 관리 프로세스와 영업 효율 방식을
-              혁신해 나가고 있습니다.
+              고객 정보부터 영업 활동과 성과까지 한곳에서 관리할 수 있도록
+              지원하여, 기업의 고객 관리와 영업 업무를 더욱 효율적으로
+              만들어갑니다.
               <br />
               <br />
-              앞으로도 {BRAND.name}는 기업들의 성장을 위한 가장 강력한 엔진이
-              되어, 비즈니스 발전에 기여하겠습니다.
+              앞으로도 {BRAND.name}는 기업이 더 효율적으로 성장하고 지속적인
+              성과를 만들어갈 수 있도록, 실질적인 비즈니스 가치를
+              제공하겠습니다.
             </p>
           </div>
         </div>

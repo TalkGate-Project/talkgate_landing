@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "서비스 이용약관 | Talkgate",
+  title: "서비스 이용약관",
   description: "Talkgate 서비스 이용약관",
+  robots: { index: false, follow: true },
+  alternates: { canonical: "/terms" },
 };
 
 /**

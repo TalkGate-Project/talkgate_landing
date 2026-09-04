@@ -7,6 +7,7 @@ import { CaseListSection } from '@/modules/case';
 export const metadata: Metadata = {
   title: PAGE_METADATA.case.title,
   description: PAGE_METADATA.case.description,
+  alternates: { canonical: '/case' },
 };
 
 /**

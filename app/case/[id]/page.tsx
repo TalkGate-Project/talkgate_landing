@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getCaseStudyById, getAllCaseStudyIds } from '@/lib/caseStudies';
+import { BRAND, COMPANY_INFO } from '@/lib/constants';
 
 interface CaseDetailPageProps {
   params: Promise<{
@@ -34,8 +35,9 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${caseStudy.tag} ${caseStudy.title} | Talkgate`,
+    title: `${caseStudy.tag} ${caseStudy.title}`,
     description: caseStudy.summary,
+    alternates: { canonical: `/case/${caseStudy.id}` },
   };
 }
 
@@ -50,8 +52,47 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
     notFound();
   }
 
+  const siteUrl = 'https://talkgate.im';
+  const pageUrl = `${siteUrl}/case/${caseStudy.id}`;
+  const publishedIso = new Date(caseStudy.publishedAt.replaceAll('.', '-')).toISOString();
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `${caseStudy.tag} ${caseStudy.title}`,
+    description: caseStudy.summary,
+    inLanguage: 'ko-KR',
+    datePublished: publishedIso,
+    dateModified: publishedIso,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+    image: caseStudy.detailImageUrl ? `${siteUrl}${caseStudy.detailImageUrl}` : undefined,
+    author: { '@type': 'Organization', name: `${BRAND.nameKo} ${BRAND.name}`, url: siteUrl },
+    publisher: {
+      '@type': 'Organization',
+      name: COMPANY_INFO.name,
+      logo: { '@type': 'ImageObject', url: `${siteUrl}/icon-512x512.png` },
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: BRAND.nameKo, item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: '고객 성공 사례', item: `${siteUrl}/case` },
+      { '@type': 'ListItem', position: 3, name: caseStudy.title, item: pageUrl },
+    ],
+  };
+
   return (
     <section className="relative bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([articleSchema, breadcrumbSchema]).replace(/</g, '\\u003c'),
+        }}
+      />
+
       {/* Main Content Container */}
       <div className="max-w-[752px] mx-auto pt-[40px] md:pt-[112px] pb-[60px] md:pb-[141px] px-4 md:px-0">
         {/* Breadcrumb Navigation */}

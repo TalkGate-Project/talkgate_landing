@@ -13,6 +13,7 @@ export type PlanSelectionContext = {
 };
 
 interface PlanSelectStepProps {
+  initialPlans?: SubscriptionPlan[];
   selectedProject?: Project;
   isAuthenticated: boolean;
   onSubscribe: (
@@ -48,6 +49,7 @@ function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPla
 }
 
 export default function PlanSelectStep({
+  initialPlans = [],
   selectedProject,
   isAuthenticated,
   onSubscribe,
@@ -55,9 +57,15 @@ export default function PlanSelectStep({
   onBack,
 }: PlanSelectStepProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const [plans, setPlans] = useState<PricingPlan[]>([]);
-  const [planMeta, setPlanMeta] = useState<SubscriptionPlan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const sortedInitialPlans = useMemo(
+    () => [...initialPlans].sort((a, b) => a.sortOrder - b.sortOrder),
+    [initialPlans]
+  );
+  const [plans, setPlans] = useState<PricingPlan[]>(() =>
+    sortedInitialPlans.map((plan, index) => convertToPricingPlan(plan, index))
+  );
+  const [planMeta, setPlanMeta] = useState<SubscriptionPlan[]>(sortedInitialPlans);
+  const [loading, setLoading] = useState(initialPlans.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<AdminProjectSubscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
@@ -126,7 +134,13 @@ export default function PlanSelectStep({
   }, [plans.length]); // plans가 로드되면 카드 observer 재설정
 
   // 플랜 데이터 로드 (구독 플랜 조회 API는 토큰 불필요, 로그인 여부와 무관하게 호출)
+  // 서버에서 내려준 initialPlans가 있으면 동일 데이터를 다시 받아올 필요가 없으므로 건너뜁니다.
   useEffect(() => {
+    if (initialPlans.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     const fetchPlans = async () => {
       setLoading(true);
       setError(null);
@@ -147,7 +161,7 @@ export default function PlanSelectStep({
     };
 
     fetchPlans();
-  }, []);
+  }, [initialPlans.length]);
 
   const normalizePlanName = (value?: string | null) =>
     (value ?? "").trim().toLowerCase();

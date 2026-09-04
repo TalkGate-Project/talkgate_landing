@@ -16,7 +16,7 @@ import type { NavItem, CompanyInfo } from '@/types';
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: '회사소개', href: '/introduce' },
-  { label: '이용가이드', href: 'https://talkgate.gitbook.io/talkgate', external: true },
+  { label: '이용가이드', href: '/guide' },
   { label: '요금제', href: '/pricing' },
 ];
 
@@ -61,6 +61,9 @@ export const EXTERNAL_LINKS = {
 
   /** Talkgate 마케팅 정보 수신 동의 */
   marketingConsent: '/marketing-consent',
+
+  /** 이용가이드 원문 (GitBook) - /guide 내부 페이지에서 연결 */
+  userGuide: 'https://talkgate.gitbook.io/talkgate',
 } as const;
 
 // ============================================
@@ -87,6 +90,7 @@ export const COMPANY_INFO: CompanyInfo = {
 
 export const BRAND = {
   name: 'Talkgate',
+  nameKo: '톡게이트',
   tagline: 'All your business workflows in one place.',
   description:
     '흩어진 고객 데이터, 채팅, 성과 지표를 실시간으로 통합하여,\n놓치지 말아야 할 성장의 순간을 포착하세요.',
@@ -98,8 +102,8 @@ export const BRAND = {
 
 export const PAGE_METADATA = {
   main: {
-    title: 'Talkgate | All your business workflows in one place.',
-    titleKo: '톡게이트 | 모든 비즈니스 워크플로우를 한 곳에서',
+    title: '톡게이트(Talkgate) | 고객관리·통합상담 CRM',
+    titleKo: '톡게이트로 고객관리와 상담을 한 곳에서',
     description: BRAND.description,
     keywords: [
       'Talkgate',
@@ -120,17 +124,21 @@ export const PAGE_METADATA = {
     ],
   },
   pricing: {
-    title: '요금제 | Talkgate',
+    title: '톡게이트(Talkgate) 요금제',
     description: '복잡한 고민 없이, 모든 기능을 지금 바로 시작하세요.',
   },
   case: {
-    title: '고객 성공 사례 | Talkgate',
+    title: '고객 성공 사례',
     description: '실제 기업들의 성과를 확인하고, 가치를 확인하세요.',
   },
   introduce: {
-    title: '회사소개 | Talkgate',
+    title: '회사소개',
     description:
       '미래의 고객 변화에 미리 대응하고 앞서 나갈 수 있도록 고객 관계 혁신의 여정을 Talkgate이 함께 만들어갑니다.',
+  },
+  guide: {
+    title: '이용가이드',
+    description: '톡게이트 CRM의 고객관리, 통합상담, 프로젝트 설정과 주요 기능 사용법을 확인하세요.',
   },
 } as const;
 
@@ -158,4 +166,3 @@ export const BREAKPOINTS = {
   xl: 1280,
   '2xl': 1536,
 } as const;
-
