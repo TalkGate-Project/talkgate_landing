@@ -35,7 +35,15 @@ function convertToPricingPlan(plan: SubscriptionPlan, index: number): PricingPla
   };
 }
 
-export default function PricingContent() {
+interface PricingContentProps {
+  initialPlans: SubscriptionPlan[];
+  initialIsAuthenticated: boolean;
+}
+
+export default function PricingContent({
+  initialPlans,
+  initialIsAuthenticated,
+}: PricingContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -47,7 +55,7 @@ export default function PricingContent() {
   const planTypeFromUrl = searchParams.get("planType");
 
   // 인증 상태 - 헤더와 동일하게 /api/auth/check(메인 서비스 API 검증) 사용 → 비로그인 시 플랜 페이지
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(initialIsAuthenticated);
 
   // 선택된 데이터
   const [selectedProject, setSelectedProject] = useState<Project | undefined>(() => {
@@ -396,6 +404,7 @@ export default function PricingContent() {
   const renderPlanStepForNoProjects = () => (
     <>
       <PlanSelectStep
+        initialPlans={initialPlans}
         isAuthenticated={isAuthenticated}
         selectedProject={undefined}
         onSubscribe={handleSubscribe}
@@ -427,6 +436,7 @@ export default function PricingContent() {
       if (!isAuthenticated) {
         return (
           <PlanSelectStep
+            initialPlans={initialPlans}
             isAuthenticated={isAuthenticated}
             selectedProject={undefined}
             onSubscribe={handleSubscribe}
@@ -462,6 +472,7 @@ export default function PricingContent() {
 
       return (
         <PlanSelectStep
+          initialPlans={initialPlans}
           isAuthenticated={isAuthenticated}
           selectedProject={isAuthenticated ? selectedProject : undefined}
           onSubscribe={handleSubscribe}
@@ -500,6 +511,7 @@ export default function PricingContent() {
         }
         return (
           <PlanSelectStep
+            initialPlans={initialPlans}
             isAuthenticated={isAuthenticated}
             selectedProject={isAuthenticated ? selectedProject : undefined}
             onSubscribe={handleSubscribe}
@@ -526,6 +538,7 @@ export default function PricingContent() {
       if (!isAuthenticated) {
         return (
           <PlanSelectStep
+            initialPlans={initialPlans}
             isAuthenticated={isAuthenticated}
             selectedProject={undefined}
             onSubscribe={handleSubscribe}

@@ -5,6 +5,7 @@ import { Header, Footer } from '@/components';
 import { ErrorFeedbackModalProvider, GoogleAnalytics, LandingBaseUrlProvider } from '@/components/common';
 import { BRAND, PAGE_METADATA, COMPANY_INFO } from '@/lib/constants';
 import { checkAuthStatus, getLandingBaseUrlFromRequest } from '@/lib/auth';
+import { isIndexableRequest } from '@/lib/seo';
 import { env } from '@/lib/env';
 import './globals.css';
 
@@ -22,11 +23,11 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   metadataBase: new URL('https://talkgate.im'),
   title: {
     default: PAGE_METADATA.main.title,
-    template: '%s | Talkgate',
+    template: '%s | 톡게이트 Talkgate',
   },
   description: PAGE_METADATA.main.description,
   keywords: [...PAGE_METADATA.main.keywords],
@@ -35,17 +36,13 @@ export const metadata: Metadata = {
   publisher: COMPANY_INFO.name,
   alternates: {
     canonical: '/',
-    languages: {
-      'ko-KR': '/',
-      'en-US': '/',
-    },
   },
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
     alternateLocale: 'en_US',
     url: 'https://talkgate.im',
-    siteName: BRAND.name,
+    siteName: `${BRAND.nameKo} ${BRAND.name}`,
     title: PAGE_METADATA.main.title,
     description: PAGE_METADATA.main.description,
     images: [
@@ -53,7 +50,7 @@ export const metadata: Metadata = {
         url: '/images/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Talkgate - All your business workflows in one place',
+        alt: '톡게이트 Talkgate 고객관리·통합상담 CRM',
       },
     ],
   },
@@ -100,6 +97,27 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * 요청 호스트에 따라 색인 허용 여부를 결정합니다.
+ *
+ * dev.talkgate.im 같은 비운영 배포가 운영과 동일한 'index, follow'를
+ * 내보내 검색 결과에 노출되던 문제를 막습니다. 자세한 배경은 lib/seo.ts 참고.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+
+  if (isIndexableRequest(headersList)) return baseMetadata;
+
+  return {
+    ...baseMetadata,
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: { index: false, follow: false },
+    },
+  };
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -116,10 +134,10 @@ export default async function RootLayout({
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: BRAND.name,
+    name: `${BRAND.nameKo} ${BRAND.name}`,
     alternateName: ['톡게이트', '토크게이트', 'Talkgate'],
     url: siteUrl,
-    logo: `${siteUrl}/images/logo.png`,
+    logo: `${siteUrl}/icon-512x512.png`,
     description: BRAND.description,
     contactPoint: {
       '@type': 'ContactPoint',
@@ -132,22 +150,6 @@ export default async function RootLayout({
     sameAs: [
       // 소셜 미디어 링크가 있다면 추가
     ],
-  };
-
-  const websiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: BRAND.name,
-    alternateName: ['톡게이트', '토크게이트'],
-    url: siteUrl,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/search?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
   };
 
   return (
@@ -164,12 +166,6 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(websiteSchema),
           }}
         />
       </head>

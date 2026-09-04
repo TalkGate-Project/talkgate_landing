@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Talkgate 마케팅 정보 수신 동의 | Talkgate",
+  title: "마케팅 정보 수신 동의",
   description: "Talkgate 마케팅 정보 수신 동의",
+  robots: { index: false, follow: true },
+  alternates: { canonical: "/marketing-consent" },
 };
 
 /**

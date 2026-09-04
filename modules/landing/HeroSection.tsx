@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getStartUrl } from '@/lib/auth';
-import { useLandingBaseUrl } from '@/components/common';
 import { BRAND } from '@/lib/constants';
 
 const HERO_IMAGES = [
@@ -16,7 +15,6 @@ const HERO_IMAGES = [
 type AnimationPhase = 'display' | 'fade-out' | 'fade-in';
 
 export function HeroSection() {
-  const landingBaseUrl = useLandingBaseUrl();
   const [scrollY, setScrollY] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('fade-in');
@@ -147,4 +145,3 @@ export function HeroSection() {
     </section>
   );
 }
-
