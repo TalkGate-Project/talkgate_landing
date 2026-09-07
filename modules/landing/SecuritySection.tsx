@@ -26,20 +26,20 @@ export function SecuritySection() {
   }, []);
 
   return (
-    <section className="py-5 md:py-20 px-4" ref={sectionRef}>
+    <section className="py-5 md:py-20 px-4 md:px-6 lg:px-4" ref={sectionRef}>
       <div className="w-full max-w-[1170px] mx-auto">
         <div className="mb-5 md:mb-11 text-center md:text-left">
           <h5 className="text-primary-60 font-semibold text-[14px] md:text-[18px] leading-[1.5] tracking-[-0.02em] !mb-[10px]">
             안전한 데이터 관리 체계
           </h5>
           <h2 className="text-[20px] md:text-[32px] leading-[1.5] tracking-[-0.03em] font-bold">
-            사용자 데이터 보호를 최우선으로,<br className="md:hidden" /> 안정적인 시스템을 운영합니다.
+            사용자 데이터 보호를 최우선으로,<br className="lg:hidden" /> 안정적인 시스템을 운영합니다.
           </h2>
         </div>
-        <ul className="security-section-list flex flex-col md:flex-row md:h-[394px] gap-4 md:gap-6">
-          <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`}>
+        <ul className="security-section-list flex flex-col lg:flex-row lg:h-[394px] gap-4 md:gap-6">
+          <li className={`w-full md:max-w-[600px] lg:max-w-none md:mx-auto lg:mx-0 lg:flex-1 security-card ${isVisible ? 'animate' : ''}`}>
             <div 
-              className="relative w-full min-h-[345px] h-full pt-8 px-7 md:px-8 pb-6 md:pb-0 bg-[#f8f8f8] rounded-[12px] overflow-hidden min-h-[300px] md:h-full"
+              className="relative w-full min-h-[345px] h-full pt-8 px-7 md:px-8 pb-6 lg:pb-0 bg-[#f8f8f8] rounded-[12px] overflow-hidden min-h-[300px] lg:h-full"
               style={{
                 backgroundImage: 'url(/images/security-1.png)',
                 backgroundPosition: 'bottom right',
@@ -68,9 +68,9 @@ export function SecuritySection() {
               </p>
             </div>
           </li>
-          <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.15s' }}>
+          <li className={`w-full md:max-w-[600px] lg:max-w-none md:mx-auto lg:mx-0 lg:flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.15s' }}>
             <div 
-              className="relative w-full min-h-[345px] h-full pt-8 px-7 md:px-8 pb-6 md:pb-0 bg-[#f8f8f8] rounded-[12px] overflow-hidden min-h-[250px] md:h-full"
+              className="relative w-full min-h-[345px] h-full pt-8 px-7 md:px-8 pb-6 lg:pb-0 bg-[#f8f8f8] rounded-[12px] overflow-hidden min-h-[250px] lg:h-full"
               style={{
                 backgroundImage: 'url(/images/security-2.png)',
                 backgroundPosition: 'bottom right',
@@ -97,9 +97,9 @@ export function SecuritySection() {
               </p>
             </div>
           </li>
-          <li className={`flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.3s' }}>
+          <li className={`w-full md:max-w-[600px] lg:max-w-none md:mx-auto lg:mx-0 lg:flex-1 security-card ${isVisible ? 'animate' : ''}`} style={{ animationDelay: '0.3s' }}>
             <div 
-              className="relative w-full min-h-[390px] h-full pt-8 px-7 md:px-8 pb-6 md:pb-0 bg-[#f8f8f8] rounded-[12px] overflow-hidden min-h-[350px] md:h-full"
+              className="relative w-full min-h-[390px] h-full pt-8 px-7 md:px-8 pb-6 lg:pb-0 bg-[#f8f8f8] rounded-[12px] overflow-hidden min-h-[350px] lg:h-full"
               style={{
                 backgroundImage: 'url(/images/security-3.png)',
                 backgroundPosition: 'bottom right',

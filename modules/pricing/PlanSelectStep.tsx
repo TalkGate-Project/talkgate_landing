@@ -78,38 +78,12 @@ export default function PlanSelectStep({
   const [discountCouponMessage, setDiscountCouponMessage] = useState<string | null>(null);
 
   // Animation refs
-  const headerRef = useRef<HTMLDivElement>(null);
-  const toggleRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
-  const [headerVisible, setHeaderVisible] = useState(false);
-  const [toggleVisible, setToggleVisible] = useState(false);
   const [cardsVisible, setCardsVisible] = useState(false);
 
   // Animation observers
   useEffect(() => {
     const observerOptions = { threshold: 0.2 };
-
-    const headerObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setHeaderVisible(true);
-          }
-        });
-      },
-      observerOptions
-    );
-
-    const toggleObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setToggleVisible(true);
-          }
-        });
-      },
-      observerOptions
-    );
 
     const cardsObserver = new IntersectionObserver(
       (entries) => {
@@ -122,13 +96,9 @@ export default function PlanSelectStep({
       observerOptions
     );
 
-    if (headerRef.current) headerObserver.observe(headerRef.current);
-    if (toggleRef.current) toggleObserver.observe(toggleRef.current);
     if (cardsRef.current) cardsObserver.observe(cardsRef.current);
 
     return () => {
-      headerObserver.disconnect();
-      toggleObserver.disconnect();
       cardsObserver.disconnect();
     };
   }, [plans.length]); // plans가 로드되면 카드 observer 재설정
@@ -419,8 +389,8 @@ export default function PlanSelectStep({
   };
 
   return (
-    <section className="py-12 md:py-20 min-h-screen bg-white">
-      <div className="max-w-[1192px] mx-auto px-4">
+    <section className="pt-0 pb-12 md:pb-20 min-h-screen bg-white">
+      <div className="max-w-[1192px] mx-auto px-6 md:px-4">
         {/* 뒤로가기 및 선택된 프로젝트 표시 */}
         {onBack && (
           <div className="flex items-center gap-3 mb-6 md:mb-8">
@@ -454,18 +424,6 @@ export default function PlanSelectStep({
             )}
           </div>
         )}
-
-        {/* Header */}
-        <div ref={headerRef} className={`text-center mb-1 md:mb-3 pricing-header ${headerVisible ? 'animate' : ''}`}>
-          <h1 className="text-[20px] md:text-[32px] leading-[150%] font-bold tracking-[-0.03em] text-[#252525] !mb-4">
-            복잡한 고민 없이,
-            <br />
-            모든 기능을 지금 바로 시작하세요.
-          </h1>
-          <p className="text-[14px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-[#595959]">
-            가장 합리적인 가격으로 우리 팀의 성장을 가속화하세요.
-          </p>
-        </div>
 
         {/* coupon registration */}
         {selectedProject && (
@@ -519,7 +477,7 @@ export default function PlanSelectStep({
         )}
 
         {/* Billing Toggle */}
-        <div ref={toggleRef} className={`flex justify-center mb-9.5 md:mb-12 pricing-toggle ${toggleVisible ? 'animate' : ''}`}>
+        <div className="flex justify-center mb-9.5 md:mb-12">
           <div className="w-full md:w-auto inline-flex rounded-full bg-[#F8F8F8] p-1">
             <button
               className={`w-1/2 md:w-[196px] h-9 md:h-auto px-4 md:px-8 py-0 md:py-3 rounded-full font-semibold text-[14px] md:text-[18px] transition-colors flex items-center justify-center ${billingCycle === "monthly"
@@ -565,7 +523,7 @@ export default function PlanSelectStep({
 
         {/* Pricing Cards */}
         {!loading && !error && plans.length > 0 && (
-          <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-[1192px] mx-auto">
+          <div ref={cardsRef} className="grid grid-cols-1 lg:grid-cols-2 justify-items-center gap-8 md:gap-10 lg:gap-12 max-w-[1192px] mx-auto">
             {plans.map((plan, index) => {
               const nextPlanRank = getPlanRank(plan);
               const isSamePlan =
@@ -666,12 +624,12 @@ function PricingCard({
 
   return (
     <div
-      className={`w-full md:w-[572px] min-h-[400px] md:min-h-[546px] rounded-[24px] md:rounded-[42px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-20 py-9 md:py-[56px] transition-all ${isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
+      className={`w-full md:max-w-[520px] lg:w-[572px] lg:max-w-none min-h-[400px] md:min-h-[520px] lg:min-h-[546px] rounded-[24px] md:rounded-[32px] lg:rounded-[42px] bg-white shadow-[0_18px_28px_rgba(9,30,66,0.1)] md:shadow-[0_13px_61px_rgba(169,169,169,0.37)] px-8 md:px-12 lg:px-20 py-9 md:py-12 lg:py-[56px] transition-all ${isHighlighted ? "border-2 border-[#00E272]" : "border border-[#E2E2E2]"
         } ${className}`}
       style={{ animationDelay: `${animationDelay}s` }}
     >
       {/* Header */}
-      <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-5">
+      <div className="flex items-center gap-3 mb-4 md:mb-5">
         <div className="text-[20px] md:text-[24px] font-bold text-[#474747]">
           <svg
             width="160"
@@ -679,7 +637,7 @@ function PricingCard({
             viewBox="0 0 160 38"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="w-[120px] h-[28px] md:w-[160px] md:h-[38px]"
+            className="w-[137px] h-8 md:w-[160px] md:h-[38px]"
           >
             <path
               d="M95.8997 6.67546V28.3281C95.8997 32.5091 91.6011 38 87.2219 38H79.7485V32.9507L80.0055 32.7299C80.076 32.7249 80.1365 32.8654 80.1768 32.8654H90.3161L90.5731 32.6094V12.066L90.3161 11.8101H77.8587V23.6201H88.5976L88.8547 23.8761V28.6694L88.5976 28.9254H82.4093C71.3982 28.9254 68.4804 11.7599 78.7204 7.44841C79.2193 7.23761 80.7614 6.67044 81.2049 6.67044H95.8997V6.67546Z"
@@ -717,7 +675,7 @@ function PricingCard({
         </div>
         {plan.badge && (
           <span
-            className={`px-2 md:px-3 py-1 rounded-[30px] text-[12px] md:text-[14px] font-medium ${isHighlighted
+            className={`px-3 py-1 rounded-[30px] text-[14px] leading-[17px] font-medium ${isHighlighted
               ? "bg-[#D6FAE8] text-[#00B55B]"
               : "bg-[#E2E2E2] text-[#595959]"
               } opacity-80`}
@@ -728,17 +686,17 @@ function PricingCard({
       </div>
 
       {plan.description && (
-        <p className="text-[12px] md:text-[14px] font-medium tracking-[0.2px] text-[#808080] !mb-4 md:!mb-6">
+        <p className="text-[12px] md:text-[14px] leading-[14px] md:leading-normal font-medium tracking-[0.2px] text-[#808080] !mb-4 md:!mb-6">
           {plan.description}
         </p>
       )}
 
-      <hr className="border-[#E2E2E2] !mb-4 md:!mb-6" />
+      <hr className="border-[#E2E2E2] !mb-3 md:!mb-6" />
 
       {/* Price */}
-      <div className="mb-4 md:mb-6">
+      <div className="mb-7 md:mb-6">
         {billingCycle === "yearly" && (
-          <div className="hidden md:block text-[24px] text-[#808080] line-through leading-[150%] tracking-[-0.03em] mb-1">
+          <div className="text-[24px] text-[#808080] line-through leading-[150%] tracking-[-0.03em] mb-1">
             ₩ {((plan.priceMonthly ?? 0) * 3).toLocaleString()}
           </div>
         )}
@@ -746,14 +704,14 @@ function PricingCard({
           <span className={`font-bold leading-[150%] tracking-[-0.03em] text-[#252525] text-center text-[36px] md:text-[40px]`}>
             ₩ {price?.toLocaleString()}
           </span>
-          <span className="text-[14px] md:text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-2">
+          <span className="text-[16px] md:text-[18px] font-normal leading-[150%] tracking-[-0.02em] text-[#595959] ml-1 md:ml-2">
             {priceUnit}
           </span>
         </div>
       </div>
 
       {/* Features */}
-      <div className="space-y-5 mb-4 md:mb-6">
+      <div className="space-y-5 mb-5 md:mb-6">
         {/* 멤버 수 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -842,7 +800,7 @@ function PricingCard({
         </div>
       </div>
 
-      <hr className="border-[#E2E2E2] mb-4 md:mb-5" />
+      <hr className="border-[#E2E2E2] mb-5" />
 
       {/* 요금제 Summary */}
       <div className="flex items-center justify-between mb-8 md:mb-[42px]">
@@ -860,7 +818,7 @@ function PricingCard({
         onClick={onSubscribe}
         disabled={isDisabled}
         title={disabledReason}
-        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[16px] md:text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isHighlighted
+        className={`cursor-pointer w-full h-[48px] md:h-[52px] rounded-[30px] font-semibold text-[18px] leading-[150%] tracking-[-0.02em] text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isHighlighted
           ? "bg-[#00B55B] text-white hover:bg-[#00A052]"
           : "bg-[#000000] text-white hover:bg-[#252525]"
           }`}

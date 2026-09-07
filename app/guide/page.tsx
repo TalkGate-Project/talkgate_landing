@@ -40,7 +40,7 @@ export default function GuidePage() {
 
       <section className="overflow-hidden bg-white px-4">
         <div className="mx-auto flex min-h-[620px] max-w-[1164px] flex-col items-center justify-center gap-10 py-14 md:min-h-[668px] md:flex-row md:justify-between md:gap-12 md:py-16 lg:gap-20 xl:translate-x-[19px] xl:items-start xl:gap-0 xl:py-0">
-          <div className="w-full max-w-[360px] text-center md:w-[36%] md:max-w-[360px] md:text-left xl:mt-[165px] xl:w-[280px]">
+          <div className="guide-hero-content w-full max-w-[360px] text-center md:w-[36%] md:max-w-[360px] md:text-left xl:mt-[165px] xl:w-[280px]">
             <p className="text-[16px] font-semibold leading-[1.5] tracking-[-0.02em] text-[#00E272] md:text-[18px]">
               Talkgate 이용가이드
             </p>
@@ -62,7 +62,7 @@ export default function GuidePage() {
             </Link>
           </div>
 
-          <div className="relative w-full max-w-[642px] md:w-[56%] xl:mt-[97px] xl:w-[642px] xl:max-w-none xl:translate-x-6">
+          <div className="guide-hero-image relative w-full max-w-[642px] md:w-[56%] xl:mt-[97px] xl:w-[642px] xl:max-w-none xl:translate-x-6">
             <Image
               src="/images/guide-hero.png"
               alt="Talkgate 고객관리 대시보드 이용가이드 미리보기"

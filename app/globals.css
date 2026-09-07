@@ -381,6 +381,23 @@ body {
   }
 }
 
+/* 큰 모바일 화면에서는 미리보기가 버튼 아래 공간을 직접 차지하도록 배치합니다. */
+@media (450px <= width < 768px) {
+  .container-hero {
+    min-height: 0;
+    max-height: none;
+    padding-bottom: 0;
+  }
+
+  .container-hero .hero-dashboard-preview {
+    position: relative;
+    width: 100%;
+    margin-top: 32px;
+    flex-shrink: 0;
+    translate: none;
+  }
+}
+
 /* 
   섹션 패딩은 디자이너가 지정한 수치를 직접 사용합니다.
   유틸리티 클래스 대신 각 섹션에서 py-[값] 또는 직접 스타일을 적용하세요.
@@ -1422,6 +1439,22 @@ section .final-cta-container {
   }
 }
 
+/* 서버에서 먼저 렌더되는 요금제 소개는 최초 진입 때만 재생합니다. */
+.pricing-static-intro {
+  animation: pricingStaticIntroSlide 0.6s ease-out both;
+}
+
+@keyframes pricingStaticIntroSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Pricing Toggle: Fade In + Scale */
 .pricing-toggle {
   opacity: 0;
@@ -1604,7 +1637,7 @@ section .final-cta-container {
   transform: translateY(30px);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .introduce-second-image {
     transform: translateX(-30px);
   }
@@ -1614,7 +1647,7 @@ section .final-cta-container {
   animation: introduceSecondImageSlideMobile 0.7s ease-out forwards;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .introduce-second-image.animate {
     animation: introduceSecondImageSlide 0.7s ease-out forwards;
   }
@@ -1648,7 +1681,7 @@ section .final-cta-container {
   transform: translateY(30px);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .introduce-second-text {
     transform: translateX(30px);
   }
@@ -1659,7 +1692,7 @@ section .final-cta-container {
   animation-delay: 0.2s;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .introduce-second-text.animate {
     animation: introduceSecondTextSlide 0.7s ease-out forwards;
     animation-delay: 0.2s;
@@ -1750,5 +1783,47 @@ section .final-cta-container {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ============================================
+   Guide Page Animations
+   ============================================ */
+
+.guide-hero-content {
+  animation: guideHeroContentSlide 0.7s ease-out both;
+}
+
+.guide-hero-image {
+  animation: guideHeroImageSlide 0.8s 0.15s ease-out both;
+}
+
+@keyframes guideHeroContentSlide {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes guideHeroImageSlide {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-static-intro,
+  .guide-hero-content,
+  .guide-hero-image {
+    animation: none;
   }
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 import PricingContent from "./PricingContent";
+import PricingIntro from "./PricingIntro";
+import PricingLoadingState from "./PricingLoadingState";
 import { checkAuthStatus } from "@/lib/auth";
 import { BRAND, PAGE_METADATA } from "@/lib/constants";
 import { env } from "@/lib/env";
@@ -11,6 +13,15 @@ export const metadata: Metadata = {
   title: PAGE_METADATA.pricing.title,
   description: PAGE_METADATA.pricing.description,
   alternates: { canonical: "/pricing" },
+  openGraph: {
+    title: PAGE_METADATA.pricing.title,
+    description: PAGE_METADATA.pricing.description,
+    url: "/pricing",
+  },
+  twitter: {
+    title: PAGE_METADATA.pricing.title,
+    description: PAGE_METADATA.pricing.description,
+  },
 };
 
 async function getPlans(): Promise<SubscriptionPlan[]> {
@@ -79,13 +90,8 @@ export default async function PricingPage() {
           }}
         />
       )}
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-white flex items-center justify-center">
-            <div className="text-[16px] text-[#808080]">불러오는 중...</div>
-          </div>
-        }
-      >
+      <PricingIntro />
+      <Suspense fallback={<PricingLoadingState />}>
         <PricingContent
           initialPlans={initialPlans}
           initialIsAuthenticated={initialIsAuthenticated}

@@ -97,7 +97,7 @@ export function HeroSection() {
 
         {/* Dashboard Preview with Fade Animation */}
         <div 
-          className="hero-dashboard-preview absolute bottom-0 left-0 right-0 mx-auto z-10 w-[calc(100%-40px)] translate-y-[12px] sm:translate-y-[16px] md:translate-y-0 md:left-1/2 md:right-auto md:w-auto md:translate-x-[-50%]"
+          className="hero-dashboard-preview absolute bottom-0 left-0 right-0 mx-auto z-10 w-[calc(100%-40px)] translate-y-[12px] sm:translate-y-[16px] md:translate-y-0 md:left-1/2 md:right-auto md:w-auto md:translate-x-[-50%] md:max-[824px]:w-[calc(100%-48px)]"
           style={{ 
             boxShadow: "10px 10px 200px 20px #F4F4F4A3",
             opacity: animationPhase === 'fade-out' ? 0 : animationPhase === 'fade-in' ? 0 : 1,
@@ -105,7 +105,7 @@ export function HeroSection() {
           }}
         >
           <div
-            className="hero-image-wrapper flex justify-center w-full md:w-auto"
+            className="hero-image-wrapper flex justify-center w-full md:w-auto md:max-[824px]:w-full"
             style={{
               transform: `scale(${
                 animationPhase === 'fade-out' ? 0.95 : animationPhase === 'fade-in' ? 0.95 : 1
@@ -120,7 +120,7 @@ export function HeroSection() {
               width={776}
               height={490}
               priority={currentIndex === 0}
-              className="w-full h-auto max-w-full md:w-auto md:h-auto md:max-w-none"
+              className="w-full h-auto max-w-full md:w-auto md:h-auto md:max-w-none md:max-[824px]:max-w-full"
             />
           </div>
         </div>
