@@ -71,10 +71,10 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
   return (
     <div className="pb-[60px] md:pb-[80px]">
       {/* Hero Section */}
-      <section ref={heroRef} className="pt-[30px] md:pt-[54px] md:pb-[30px] px-4 md:px-0">
-        <div className="md:max-w-[1200px] mx-auto">
+      <section ref={heroRef} className="pt-[30px] md:pt-[54px] md:pb-[30px] px-4 md:px-6 lg:px-4">
+        <div className="max-w-[1200px] mx-auto">
           {/* Main Visual */}
-          <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 text-white mb-[30px] md:mb-[50px] h-[400px] md:h-[526px]">
+          <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 text-white mb-[30px] md:mb-[50px] h-[400px] md:h-[480px] lg:h-[526px]">
             {/* Background Image */}
             <div className={`absolute inset-0 z-0 introduce-hero-image ${heroVisible ? 'animate' : ''}`}>
               <Image
@@ -91,7 +91,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 p-6 md:p-8 lg:p-[76px] flex items-end justify-start h-[400px] md:h-[526px]">
+            <div className="relative z-10 p-6 md:p-10 lg:p-[76px] flex items-end justify-start h-full">
               <div className={`max-w-xl h-full flex flex-col justify-end ${heroVisible ? 'animate' : ''}`}>
                 <div className={`mb-4 md:mb-0 introduce-hero-logo-wrapper ${heroVisible ? 'animate' : ''}`}>
                   <svg
@@ -101,7 +101,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                     aria-hidden="true"
-                    className="w-[140px] h-[33px] md:w-[208px] md:h-[49px] introduce-hero-logo"
+                    className="w-[140px] h-[33px] md:w-[180px] md:h-auto lg:w-[208px] introduce-hero-logo"
                   >
                     <path
                       d="M124.669 8.60803V36.5285C124.669 41.9198 119.081 49.0002 113.388 49.0002H103.673V42.4893L104.007 42.2045C104.099 42.1981 104.177 42.3793 104.23 42.3793H117.411L117.745 42.0492V15.559L117.411 15.229H101.216V30.4577H115.177L115.511 30.7878V36.9686L115.177 37.2987H107.132C92.8175 37.2987 89.0244 15.1642 102.336 9.60473C102.985 9.33291 104.99 8.60156 105.566 8.60156H124.669V8.60803Z"
@@ -129,11 +129,11 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     />
                   </svg>
                 </div>
-                <h1 className={`!pb-5 mb:!pb-0 !mt-7 md:!mt-8 text-[14px] md:text-[20px] text-white md:text-[#474747] leading-[1.5] tracking-[-0.0em] font-bold introduce-hero-text ${heroVisible ? 'animate' : ''}`}>
+                <h1 className={`!pb-5 md:!pb-0 !mt-7 md:!mt-8 text-[14px] md:text-[18px] lg:text-[20px] text-white md:text-[#474747] leading-[1.5] tracking-[-0.0em] font-bold introduce-hero-text ${heroVisible ? 'animate' : ''}`}>
                   {/* 로고 이미지가 시각적 제목 역할을 하므로, H1의 실제 텍스트는 스크린리더/검색엔진용으로 제공 */}
                   <span className="sr-only">{BRAND.nameKo} 회사소개 - </span>
                   {/* 모바일 줄바꿈 */}
-                  <span className="md:hidden">
+                  <span className="lg:hidden">
                     미래의 고객 변화에 미리 대응하고
                     <br />
                     앞서 나갈 수 있도록
@@ -143,7 +143,7 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
                     {BRAND.name}가 함께 만들어갑니다.
                   </span>
                   {/* 웹 줄바꿈 */}
-                  <span className="hidden md:inline">
+                  <span className="hidden lg:inline">
                     미래의 고객 변화에 미리 대응하고 앞서 나갈 수 있도록
                     <br />
                     고객 관계 혁신의 여정을
@@ -156,21 +156,21 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
           </div>
 
           {/* Second Visual + Description */}
-          <div ref={secondVisualRef} className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-12 items-center mb-12 md:mb-24">
-            <div className={`rounded-xl overflow-hidden w-full md:w-auto order-1 introduce-second-image ${secondVisualVisible ? 'animate' : ''}`}>
+          <div ref={secondVisualRef} className="flex flex-col lg:grid lg:grid-cols-2 gap-6 md:gap-10 lg:gap-12 items-center mb-12 md:mb-24">
+            <div className={`rounded-xl overflow-hidden w-full md:max-w-[600px] lg:max-w-none lg:w-auto order-1 introduce-second-image ${secondVisualVisible ? 'animate' : ''}`}>
               <div className="w-full h-full flex items-center justify-center">
                 <Image
                   src="/images/introduce-2.png"
                   alt="Talkgate Background"
                   width={592}
                   height={311}
-                  className="w-full h-auto object-cover object-center md:object-right"
+                  className="w-full h-auto object-cover object-center lg:object-right"
                   priority
                 />
               </div>
             </div>
-            <div className={`order-2 w-full md:w-auto introduce-second-text ${secondVisualVisible ? 'animate' : ''}`}>
-              <p className="text-[20px] md:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-center md:text-right md:!pr-[88px]">
+            <div className={`order-2 w-full lg:w-auto introduce-second-text ${secondVisualVisible ? 'animate' : ''}`}>
+              <p className="text-[20px] md:text-[24px] lg:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-center lg:text-right lg:!pr-[88px] break-keep">
                 AI와 자동화 기술을 통해 비효율적인 상담
                 <br />
                 및 영업 프로세스를 제거하고,
@@ -185,19 +185,19 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
       </section>
 
       {/* Mission Section */}
-      <section ref={missionRef} className="py-12 md:py-20 bg-background px-4 md:px-0">
-        <div className="md:max-w-[1200px] mx-auto">
-          <h2 className={`text-[32px] md:text-[48px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6 introduce-mission-title ${missionVisible ? 'animate' : ''}`}>
+      <section ref={missionRef} className="py-12 md:py-20 bg-background px-4 md:px-6 lg:px-4">
+        <div className="max-w-[1200px] mx-auto">
+          <h2 className={`text-[32px] md:text-[40px] lg:text-[48px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6 introduce-mission-title ${missionVisible ? 'animate' : ''}`}>
             Our Mission
           </h2>
 
           <div className="">
-            <p className={`text-[20px] md:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6 introduce-mission-subtitle ${missionVisible ? 'animate' : ''}`}>
+            <p className={`text-[20px] md:text-[24px] lg:text-[28px] font-bold leading-[1.5] tracking-[-0.03em] text-[#252525] !mb-4 md:!mb-6 break-keep introduce-mission-subtitle ${missionVisible ? 'animate' : ''}`}>
               복잡해지는 고객 여정 속에서, 기업의 성장을 가속할 수 있는 최적의
               솔루션은 여전히 부족합니다.
             </p>
 
-            <p className={`text-[14px] md:text-[18px] text-[#252525] leading-[1.5] tracking-[-0.03em] introduce-mission-content ${missionVisible ? 'animate' : ''}`}>
+            <p className={`text-[14px] md:text-[16px] lg:text-[18px] text-[#252525] leading-[1.5] tracking-[-0.03em] break-keep introduce-mission-content ${missionVisible ? 'animate' : ''}`}>
               {BRAND.name}는 기업과 스타트업이 핵심 고객을 더 빠르게 파악하고,
               데이터에 기반한 의사결정을 내릴 수 있도록 통합 관리 도구와 고객
               관리 시스템을 제공합니다.
@@ -377,4 +377,3 @@ export function IntroduceView({ storyItems }: IntroduceViewProps) {
 //     </div>
 //   );
 // }
-

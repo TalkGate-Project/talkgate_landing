@@ -16,7 +16,7 @@ export function CustomerFeatureSection() {
   useEffect(() => {
     const checkScreenSize = () => {
       if (typeof window !== 'undefined') {
-        setIsDesktop(window.innerWidth >= 1024);
+        setIsDesktop(window.innerWidth >= 1280);
       }
     };
     
@@ -78,7 +78,7 @@ export function CustomerFeatureSection() {
   };
 
   return (
-    <section className="lg:py-20 py-12" ref={sectionRef}>
+    <section className="lg:py-20 py-12 px-4 md:px-6 lg:px-0" ref={sectionRef}>
       <div className="max-w-[1200px] mx-auto">
         <div className="lg:mb-16">
           <h5 className="text-center lg:text-left text-primary-60 font-semibold text-[14px] md:text-[18px] leading-[1.5] tracking-[-0.02em] !mb-3">
@@ -111,14 +111,14 @@ export function CustomerFeatureSection() {
             </div>
 
             {/* Right Content Area */}
-            <div className={`flex-1 w-full lg:min-h-[424px] lg:h-[424px] flex flex-col justify-center customer-content ${isVisible ? 'animate' : ''} px-4 lg:px-0`}>
-              <div className="w-full max-w-[368px] lg:w-[368px] h-[40px] lg:h-[56px] relative inline-flex bg-neutral-20 rounded-full mx-auto lg:mx-0 lg:ml-[94px]">
+            <div className={`flex-1 w-full lg:min-h-[424px] lg:h-[424px] flex flex-col justify-center customer-content ${isVisible ? 'animate' : ''}`}>
+              <div className="w-full max-w-[368px] lg:w-[368px] h-[40px] lg:h-[56px] relative inline-flex items-center bg-neutral-10 lg:bg-neutral-20 rounded-full mx-auto lg:mx-0 lg:ml-[94px]">
                 {/* Sliding Background Indicator */}
                 <div
-                  className="customer-tab-indicator absolute top-0 left-1 bottom-0 lg:top-[2px] lg:bottom-1 w-[calc(50%-4px)] lg:w-[176px] h-[40px] lg:h-[52px] bg-neutral-90 rounded-full transition-all duration-300 ease-out"
+                  className="customer-tab-indicator absolute top-[2px] left-[2px] lg:left-1 w-[calc(50%-1px)] lg:w-[176px] h-[36px] lg:h-[52px] bg-[#000000] rounded-full transition-all duration-300 ease-out"
                   style={{
                     transform: activeTab === "info" 
-                      ? (isDesktop ? "translateX(184px)" : "translateX(calc(100% + 4px))")
+                      ? (isDesktop ? "translateX(184px)" : "translateX(100%)")
                       : "translateX(0)",
                   }}
                 />
@@ -126,20 +126,20 @@ export function CustomerFeatureSection() {
                 {/* Tab Buttons */}
                 <button
                   onClick={() => handleTabClick("list")}
-                  className={`cursor-pointer relative z-10 flex-1 lg:w-[180px] h-[36px] lg:h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
+                  className={`cursor-pointer relative z-10 flex-1 lg:w-[180px] h-[36px] lg:h-[56px] rounded-full font-semibold text-[16px] lg:text-[18px] leading-[1.5] tracking-[-0.02em] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "list"
                       ? "text-neutral-0"
-                      : "text-neutral-70 hover:text-neutral-90"
+                      : "text-neutral-60 lg:text-neutral-70 hover:text-neutral-90"
                   }`}
                 >
                   고객목록
                 </button>
                 <button
                   onClick={() => handleTabClick("info")}
-                  className={`cursor-pointer relative z-10 flex-1 lg:w-[180px] lg:pl-3 h-[36px] lg:h-[56px] rounded-full font-semibold text-[18px] transition-colors duration-300 flex items-center justify-center ${
+                  className={`cursor-pointer relative z-10 flex-1 lg:w-[180px] lg:pl-3 h-[36px] lg:h-[56px] rounded-full font-semibold text-[16px] lg:text-[18px] leading-[1.5] tracking-[-0.02em] transition-colors duration-300 flex items-center justify-center ${
                     activeTab === "info"
                       ? "text-neutral-0"
-                      : "text-neutral-70 hover:text-neutral-90"
+                      : "text-neutral-60 lg:text-neutral-70 hover:text-neutral-90"
                   }`}
                 >
                   고객정보

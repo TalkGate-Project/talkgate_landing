@@ -108,7 +108,7 @@ export const PAGE_METADATA = {
     ],
   },
   pricing: {
-    title: '톡게이트(Talkgate) 요금제',
+    title: '요금제',
     description: '복잡한 고민 없이, 모든 기능을 지금 바로 시작하세요.',
   },
   introduce: {

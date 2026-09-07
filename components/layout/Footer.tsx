@@ -10,7 +10,7 @@ export function Footer() {
     <footer className="border-t border-border bg-background">
       <div className="py-6 md:py-10 px-4">
         {/* Company Info - Mobile */}
-        <div className="md:hidden text-center text-[12px] leading-[20px] tracking-[-0.02em] text-[#808080] font-medium">
+        <div data-nosnippet="" className="md:hidden text-center text-[12px] leading-[20px] tracking-[-0.02em] text-[#808080] font-medium">
           <p>
             {COMPANY_INFO.name} | 사업자등록번호 : {COMPANY_INFO.businessNumber}
           </p>
@@ -30,7 +30,7 @@ export function Footer() {
         </div>
 
         {/* Company Info - Desktop */}
-        <div className="hidden md:block text-center text-[16px] leading-[28px] tracking-[-0.02em] text-[#808080] font-medium">
+        <div data-nosnippet="" className="hidden md:block text-center text-[16px] leading-[28px] tracking-[-0.02em] text-[#808080] font-medium">
           <p>
             {COMPANY_INFO.name} | 사업자등록번호 : {COMPANY_INFO.businessNumber}{" "}
             | 통신판매업신고번호 : {COMPANY_INFO.telecomNumber}

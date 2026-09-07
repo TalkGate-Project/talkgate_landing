@@ -12,6 +12,7 @@ import { ProjectsService } from "@/lib/projects";
 import { ProjectPrivacyConsentService } from "@/lib/projectPrivacyConsent";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import type { SubscriptionPlan, CouponInfoForCheckout } from "@/types/subscription";
+import PricingLoadingState from "./PricingLoadingState";
 
 type PricingStep = "project" | "plan" | "checkout";
 
@@ -252,11 +253,7 @@ export default function PricingContent({
 
   // 로딩 중일 때 (인증 확인 또는 프로젝트 유무 확인 대기)
   if (isAuthenticated === null || (isAuthenticated === true && hasNoProjects === null && !projectIdFromUrl)) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-[16px] text-[#808080]">불러오는 중...</div>
-      </div>
-    );
+    return <PricingLoadingState />;
   }
 
   // 프로젝트 선택 핸들러
